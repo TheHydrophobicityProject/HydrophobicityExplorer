@@ -6,10 +6,12 @@ For now, I'll work on translating the notebooks to python and making them more g
 
 Examples of running the generatePolymer function in MakePolymer.py
 
-python3 MHPcalculator.py -n 3 -m Styrene
--->Hydrogen 3 Styrene Hydrogen
+python3 MakePolymer.py -n 3 -m Styrene
+Hydrogen 3 Styrene Hydrogen
+CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 
-python3 MHPcalculator.py -n 3 -s 2 "CC(C(=O)OCCCC)" "CC(C)"
-Hydrogen 3 ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Hydrogen
+python3 MakePolymer.py -n 4 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl
+Methoxy 4 ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
+COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)c1ccccc1CO
 
-Need to add SMILES support for initiator and terminator
+There is no selection for the "best" conformer as in some of the other jupyter notebooks. This can be added soon, just seeing utility of the current suite of command-line aruments.

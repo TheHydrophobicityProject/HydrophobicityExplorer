@@ -54,7 +54,6 @@ def getArgs():
     parser.add_argument("-i", "--initiator", type=str, default="Hydrogen", help="initiator Key from initiator dict. Defaults to Hydrogen.")
     parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="terminator key taken from initiator dict. Defaults to Hydrogen.")
     parser.add_argument("-m","--single_monomer", type=str, help="monomer key from any of the included monomer dicts. Use -s instead to specify a monomer that is not included.")
-    #parser.add_argument("-M","--multiple_monomers", type=bool, help="Use multiple monomers? Any argument means True.", default=False)
     parser.add_argument("-s","--super_monomer", type=str, nargs='*',
                         help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     args=parser.parse_args()
@@ -78,13 +77,13 @@ def createPolymerSMILES(i,n,m,t):
                 repeat_unit+=repeat*element
                 repeat=1
     else:
-        repeat_unit=m
+        repeat_unit=monomer_dict[m]
 
     polymer_SMILES=smiles_inators[0]+n*repeat_unit+smiles_inators[1]
     
-    # print(repeat_unit)
-    # print(smiles_inators)
-    # print(polymer_SMILES)
+    #print(repeat_unit)
+    #print(smiles_inators)
+    print(polymer_SMILES)
 
     return polymer_SMILES
 
@@ -106,7 +105,7 @@ def main():
     Chem.SanitizeMol(pol)
     #opt steps
     pol_h=Chem.AddHs(pol)
-    AllChem.EmbedMolecule(pol_h)
+    AllChem.EmbedMolecule(pol_h,useRandomCoords=True)
     AllChem.MMFFOptimizeMolecule(pol_h)
 
     return pol_h, pol, polSMILES
