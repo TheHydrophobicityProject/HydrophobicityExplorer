@@ -1,0 +1,15 @@
+Sander:
+What is the database in DBgenerate.py for? 
+From what I can gather from skimming is that this runs calculations on cocalc?
+Some of the functions that generate mol objects in rdkit are not present since rdkit is imported but never used.
+For now, I'll work on translating the notebooks to python and making them more general.
+
+Examples of running the generatePolymer function in MakePolymer.py
+
+python3 MHPcalculator.py -n 3 -m Styrene
+-->Hydrogen 3 Styrene Hydrogen
+
+python3 MHPcalculator.py -n 3 -s 2 "CC(C(=O)OCCCC)" "CC(C)"
+Hydrogen 3 ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Hydrogen
+
+Need to add SMILES support for initiator and terminator
