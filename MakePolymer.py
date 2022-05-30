@@ -102,6 +102,8 @@ def main():
 
     #make Mol object:
     pol=Chem.MolFromSmiles(polSMILES)
+    #check mol
+    Chem.SanitizeMol(pol)
     #opt steps
     pol_h=Chem.AddHs(pol)
     AllChem.EmbedMolecule(pol_h)
