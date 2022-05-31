@@ -1,5 +1,5 @@
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
 import argparse
 
 ###Built-in dict. Can be divorced from this file later
