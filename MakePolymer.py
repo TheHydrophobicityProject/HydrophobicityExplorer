@@ -1,7 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
 import argparse
-from threading import local
 
 ###Built-in dict. Can be divorced from this file later
 
@@ -46,7 +45,7 @@ init_dict={'Benzyl': 'c1ccccc1CO',
            'Methoxy': 'CO', 
            'Methyl': 'C', 
            'Vinyl': 'C=C'
-           }
+}
 
 def getArgs():
     parser=argparse.ArgumentParser()
@@ -87,6 +86,55 @@ def createPolymerSMILES(i,n,m,t):
 
     return polymer_SMILES
 
+def bestConformer(pol_h,numConfs,seed,threads): #currently unused. See notes or question in optPol().
+    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=threads)
+    best=[]
+    for id in ids:
+        prop = AllChem.MMFFGetMoleculeProperties(pol_h)
+        ff = AllChem.MMFFGetMoleculeForceField(pol_h, prop, confId=id)
+        ff.Minimize()
+        en = float(ff.CalcEnergy())
+        econf = (en, id)
+        best.append(econf)
+    best.sort()
+    if len(best==0):
+        raise Exception("Error: No valid conformations found for the molecule. Try increasing the number of conformations.")
+    # The best conformer is the first tuple and the ID of that conformer is the second value in the tuple
+    best_id = int(best[0][1])
+    # Return the best ID
+    return best_id
+    
+def optPol(smiles):
+    #make Mol object:
+    pol=Chem.MolFromSmiles(smiles)
+    #check mol
+    Chem.SanitizeMol(pol)
+    #opt steps
+    pol_h=Chem.AddHs(pol)
+    #pol_h=bestConformer(pol_h,100,42,2) #add support for changing these with cli arguments
+    AllChem.EmbedMolecule(pol_h,useRandomCoords=True)
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
+    #maybe this number of itterations should be specified with cli arguments (give option).
+    return pol_h, pol
+
+def drawPol(pol):
+    #will allow specified names later
+    Chem.Draw.MolToFile(pol,"polymer.png")
+
+def LogP_Sasa(pol_h):#,best_conf_id):
+    # Now calculate LogP and SASA
+    # Calculate SASA based on the best conformer
+    # classifyAtoms CRASHED when I tried it with , confIdx=best_conf_id
+    # but someone needs to go back and make sure it's actually OK to use it without
+    # and that that won't cause problems!
+    radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
+    #sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii, confIdx=best_conf_id)
+    sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii)
+    # LogP does NOT have an option to feed in a conformer so just calculate it for the overall molecule
+    logP = Chem.Descriptors.MolLogP(pol_h)
+    # Now return LogP and SASA
+    return logP, sasa
+
 def main():
     args=getArgs()
     #two cases: one monomer or supermonomer.
@@ -99,15 +147,14 @@ def main():
 
     polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
 
-    #make Mol object:
-    pol=Chem.MolFromSmiles(polSMILES)
-    #check mol
-    Chem.SanitizeMol(pol)
-    #opt steps
-    pol_h=Chem.AddHs(pol)
-    AllChem.EmbedMolecule(pol_h,useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(pol_h)
+    pol_h,pol=optPol(polSMILES)
 
-    return pol_h, pol, polSMILES
+    drawPol(pol)#make this optional. also allow arg to specify filename
+
+    logP,sasa=LogP_Sasa(pol_h)
+
+    print(logP,sasa)
+    
+    return pol_h, pol, polSMILES, logP, sasa
 
 main()
