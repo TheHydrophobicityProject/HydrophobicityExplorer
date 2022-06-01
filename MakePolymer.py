@@ -53,16 +53,15 @@ def getArgs():
     parser.add_argument("-i", "--initiator", type=str, default="Hydrogen", help="initiator Key from initiator dict. Defaults to Hydrogen.")
     parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="terminator key taken from initiator dict. Defaults to Hydrogen.")
     parser.add_argument("-m","--single_monomer", type=str, help="monomer key from any of the included monomer dicts. Use -s instead to specify a monomer that is not included.")
-    parser.add_argument("-s","--super_monomer", type=str, nargs='*',
+    parser.add_argument("-s", "--super_monomer", type=str, nargs='*',
                         help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
-    parser.add_argument("-d","--draw", type=str, help="Filename for polymer image.")
+    parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -v option.")
     args=parser.parse_args()
 
     return args
 
 def createPolymerSMILES(i,n,m,t):
-    print(i,n,m,t)
-    
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue.
     smiles_inators=[init_dict[x] if x in init_dict else x for x in given_inators]
@@ -80,10 +79,6 @@ def createPolymerSMILES(i,n,m,t):
         repeat_unit=monomer_dict[m]
 
     polymer_SMILES=smiles_inators[0]+n*repeat_unit+smiles_inators[1]
-    
-    #print(repeat_unit)
-    #print(smiles_inators)
-    print(polymer_SMILES)
 
     return polymer_SMILES
 
@@ -125,7 +120,7 @@ def drawPol(pol,drawName):
 def LogP_Sasa(pol_h):#,best_conf_id):
     # Now calculate LogP and SASA
     # Calculate SASA based on the best conformer
-    # classifyAtoms CRASHED when I tried it with , confIdx=best_conf_id
+    # classifyAtoms CRASHED when I tried it with, confIdx=best_conf_id
     # but someone needs to go back and make sure it's actually OK to use it without
     # and that that won't cause problems!
     radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
@@ -138,8 +133,8 @@ def LogP_Sasa(pol_h):#,best_conf_id):
 
 def main():
     args=getArgs()
-    #two cases: one monomer or supermonomer.
-    #if both are specified something is wrong.
+    #Two cases: one monomer or supermonomer.
+    #If both are specified something is wrong.
     if args.single_monomer is not None and args.super_monomer is not None:
         raise argparse.ArgumentError("Cannot specify both single and super monomers")
     
@@ -148,14 +143,21 @@ def main():
 
     polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
 
+    if args.verbose:
+        print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
+        print("This gives the following SMILES:",polSMILES)
+
     pol_h,pol=optPol(polSMILES)
 
     if args.draw is not None:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
+    else:
+        if args.verbose:
+            drawPol(pol,"polymer.png")
 
+    #Calcs.
     logP,sasa=LogP_Sasa(pol_h)
-
     print(logP,sasa)
     
     return pol_h, pol, polSMILES, logP, sasa
