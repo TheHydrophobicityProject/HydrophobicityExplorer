@@ -56,7 +56,7 @@ def getArgs():
     parser.add_argument("-s", "--super_monomer", type=str, nargs='*',
                         help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
-    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -v option.")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area) and RG (radius of gyration).")
     args=parser.parse_args()
 
@@ -64,22 +64,22 @@ def getArgs():
 
 def createPolymerSMILES(i,n,m,t):
     given_inators = [i,t]
-    #gets from dict if available. Otherwise assume SMILES and continue.
+    #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
     smiles_inators=[init_dict[x] if x in init_dict else x for x in given_inators]
 
     if type(m)==list:
         repeat_unit=""
-        repeat=1
+        repeat=1 #ommission of a coeficient implies 1 copy
         for element in m:
             try:
-                repeat=int(element)
+                repeat=int(element) #is this a string of an integer?
             except:
-                repeat_unit+=repeat*element
-                repeat=1
+                repeat_unit+=repeat*element #if not, repeat the SMILES as many times as specified (or once if no coef. provided).
+                repeat=1 #reset coef.
     else:
-        repeat_unit=monomer_dict[m]
+        repeat_unit=monomer_dict[m] #if not a list, look for the corresponding smiles in the dictionary, will throw error if not included.
 
-    polymer_SMILES=smiles_inators[0]+n*repeat_unit+smiles_inators[1]
+    polymer_SMILES=smiles_inators[0]+n*repeat_unit+smiles_inators[1] #concatonate all parts as a big SMILES.
 
     return polymer_SMILES
 
@@ -115,7 +115,6 @@ def optPol(smiles):
     return pol_h, pol
 
 def drawPol(pol,drawName):
-    #will allow specified names later
     Chem.Draw.MolToFile(pol,drawName)
 
 def Sasa(pol_h):#,best_conf_id):
@@ -124,15 +123,18 @@ def Sasa(pol_h):#,best_conf_id):
     # classifyAtoms CRASHED when I tried it with, confIdx=best_conf_id
     # but someone needs to go back and make sure it's actually OK to use it without
     # and that that won't cause problems!
+    
     radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
     #sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii, confIdx=best_conf_id)
     sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii)
-    # Now return SASA
+    
     return sasa
 
 def LogP(pol_h):
     # LogP does NOT have an option to feed in a conformer so just calculate it for the overall molecule
     logP = Chem.Descriptors.MolLogP(pol_h)
+    #I've seen that there is a way to include or exclude hydrogens from the LogP calculation.
+    #Descriptors.MolLogP(z_no_Hs, includeHs=*bool*)). Do we want to include this?
     return logP
 
 def RadGyration(pol_h):
@@ -142,7 +144,8 @@ def RadGyration(pol_h):
     return RG
 
 def doCalcs(pol_h,calcs):
-    #Calcs.
+    #Calcs are only done if requested.
+    #Not a fan of nested if statements. Open to suggestions on improvments.
     data={}
     for calc in calcs:
         if calc == "SA":
@@ -170,22 +173,23 @@ def main():
 
     polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
 
-    if args.verbose:
+    if args.verbose: #extra info if requested
         print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
         print("This gives the following SMILES:",polSMILES)
         print("requested calculations are",args.calculation)
 
-    pol_h,pol=optPol(polSMILES)
+    pol_h,pol=optPol(polSMILES) #both are mol objects
 
     if args.draw is not None:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
     else:
         if args.verbose:
+            #produce image if increased verbocity is requested even if no name is set.
             drawPol(pol,"polymer.png")
 
-    data=doCalcs(pol_h,args.calculation)
-
-    print(data)
+    if args.calculation is not None:
+        data=doCalcs(pol_h,args.calculation)
+        print(data)
 
 main()
