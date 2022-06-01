@@ -57,6 +57,7 @@ def getArgs():
                         help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -v option.")
+    parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area) and RG (radius of gyration).")
     args=parser.parse_args()
 
     return args
@@ -117,7 +118,7 @@ def drawPol(pol,drawName):
     #will allow specified names later
     Chem.Draw.MolToFile(pol,drawName)
 
-def LogP_Sasa(pol_h):#,best_conf_id):
+def Sasa(pol_h):#,best_conf_id):
     # Now calculate LogP and SASA
     # Calculate SASA based on the best conformer
     # classifyAtoms CRASHED when I tried it with, confIdx=best_conf_id
@@ -126,10 +127,36 @@ def LogP_Sasa(pol_h):#,best_conf_id):
     radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
     #sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii, confIdx=best_conf_id)
     sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii)
+    # Now return SASA
+    return sasa
+
+def LogP(pol_h):
     # LogP does NOT have an option to feed in a conformer so just calculate it for the overall molecule
     logP = Chem.Descriptors.MolLogP(pol_h)
-    # Now return LogP and SASA
-    return logP, sasa
+    return logP
+
+def RadGyration(pol_h):
+    RG=Chem.rdMolDescriptors.CalcRadiusOfGyration(pol_h)
+    #Chem.Descriptors3D.RadiusOfGyration(pol_h)
+    #both seem to give identical results based on "SMILES to Rg.ipynb"
+    return RG
+
+def doCalcs(pol_h,calcs):
+    #Calcs.
+    data={}
+    for calc in calcs:
+        if calc == "SA":
+            sasa=Sasa(pol_h)
+            data["SA"]=sasa
+        elif calc == "LogP":
+            logP=LogP(pol_h)
+            data["LogP"]=logP
+        elif calc == "RG":
+            rg=RadGyration(pol_h)
+            data["RG"]=rg
+        else:
+            print("unrecognized calculation:",calc+". Use SA, LogP or RG")
+    return data
 
 def main():
     args=getArgs()
@@ -146,6 +173,7 @@ def main():
     if args.verbose:
         print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
         print("This gives the following SMILES:",polSMILES)
+        print("requested calculations are",args.calculation)
 
     pol_h,pol=optPol(polSMILES)
 
@@ -156,10 +184,8 @@ def main():
         if args.verbose:
             drawPol(pol,"polymer.png")
 
-    #Calcs.
-    logP,sasa=LogP_Sasa(pol_h)
-    print(logP,sasa)
-    
-    return pol_h, pol, polSMILES, logP, sasa
+    data=doCalcs(pol_h,args.calculation)
+
+    print(data)
 
 main()
