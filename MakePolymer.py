@@ -55,6 +55,7 @@ def getArgs():
     parser.add_argument("-m","--single_monomer", type=str, help="monomer key from any of the included monomer dicts. Use -s instead to specify a monomer that is not included.")
     parser.add_argument("-s","--super_monomer", type=str, nargs='*',
                         help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
+    parser.add_argument("-d","--draw", type=str, help="Filename for polymer image.")
     args=parser.parse_args()
 
     return args
@@ -117,9 +118,9 @@ def optPol(smiles):
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
-def drawPol(pol):
+def drawPol(pol,drawName):
     #will allow specified names later
-    Chem.Draw.MolToFile(pol,"polymer.png")
+    Chem.Draw.MolToFile(pol,drawName)
 
 def LogP_Sasa(pol_h):#,best_conf_id):
     # Now calculate LogP and SASA
@@ -149,7 +150,9 @@ def main():
 
     pol_h,pol=optPol(polSMILES)
 
-    drawPol(pol)#make this optional. also allow arg to specify filename
+    if args.draw is not None:
+        drawName=args.draw.split(".")[0]+".png"
+        drawPol(pol,drawName)
 
     logP,sasa=LogP_Sasa(pol_h)
 
