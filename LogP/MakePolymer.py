@@ -58,6 +58,7 @@ def getArgs():
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area) and RG (radius of gyration).")
+    parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     args=parser.parse_args()
 
     return args
@@ -83,8 +84,8 @@ def createPolymerSMILES(i,n,m,t):
 
     return polymer_SMILES
 
-def bestConformer(pol_h,numConfs,seed,threads): #currently unused. See notes or question in optPol().
-    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=threads)
+def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question in optPol().
+    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=0)
     best=[]
     for id in ids:
         prop = AllChem.MMFFGetMoleculeProperties(pol_h)
@@ -116,6 +117,22 @@ def optPol(smiles):
 
 def drawPol(pol,drawName):
     Chem.Draw.MolToFile(pol,drawName)
+
+def write_or_read_pol(pol_h,name): 
+    #in the future it may be useful to read a specified file if it doesn't yet exist.
+    #that would mean we can skip the time-consuming optimization process and go right to calculations.
+    ext=name.split(".")[1]
+    status=0
+    if ext=="xyz":
+        Chem.MolToXYZFile(pol_h,name)
+    elif ext == "pdb":
+        Chem.MolToPDBFile(pol_h,name)
+    elif ext == "mol":
+        Chem.MolToMolFile(pol_h,name)
+    else:
+        print("unsuported extention:",ext,"Please use .pdb, .xyz or .mol")
+        status=1
+    return status
 
 def Sasa(pol_h):#,best_conf_id):
     # Now calculate LogP and SASA
@@ -179,6 +196,13 @@ def main():
         print("requested calculations are",args.calculation)
 
     pol_h,pol=optPol(polSMILES) #both are mol objects
+
+    if args.file is not None:
+        if args.verbose:
+            print("attempting to save molecule to",args.file)
+        stat=write_or_read_pol(pol_h,args.file)
+        if args.verbose and stat == 0:
+            print("success.")
 
     if args.draw is not None:
         drawName=args.draw.split(".")[0]+".png"

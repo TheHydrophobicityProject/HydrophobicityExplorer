@@ -15,3 +15,8 @@ This gives the following SMILES: COCC(C(=O)OCCCC)CC(C)CC(C)CC(C(=O)OCCCC)CC(C)CC
 
 There is no selection for the "best" conformer as in some of the other jupyter notebooks. This can be added soon, just seeing utility of the current suite of command-line aruments.
 -->AllChem.MMFFOptimizeMolecule(pol_h, maxIters=1000) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*)
+
+Do we want to highlight parts of the molecule?
+https://www.rdkit.org/docs/Cookbook.html#highlight-a-substructure-in-a-molecule
+
+It would be nice to be able to read a file (.xyz, .pdb or .mol) to skip time-consuming optimization
