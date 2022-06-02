@@ -1,6 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
-import argparse,os
+import argparse,os,csv
 
 ###Built-in dict. Can be divorced from this file later
 monomer_dict={
@@ -59,6 +59,7 @@ def getArgs():
     parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type=str, help="The name/path to file you wish to import. Supported formats are .pdb and .mol")
+    parser.add_argument("-e", "--export", default=False, action="store_true", help="Include this option to calculate properties over a range of lengths. from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided. A .csv file will be created so these properties can be plotted with R.")
     args=parser.parse_args()
     return args
 
@@ -207,45 +208,84 @@ def main():
         #If both are specified something is wrong.
         if args.single_monomer is not None and args.super_monomer is not None:
             raise argparse.ArgumentError("Cannot specify both single and super monomers")
-        
         #This gives a list of components of a super-monomer or just the string used for single monomer in dict
         repeat_unit=list(filter(None,[args.single_monomer,args.super_monomer]))[0]
-
-        polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
-
-        if args.verbose: #extra info if requested
-            print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
-            print("This gives the following SMILES:",polSMILES)
-
-        pol_h,pol=optPol(polSMILES) #both are mol objects
+        if args.export:
+            POL_LIST=[]
+            SMI_LIST=[]
+            N_array=range(1,args.n+1)
+            for i in N_array:
+                smi=createPolymerSMILES(args.initiator,i,repeat_unit,args.terminator)
+                if args.verbose:
+                    print("Done generating SMILES with n =",str(i),"now:",smi)
+                    print("Converting to mol now.")
+                pol_h,pol=optPol(smi)
+                POL_LIST.append(pol_h)
+                SMI_LIST.append(smi)
+        else:
+            polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
+            if args.verbose: #extra info if requested
+                print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
+                print("This gives the following SMILES:",polSMILES)
+            pol_h,pol=optPol(polSMILES) #both are mol objects
     else: #get mol from file
         pol_h=write_or_read_pol("Read",args.read)
-
-    if args.verbose: #more extra information
-        print("requested calculations are",args.calculation)
 
     #saving the polymer to a file.
     if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
         if args.verbose:
             print("attempting to save molecule to",args.file)
-        stat=write_or_read_pol(pol_h,args.file)
+        if args.export:
+            stat=0
+            base = args.file.split(".")[0]
+            ext = args.file.split(".")[1]
+            for i,mol in enumerate(POL_LIST):
+                name=base+"_"+str(i+1)+"."+ext
+                stat+=write_or_read_pol(mol,name)
+        else:
+            stat=write_or_read_pol(pol_h,args.file)
         if args.verbose and stat == 0:
             print("success.")
 
-    #drawing an picture of the polymer.
+    #drawing a picture of the polymer.
     #drawings with optimized geoms are ugly in 2D. Fix so it "flattens out" so we can get drawing of unknown file
-    if args.draw is not None and args.read is None:
+    #Add support for grid image in the future
+    if args.draw is not None and args.read is None and not args.export:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
     else:
-        if args.verbose and args.read is None:
+        if args.verbose and args.read is None and not args.export:
             #if we can flatten out the mol change this trigger too.
             #produce image if increased verbocity is requested even if no name is set.
             drawPol(pol,"polymer.png")
 
+    if args.verbose:
+        print("requested calculations are",args.calculation)
     #doing only the specified calculations.
     if args.calculation is not None:
-        data=doCalcs(pol_h,set(args.calculation)) #use set to remove duplicates
-        print(data)
+        if not args.export:
+            calcs=set(args.calculation)
+            data=doCalcs(pol_h,calcs) #use set to remove duplicates
+            print(data)
+        else:
+            dicts=[]
+            for i,pol in enumerate(POL_LIST):
+                calcs=set(args.calculation)
+                pol_data=doCalcs(pol,calcs)
+                pol_data["N"]=i+1
+                pol_data["smi"]=SMI_LIST[i]
+                dicts.append(pol_data)
+            data={k: [d[k] for d in dicts] for k in dicts[0]}
+            #data["N"]=list(N_array)
+            #working with matplotlib is very annoying so I'd rather use R to actually plot things.
+            #let's export to a csv
+            with open("data.csv","w",newline="") as c:
+                cols=list(data.keys())
+                writer=csv.DictWriter(c,fieldnames=cols)
+                writer.writeheader()
+                writer.writerows(dicts)
+            print("done exporting data to .csv file.")
+            if args.verbose:
+                print(data)
 
 main()
