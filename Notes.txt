@@ -19,4 +19,11 @@ There is no selection for the "best" conformer as in some of the other jupyter n
 Do we want to highlight parts of the molecule?
 https://www.rdkit.org/docs/Cookbook.html#highlight-a-substructure-in-a-molecule
 
-It would be nice to be able to read a file (.xyz, .pdb or .mol) to skip time-consuming optimization
+time python3 MakePolymer.py -r pol.mol -c SA RG LogP (generated using the -f option with the second polymer above.)
+{'SA': 911.5262248851872, 'RG': 7.430526236202889, 'LogP': 14.510599999999974}
+
+real    0m0.230s
+user    0m0.758s
+sys     0m0.582s
+
+Much faster to read existing mol file than generate polymer every time.
