@@ -27,3 +27,5 @@ user    0m0.758s
 sys     0m0.582s
 
 Much faster to read existing mol file than generate polymer every time.
+
+I will delete notebooks no longer needed since they will not be in the final product and they are still on cocalc.

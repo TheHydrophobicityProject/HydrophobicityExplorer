@@ -56,7 +56,7 @@ def getArgs():
                         help="A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
-    parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area) and RG (radius of gyration).")
+    parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type=str, help="The name/path to file you wish to import. Supported formats are .pdb and .mol")
     args=parser.parse_args()
@@ -139,7 +139,7 @@ def write_or_read_pol(pol_h_or_str,name):
         elif ext == "mol":
             Chem.MolToMolFile(pol_h_or_str,name)
         else:
-            print("unsuported extention:",ext,"Please use .pdb, .xyz or .mol")
+            print("Unsuported extention:",ext,"Please use .pdb, .xyz or .mol")
             exit_status=1
         return exit_status
 
@@ -168,22 +168,36 @@ def RadGyration(pol_h):
     #both seem to give identical results based on "SMILES to Rg.ipynb"
     return RG
 
+def MolVolume(pol_h):
+    MV=Chem.AllChem.ComputeMolVolume(pol_h, confId=- 1, gridSpacing=0.2, boxMargin=2.0)
+    return MV
+
 def doCalcs(pol_h,calcs):
+    #the variable calcs is a set
     #Calcs are only done if requested.
-    #Not a fan of nested if statements. Open to suggestions on improvments.
     data={}
-    for calc in calcs:
-        if calc == "SA":
-            sasa=Sasa(pol_h)
-            data["SA"]=sasa
-        elif calc == "LogP":
-            logP=LogP(pol_h)
-            data["LogP"]=logP
-        elif calc == "RG":
-            rg=RadGyration(pol_h)
-            data["RG"]=rg
-        else:
-            print("unrecognized calculation:",calc+". Use SA, LogP or RG")
+    if "SA" in calcs or "MHP" in calcs:
+        sasa=Sasa(pol_h)
+        data["SA"]=sasa
+        calcs.discard("SA")
+    if "LogP" in calcs or "MHP" in calcs:
+        logP=LogP(pol_h)
+        data["LogP"]=logP
+        calcs.discard("LogP")
+    if "RG" in calcs:
+        rg=RadGyration(pol_h)
+        data["RG"]=rg
+        calcs.discard("RG")
+    if "MV" in calcs:
+        mv = MolVolume(pol_h)
+        data["MV"]=mv
+        calcs.discard("MV")
+    if "MHP" in calcs:
+        mhp=logP/sasa
+        data["MHP"]=mhp
+        calcs.discard("MHP")
+    if len(calcs) > 0:
+        print("Unrecognized calculation(s):",str(calcs)+". Use SA, LogP, MV, MHP or RG")
     return data
 
 def main():
@@ -231,7 +245,7 @@ def main():
 
     #doing only the specified calculations.
     if args.calculation is not None:
-        data=doCalcs(pol_h,args.calculation)
+        data=doCalcs(pol_h,set(args.calculation)) #use set to remove duplicates
         print(data)
 
 main()
