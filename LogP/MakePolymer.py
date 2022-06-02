@@ -48,12 +48,12 @@ init_dict={'Benzyl': 'c1ccccc1CO',
 
 def getArgs():
     parser=argparse.ArgumentParser()
-    parser.add_argument("-n", type=int, help="number of monomer or super-monomer units.")
-    parser.add_argument("-i", "--initiator", type=str, default="Hydrogen", help="initiator Key from initiator dict. Defaults to Hydrogen.")
-    parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="terminator key taken from initiator dict. Defaults to Hydrogen.")
-    parser.add_argument("-m","--single_monomer", type=str, help="monomer key from any of the included monomer dicts. Use -s instead to specify a monomer that is not included.")
+    parser.add_argument("-n", type=int, help="The number of monomer or super-monomer units.")
+    parser.add_argument("-i", "--initiator", type=str, default="Hydrogen", help="Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
+    parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
+    parser.add_argument("-m","--single_monomer", type=str, help="Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
     parser.add_argument("-s", "--super_monomer", type=str, nargs='*',
-                        help="a series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
+                        help="A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area) and RG (radius of gyration).")
@@ -125,7 +125,7 @@ def write_or_read_pol(pol_h_or_str,name):
             elif ext == "mol":
                 pol_h = Chem.MolFromMolFile(name)
             else:
-                print("unsuported extention:",ext,"Please use .pdb, or .mol")
+                print("unsuported extention:",ext,"Please use .pdb, or .mol") #.xyz cannot be read by rdkit.
                 quit()
             return pol_h
         else:
