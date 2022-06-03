@@ -30,5 +30,20 @@ Much faster to read existing mol file than generate polymer every time.
 
 I will delete notebooks no longer needed since they will not be in the final product and they are still on cocalc.
 
-I am much more comfortable plotting in R than with matplotlib, so I am going to export data for now to a .csv and plot with an R script.
-Ideally this could be rolled into the main python script or at least run automatically from within it, but I am not sure how to do that now.
+plotting and exporting data:
+$python3 MakePolymer.py -n 4 -m Styrene -c MHP -p -e data.csv -v
+Done generating SMILES with n = 1 now: CC(c1ccccc1)
+Converting to mol now.
+Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
+Converting to mol now.
+Done generating SMILES with n = 3 now: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
+Converting to mol now.
+Done generating SMILES with n = 4 now: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
+Converting to mol now.
+Saving image to polymer.png by default.
+requested calculations are ['MHP']
+ <popup of plot because -v option is provided>
+ done exporting data to .csv file.
+ <data printed because -v is provided>
+
+This export feature also works with a single polymer.

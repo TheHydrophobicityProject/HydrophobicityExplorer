@@ -1,6 +1,7 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
 import argparse,os,csv
+import matplotlib.pyplot as plt
 
 ###Built-in dict. Can be divorced from this file later
 monomer_dict={
@@ -94,7 +95,8 @@ def getArgs():
     parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type=str, help="The name/path to file you wish to import. Supported formats are .pdb and .mol")
-    parser.add_argument("-e", "--export", default=False, action="store_true", help="Include this option to calculate properties over a range of lengths. from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided. A .csv file will be created so these properties can be plotted with R.")
+    parser.add_argument("-p", "--plot", default=False, action="store_true", help="Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
+    parser.add_argument("-e", "--export", type=str, help="Include this option to export a .csv file of all data calculations. Specify the name here.")
     args=parser.parse_args()
     return args
 
@@ -249,7 +251,7 @@ def main():
             raise argparse.ArgumentError("Cannot specify both single and super monomers")
         #This gives a list of components of a super-monomer or just the string used for single monomer in dict
         repeat_unit=list(filter(None,[args.single_monomer,args.super_monomer]))[0]
-        if args.export:
+        if args.plot:
             POL_LIST=[]
             SMI_LIST=[]
             Unopt_pols=[]
@@ -276,7 +278,7 @@ def main():
     if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
         if args.verbose:
             print("attempting to save molecule to",args.file)
-        if args.export:
+        if args.plot:
             stat=0
             base = args.file.split(".")[0]
             ext = args.file.split(".")[1]
@@ -290,7 +292,7 @@ def main():
 
     #drawing a picture of the polymer.
     #drawings with optimized geoms are ugly in 2D. Fix so it "flattens out" so we can get drawing of unknown file
-    if args.export:
+    if args.plot:
         pol=Unopt_pols #submit this list of mols for use in grid image.
     if args.draw is not None and args.read is None:
         drawName=args.draw.split(".")[0]+".png"
@@ -306,9 +308,12 @@ def main():
         print("requested calculations are",args.calculation)
     #CALCULATIONS
     if args.calculation is not None:
-        if not args.export:
+        if not args.plot:
             calcs=set(args.calculation)
             data=doCalcs(pol_h,calcs) #use set to remove duplicates
+            data["N"]=args.n
+            data["smi"]=polSMILES
+            dicts=[data]
             print(data)
         else:
             dicts=[]
@@ -319,10 +324,22 @@ def main():
                 pol_data["smi"]=SMI_LIST[i]
                 dicts.append(pol_data)
             data={k: [d[k] for d in dicts] for k in dicts[0]}
-            #data["N"]=list(N_array)
-            #working with matplotlib is very annoying so I'd rather use R to actually plot things.
+            
+            ncols=len(data)-2
+            figure, axis = plt.subplots(ncols=ncols)
+            series=0
+            for key in data:
+                if key != "N" and key != "smi":
+                    axis[series].scatter(data["N"],data[key])
+                    axis[series].set_title(key+" vs n")
+                    series+=1
+            plt.savefig("Size-dependent-stats.png", bbox_inches='tight')
+            if args.verbose:
+                plt.show()
+        
+        if args.export is not None:        
             #let's export to a csv
-            with open("data.csv","w",newline="") as c:
+            with open(args.export,"w",newline="") as c:
                 cols=list(data.keys())
                 writer=csv.DictWriter(c,fieldnames=cols)
                 writer.writeheader()
