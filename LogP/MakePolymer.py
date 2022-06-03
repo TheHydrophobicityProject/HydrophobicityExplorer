@@ -150,7 +150,11 @@ def optPol(smiles):
     return pol_h, pol
 
 def drawPol(pol,drawName):
-    Chem.Draw.MolToFile(pol,drawName)
+    if type(pol) == list: #save a grid image instead
+        img=Chem.Draw.MolsToGridImage(pol, legends=["n="+str(i+1) for i,mol in enumerate(pol)] ,subImgSize=(250, 250))
+        img.save(drawName)
+    else:
+        Chem.Draw.MolToFile(pol,drawName)
 
 def write_or_read_pol(pol_h_or_str,name):
     ext=name.split(".")[1]
@@ -248,6 +252,7 @@ def main():
         if args.export:
             POL_LIST=[]
             SMI_LIST=[]
+            Unopt_pols=[]
             N_array=range(1,args.n+1)
             for i in N_array:
                 smi=createPolymerSMILES(args.initiator,i,repeat_unit,args.terminator)
@@ -257,6 +262,7 @@ def main():
                 pol_h,pol=optPol(smi)
                 POL_LIST.append(pol_h)
                 SMI_LIST.append(smi)
+                Unopt_pols.append(pol)
         else:
             polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
             if args.verbose: #extra info if requested
@@ -284,19 +290,21 @@ def main():
 
     #drawing a picture of the polymer.
     #drawings with optimized geoms are ugly in 2D. Fix so it "flattens out" so we can get drawing of unknown file
-    #Add support for grid image in the future
-    if args.draw is not None and args.read is None and not args.export:
+    if args.export:
+        pol=Unopt_pols #submit this list of mols for use in grid image.
+    if args.draw is not None and args.read is None:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
     else:
-        if args.verbose and args.read is None and not args.export:
+        if args.verbose and args.read is None:
             #if we can flatten out the mol change this trigger too.
             #produce image if increased verbocity is requested even if no name is set.
+            print("Saving image to polymer.png by default.")
             drawPol(pol,"polymer.png")
 
     if args.verbose:
         print("requested calculations are",args.calculation)
-    #doing only the specified calculations.
+    #CALCULATIONS
     if args.calculation is not None:
         if not args.export:
             calcs=set(args.calculation)
