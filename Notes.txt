@@ -15,6 +15,6 @@ TODO
 
 Enable users to hide plots for SA and LogP if not specified (xMHP or something like that instead of MHP)
 
-more details about packaging.
+More details about packaging.
 
 See what functionality there is in the crossover notebooks.

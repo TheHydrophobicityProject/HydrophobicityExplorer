@@ -92,10 +92,12 @@ def getArgs():
                         help="A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
-    parser.add_argument("-c","--calculation", type=str, nargs='*', help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
+    parser.add_argument("-c","--calculation", type=str, nargs='*', 
+                        help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type=str, help="The name/path to file you wish to import. Supported formats are .pdb and .mol")
-    parser.add_argument("-p", "--plot", default=False, action="store_true", help="Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
+    parser.add_argument("-p", "--plot", default=False, action="store_true", 
+                        help="Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
     parser.add_argument("-e", "--export", type=str, help="Include this option to export a .csv file of all data calculations. Specify the name here.")
     args=parser.parse_args()
     return args
@@ -113,7 +115,6 @@ def createPolymerSMILES(i,n,m,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
     smiles_inators=[init_dict[x] if x in init_dict else x for x in given_inators]
-
     if type(m)==list:
         repeat_unit=""
         repeat=1 #ommission of a coeficient implies 1 copy
@@ -218,7 +219,6 @@ def Sasa(pol_h):#,best_conf_id):
     # classifyAtoms CRASHED when I tried it with, confIdx=best_conf_id
     # but someone needs to go back and make sure it's actually OK to use it without
     # and that that won't cause problems!
-    
     radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
     #sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii, confIdx=best_conf_id)
     sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii)    
@@ -292,7 +292,6 @@ def makePlot(pol_list,calculations,smiles_list,verbosity):
     print("Saved plot to",figname)
     if verbosity:
         plt.show()
-
     return data,dicts
 
 def exportToCSV(exptName,data,dicts_list,verbose):
@@ -310,7 +309,7 @@ def main():
     if args.read is None: #then get polymer parameters from CLI arguments.
         repeat_unit=getRepeatUnit(args.single_monomer,args.super_monomer)
         if args.plot:
-            POL_LIST,SMI_LIST,Unopt_pols=makeSeveralPolymers(args.initiator,args.n,repeat_unit,args.terminator,args.verbose)
+            POL_LIST,SMI_LIST,UNOPT_POL_LIST=makeSeveralPolymers(args.initiator,args.n,repeat_unit,args.terminator,args.verbose)
         else:
             polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
             if args.verbose: #extra info if requested
@@ -319,6 +318,7 @@ def main():
             pol_h,pol=optPol(polSMILES) #both are mol objects
     else: #get mol from file
         pol_h,polSMILES,pol=write_or_read_pol("Read",args.read)
+        #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
 
     #saving the polymer to a file.
     if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
@@ -338,7 +338,7 @@ def main():
 
     #drawing a picture of the polymer.
     if args.plot:
-        pol=Unopt_pols #submit this list of mols for use in grid image.
+        pol=UNOPT_POL_LIST #submit this list of mols for use in grid image.
     if args.draw is not None:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
@@ -348,9 +348,9 @@ def main():
             print("Saving image to polymer.png by default.")
             drawPol(pol,"polymer.png")
 
+    #CALCULATIONS
     if args.verbose:
         print("requested calculations are",args.calculation)
-    #CALCULATIONS
     if args.calculation is not None:
         if not args.plot:
             calcs=set(args.calculation)
