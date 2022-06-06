@@ -273,6 +273,7 @@ def main():
             pol_h,pol=optPol(polSMILES) #both are mol objects
     else: #get mol from file
         pol_h=write_or_read_pol("Read",args.read)
+        polSMILES=Chem.MolToSmiles(pol_h)
 
     #saving the polymer to a file.
     if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
@@ -333,11 +334,13 @@ def main():
                     axis[series].scatter(data["N"],data[key])
                     axis[series].set_title(key+" vs n")
                     series+=1
-            plt.savefig("Size-dependent-stats.png", bbox_inches='tight')
+            figname="Size-dependent-stats.png"
+            plt.savefig(figname, bbox_inches='tight')
+            print("Saved plot to",figname)
             if args.verbose:
                 plt.show()
         
-        if args.export is not None:        
+        if args.export is not None:
             #let's export to a csv
             with open(args.export,"w",newline="") as c:
                 cols=list(data.keys())
