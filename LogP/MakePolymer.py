@@ -106,7 +106,7 @@ def getRepeatUnit(single,super):
     #Two cases: one monomer or supermonomer.
     #If both are specified something is wrong.
     if single is not None and super is not None:
-        raise argparse.ArgumentError("Cannot specify both single and super monomers")
+        raise TypeError("Cannot specify both single and super monomers")
     #This gives a list of components of a super-monomer or just the string used for single monomer in dict
     repeat_unit=list(filter(None,[single,super]))[0]
     return repeat_unit
@@ -317,6 +317,8 @@ def main():
                 print("This gives the following SMILES:",polSMILES)
             pol_h,pol=optPol(polSMILES) #both are mol objects
     else: #get mol from file
+        if args.plot:
+                raise TypeError("You may not plot data read from a file.")
         pol_h,polSMILES,pol=write_or_read_pol("Read",args.read)
         #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
 

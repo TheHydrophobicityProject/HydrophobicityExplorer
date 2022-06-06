@@ -43,7 +43,9 @@ The above example also shows how calculations are specified. Each calculation ha
 
 ### Plotting Size-Dependent Calculations
 
-The size-dependent plots of any calculations performed can be generated with the `-p` flag and the data can be exported with the `-e` flag. 
+The size-dependent plots of any calculations performed can be generated with the `-p` flag. The sizes plotted will range from 1 repeat unit to the number specified by the `-n` flag. Because the repeat unit needs to be well-defined, this plotting option is unavailable if the polymer is being read from a file.
+
+The data can be exported with the `-e` flag. 
 
 ```bash
 $ python3 MakePolymer.py -n 4 -m Styrene -c MHP -p -e data.csv -v
@@ -58,7 +60,7 @@ Converting to mol now.
 Saving image to polymer.png by default.
 requested calculations are ['MHP']
 Saved plot to Size-dependent-stats.png
-<popup of plot appears>
+# popup of plot appears
 done exporting data to .csv file.
 {'SA': [181.71900012667044, 325.84799130354446, 466.9956239244017, 607.5159276234424], 'LogP': [2.2490000000000006, 4.422900000000004, 6.596800000000006, 8.770700000000003], 'MHP': [0.012376251236427096, 0.013573507027943717, 0.014126042433896363, 0.01443698774172117], 'N': [1, 2, 3, 4], 'smi': ['CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)']}
 ```
