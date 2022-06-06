@@ -100,6 +100,15 @@ def getArgs():
     args=parser.parse_args()
     return args
 
+def getRepeatUnit(single,super):
+    #Two cases: one monomer or supermonomer.
+    #If both are specified something is wrong.
+    if single is not None and super is not None:
+        raise argparse.ArgumentError("Cannot specify both single and super monomers")
+    #This gives a list of components of a super-monomer or just the string used for single monomer in dict
+    repeat_unit=list(filter(None,[single,super]))[0]
+    return repeat_unit
+
 def createPolymerSMILES(i,n,m,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
@@ -151,6 +160,22 @@ def optPol(smiles):
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
+def makeSeveralPolymers(i,n,r,t,verbosity):
+    POL_LIST=[]
+    SMI_LIST=[]
+    Unopt_pols=[]
+    N_array=range(1,n+1)
+    for j in N_array:
+        smi=createPolymerSMILES(i,j,r,t)
+        if verbosity:
+            print("Done generating SMILES with n =",str(j),"now:",smi)
+            print("Converting to mol now.")
+        pol_h,pol=optPol(smi)
+        POL_LIST.append(pol_h)
+        SMI_LIST.append(smi)
+        Unopt_pols.append(pol)
+    return POL_LIST, SMI_LIST, Unopt_pols
+
 def drawPol(pol,drawName):
     if type(pol) == list: #save a grid image instead
         img=Chem.Draw.MolsToGridImage(pol, legends=["n="+str(i+1) for i,mol in enumerate(pol)] ,subImgSize=(250, 250))
@@ -169,7 +194,9 @@ def write_or_read_pol(pol_h_or_str,name):
             else:
                 print("unsuported extention:",ext,"Please use .pdb, or .mol") #.xyz cannot be read by rdkit.
                 quit()
-            return pol_h
+            polSMILES=Chem.MolToSmiles(pol_h)
+            pol=Chem.MolFromSmiles(polSMILES)
+            return pol_h,polSMILES,pol
         else:
             raise FileNotFoundError(name)
     else:
@@ -242,29 +269,22 @@ def doCalcs(pol_h,calcs):
         print("Unrecognized calculation(s):",str(calcs)+". Use SA, LogP, MV, MHP or RG")
     return data
 
+def exportToCSV(exptName,data,dicts_list,verbose):
+    with open(exptName,"w",newline="") as c:
+        cols=list(data.keys())
+        writer=csv.DictWriter(c,fieldnames=cols)
+        writer.writeheader()
+        writer.writerows(dicts_list)
+    print("done exporting data to .csv file.")
+    if verbose:
+        print(data)
+
 def main():
     args=getArgs()
     if args.read is None: #then get polymer parameters from CLI arguments.
-        #Two cases: one monomer or supermonomer.
-        #If both are specified something is wrong.
-        if args.single_monomer is not None and args.super_monomer is not None:
-            raise argparse.ArgumentError("Cannot specify both single and super monomers")
-        #This gives a list of components of a super-monomer or just the string used for single monomer in dict
-        repeat_unit=list(filter(None,[args.single_monomer,args.super_monomer]))[0]
+        repeat_unit=getRepeatUnit(args.single_monomer,args.super_monomer)
         if args.plot:
-            POL_LIST=[]
-            SMI_LIST=[]
-            Unopt_pols=[]
-            N_array=range(1,args.n+1)
-            for i in N_array:
-                smi=createPolymerSMILES(args.initiator,i,repeat_unit,args.terminator)
-                if args.verbose:
-                    print("Done generating SMILES with n =",str(i),"now:",smi)
-                    print("Converting to mol now.")
-                pol_h,pol=optPol(smi)
-                POL_LIST.append(pol_h)
-                SMI_LIST.append(smi)
-                Unopt_pols.append(pol)
+            POL_LIST,SMI_LIST,Unopt_pols=makeSeveralPolymers(args.initiator,args.n,repeat_unit,args.terminator,args.verbose)
         else:
             polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
             if args.verbose: #extra info if requested
@@ -272,8 +292,7 @@ def main():
                 print("This gives the following SMILES:",polSMILES)
             pol_h,pol=optPol(polSMILES) #both are mol objects
     else: #get mol from file
-        pol_h=write_or_read_pol("Read",args.read)
-        polSMILES=Chem.MolToSmiles(pol_h)
+        pol_h,polSMILES,pol=write_or_read_pol("Read",args.read)
 
     #saving the polymer to a file.
     if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
@@ -292,15 +311,13 @@ def main():
             print("success.")
 
     #drawing a picture of the polymer.
-    #drawings with optimized geoms are ugly in 2D. Fix so it "flattens out" so we can get drawing of unknown file
     if args.plot:
         pol=Unopt_pols #submit this list of mols for use in grid image.
-    if args.draw is not None and args.read is None:
+    if args.draw is not None:
         drawName=args.draw.split(".")[0]+".png"
         drawPol(pol,drawName)
     else:
-        if args.verbose and args.read is None:
-            #if we can flatten out the mol change this trigger too.
+        if args.verbose:
             #produce image if increased verbocity is requested even if no name is set.
             print("Saving image to polymer.png by default.")
             drawPol(pol,"polymer.png")
@@ -341,14 +358,6 @@ def main():
                 plt.show()
         
         if args.export is not None:
-            #let's export to a csv
-            with open(args.export,"w",newline="") as c:
-                cols=list(data.keys())
-                writer=csv.DictWriter(c,fieldnames=cols)
-                writer.writeheader()
-                writer.writerows(dicts)
-            print("done exporting data to .csv file.")
-            if args.verbose:
-                print(data)
+            exportToCSV(args.export,data,dicts,args.verbose)
 
 main()

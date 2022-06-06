@@ -13,8 +13,6 @@ I will delete notebooks no longer needed since they will not be in the final pro
 
 TODO
 
-Now that SMILES is generated from imported .mol and .pdb files, add support for drawing them if requested.
-
 Enable users to hide plots for SA and LogP if not specified (xMHP or something like that instead of MHP)
 
 more details about packaging.
