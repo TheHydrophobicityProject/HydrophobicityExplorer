@@ -2,11 +2,11 @@
 
 This project enables users to perform several calulations on a limitless scope of polymers as long as the primary structure is known.
 
-The script `MakePolymer.py` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `python3 MakePolymer.py -h`. Some examples will be covered in the next section.
+The script `MakePolymer.py` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `python3 MakePolymer.py -h`. A large, but non-comprehensive list of examples will be covered in the next section.
 
 ## Usage and Examples
 
-There is a dictionary of monomers and terminal units builtin `MakePolymer.py` The composition of a polymer containing units in these dictionaried can be spelled out in the following manner. The -v flag increases verbocity.
+There is a dictionary of monomers and terminal units builtin `MakePolymer.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The -v flag increases verbocity.
 
 ```python
 python3 MakePolymer.py -n 3 -m Styrene -v
