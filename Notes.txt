@@ -10,3 +10,13 @@ Do we want to highlight parts of the molecule?
 https://www.rdkit.org/docs/Cookbook.html#highlight-a-substructure-in-a-molecule
 
 I will delete notebooks no longer needed since they will not be in the final product and they are still on cocalc.
+
+TODO
+
+Now that SMILES is generated from imported .mol and .pdb files, add support for drawing them if requested.
+
+Enable users to hide plots for SA and LogP if not specified (xMHP or something like that instead of MHP)
+
+more details about packaging.
+
+See what functionality there is in the crossover notebooks.
