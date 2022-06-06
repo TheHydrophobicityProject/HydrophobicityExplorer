@@ -269,6 +269,32 @@ def doCalcs(pol_h,calcs):
         print("Unrecognized calculation(s):",str(calcs)+". Use SA, LogP, MV, MHP or RG")
     return data
 
+def makePlot(pol_list,calculations,smiles_list,verbosity):
+    dicts=[]
+    for i,pol in enumerate(pol_list):
+        calcs=set(calculations)
+        pol_data=doCalcs(pol,calcs)
+        pol_data["N"]=i+1
+        pol_data["smi"]=smiles_list[i]
+        dicts.append(pol_data)
+    data={k: [d[k] for d in dicts] for k in dicts[0]}
+    
+    ncols=len(data)-2
+    figure, axis = plt.subplots(ncols=ncols)
+    series=0
+    for key in data:
+        if key != "N" and key != "smi":
+            axis[series].scatter(data["N"],data[key])
+            axis[series].set_title(key+" vs n")
+            series+=1
+    figname="Size-dependent-stats.png"
+    plt.savefig(figname, bbox_inches='tight')
+    print("Saved plot to",figname)
+    if verbosity:
+        plt.show()
+
+    return data,dicts
+
 def exportToCSV(exptName,data,dicts_list,verbose):
     with open(exptName,"w",newline="") as c:
         cols=list(data.keys())
@@ -334,29 +360,8 @@ def main():
             dicts=[data]
             print(data)
         else:
-            dicts=[]
-            for i,pol in enumerate(POL_LIST):
-                calcs=set(args.calculation)
-                pol_data=doCalcs(pol,calcs)
-                pol_data["N"]=i+1
-                pol_data["smi"]=SMI_LIST[i]
-                dicts.append(pol_data)
-            data={k: [d[k] for d in dicts] for k in dicts[0]}
+            data,dicts=makePlot(POL_LIST,args.calculation,SMI_LIST,args.verbose)
             
-            ncols=len(data)-2
-            figure, axis = plt.subplots(ncols=ncols)
-            series=0
-            for key in data:
-                if key != "N" and key != "smi":
-                    axis[series].scatter(data["N"],data[key])
-                    axis[series].set_title(key+" vs n")
-                    series+=1
-            figname="Size-dependent-stats.png"
-            plt.savefig(figname, bbox_inches='tight')
-            print("Saved plot to",figname)
-            if args.verbose:
-                plt.show()
-        
         if args.export is not None:
             exportToCSV(args.export,data,dicts,args.verbose)
 
