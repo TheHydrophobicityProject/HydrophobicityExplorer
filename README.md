@@ -69,7 +69,7 @@ Nearly all of this output, including the plot popup and the polymer grid image, 
 ### Running Jobs With Config Files
 
 Json files can be used instead of or in conjunction with any of the above command-line arguments.
-Examples of valid json files are provided, but the most important aspect is the `runs` aspect:
+Examples of valid json files are provided, but the most important aspect is the `runs` array:
 ```json
 {
     "runs":
