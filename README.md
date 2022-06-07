@@ -66,6 +66,28 @@ done exporting data to .csv file.
 ```
 Nearly all of this output, including the plot popup and the polymer grid image, are excluded if the `-v` flag is excluded, but the image of the plot is still saved to a file. Because the calculation of MHP requires surface area and LogP values, they will always be included when MHP is specified in the list of desired calculations. When in this mode, if a name for an polymer file is specified, each molecule will be saved to a file based off the provided name. However, the number of mers in each molecule will be appended to the filename.
 
+### Running Jobs With Config Files
+
+Json files can be used instead of or in conjunction with any of the above command-line arguments.
+Examples of valid json files are provided, but the most important aspect is the `runs` aspect:
+```json
+{
+    "runs":
+    [
+        {
+            "n": 4,
+            "read": "pol.mol",
+            "calculation": [
+                "SA",
+                "RG",
+                "LogP"
+            ]
+        }
+    ]
+}
+```
+The list of dictionaries created by importing the paramaters from the json file is filled in with the default values for parameters like `"plot"` or `"export"`, then each dictonary of inputs is run in succession. The provided command-line arguments are overwritten by the corresponding argument in the json file.
+
 ## Dependencies
 
 This project has been tested with the following dependencies:

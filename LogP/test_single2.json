@@ -1,0 +1,15 @@
+{
+    "runs":
+    [
+        {
+            "n": 4,
+            "single_monomer": "Styrene",
+            "calculation": [
+                "MHP"
+            ],
+            "plot": true,
+            "export": "data.csv",
+            "verbose": true
+        }
+    ]
+}

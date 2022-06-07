@@ -1,6 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
-import argparse,os,csv
+import argparse,os,csv,sys,json
 import matplotlib.pyplot as plt
 
 ###Built-in dict. Can be divorced from this file later
@@ -82,6 +82,17 @@ init_dict={
     'Vinyl': 'C=C'
 }
 
+def getJsonArgs(jsonFile,dict):
+    with open(jsonFile, 'r') as J:
+        runs_dict = json.load(J)
+        for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
+            run_keys=run.keys()
+            for dict_key in dict.keys():
+                if dict_key not in run_keys:
+                    run[dict_key]=dict[dict_key]
+    run_list=runs_dict["runs"]
+    return run_list
+
 def getArgs():
     parser=argparse.ArgumentParser()
     parser.add_argument("-n", type=int, help="The number of monomer or super-monomer units.")
@@ -99,8 +110,19 @@ def getArgs():
     parser.add_argument("-p", "--plot", default=False, action="store_true", 
                         help="Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
     parser.add_argument("-e", "--export", type=str, help="Include this option to export a .csv file of all data calculations. Specify the name here.")
+    parser.add_argument("-j", "--json", type=str, help="The path to a compatible .json file with any of the above arguments.")
     args=parser.parse_args()
-    return args
+    #get additional arguments from json file if provided or by default if no args provided.
+    vardict=vars(args)
+    if args.json is not None or len(sys.argv) == 1:
+        if args.json is not None:
+            run_list=getJsonArgs(args.json,vardict)
+        else:
+            run_list=getJsonArgs("test.json",vardict)
+    else:
+        run_list=[vardict]
+    #print(run_list)
+    return run_list
 
 def getRepeatUnit(single,super):
     #Two cases: one monomer or supermonomer.
@@ -305,66 +327,73 @@ def exportToCSV(exptName,data,dicts_list,verbose):
         print(data)
 
 def main():
-    args=getArgs()
-    if args.read is None: #then get polymer parameters from CLI arguments.
-        repeat_unit=getRepeatUnit(args.single_monomer,args.super_monomer)
-        if args.plot:
-            POL_LIST,SMI_LIST,UNOPT_POL_LIST=makeSeveralPolymers(args.initiator,args.n,repeat_unit,args.terminator,args.verbose)
+    run_list=getArgs()
+
+    for vardict in run_list:
+        if vardict["read"] is None: #then get polymer parameters from CLI arguments.
+            repeat_unit=getRepeatUnit(vardict["single_monomer"],vardict["super_monomer"])
+            if vardict["plot"]:
+                POL_LIST,SMI_LIST,UNOPT_POL_LIST=makeSeveralPolymers(vardict["initiator"],vardict["n"],repeat_unit,vardict["terminator"],vardict["verbose"])
+            else:
+                polSMILES=createPolymerSMILES(vardict["initiator"],vardict["n"],repeat_unit,vardict["terminator"])
+                if vardict["verbose"]: #extra info if requested
+                    print("Polymer interpreted as:",vardict["initiator"],str(vardict["n"]),"*",str(repeat_unit),vardict["terminator"])
+                    print("This gives the following SMILES:",polSMILES)
+                pol_h,pol=optPol(polSMILES) #both are mol objects
+        else: #get mol from file
+            if vardict["plot"]:
+                    raise TypeError("You may not plot data read from a file.")
+            pol_h,polSMILES,pol=write_or_read_pol("Read",vardict["read"])
+            #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
+
+        #saving the polymer to a file.
+        if vardict["file"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
+            if vardict["verbose"]:
+                print("attempting to save molecule to",vardict["file"])
+            if vardict["plot"]:
+                stat=0
+                base = vardict["file"].split(".")[0]
+                ext = vardict["file"].split(".")[1]
+                for i,mol in enumerate(POL_LIST):
+                    name=base+"_"+str(i+1)+"."+ext
+                    stat+=write_or_read_pol(mol,name)
+            else:
+                stat=write_or_read_pol(pol_h,vardict["file"])
+            if vardict["verbose"] and stat == 0:
+                print("success.")
+
+        #drawing a picture of the polymer.
+        if vardict["plot"]:
+            pol=UNOPT_POL_LIST #submit this list of mols for use in grid image.
+        if vardict["draw"] is not None:
+            drawName=vardict["draw"].split(".")[0]+".png"
+            drawPol(pol,drawName)
         else:
-            polSMILES=createPolymerSMILES(args.initiator,args.n,repeat_unit,args.terminator)
-            if args.verbose: #extra info if requested
-                print("Polymer interpreted as:",args.initiator,str(args.n),"*",str(repeat_unit),args.terminator)
-                print("This gives the following SMILES:",polSMILES)
-            pol_h,pol=optPol(polSMILES) #both are mol objects
-    else: #get mol from file
-        if args.plot:
-                raise TypeError("You may not plot data read from a file.")
-        pol_h,polSMILES,pol=write_or_read_pol("Read",args.read)
-        #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
+            if vardict["verbose"]:
+                #produce image if increased verbocity is requested even if no name is set.
+                print("Saving image to polymer.png by default.")
+                drawPol(pol,"polymer.png")
 
-    #saving the polymer to a file.
-    if args.file is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
-        if args.verbose:
-            print("attempting to save molecule to",args.file)
-        if args.plot:
-            stat=0
-            base = args.file.split(".")[0]
-            ext = args.file.split(".")[1]
-            for i,mol in enumerate(POL_LIST):
-                name=base+"_"+str(i+1)+"."+ext
-                stat+=write_or_read_pol(mol,name)
-        else:
-            stat=write_or_read_pol(pol_h,args.file)
-        if args.verbose and stat == 0:
-            print("success.")
+        #CALCULATIONS
+        if vardict["verbose"]:
+            print("requested calculations are",vardict["calculation"])
+        if vardict["calculation"] is not None:
+            if not vardict["plot"]:
+                calcs=set(vardict["calculation"])
+                data=doCalcs(pol_h,calcs) #use set to remove duplicates
+                data["N"]=vardict["n"]
+                data["smi"]=polSMILES
+                dicts=[data]
+                print(data)
+            else:
+                data,dicts=makePlot(POL_LIST,vardict["calculation"],SMI_LIST,vardict["verbose"])
+                
+            if vardict["export"] is not None:
+                exportToCSV(vardict["export"],data,dicts,vardict["verbose"])
 
-    #drawing a picture of the polymer.
-    if args.plot:
-        pol=UNOPT_POL_LIST #submit this list of mols for use in grid image.
-    if args.draw is not None:
-        drawName=args.draw.split(".")[0]+".png"
-        drawPol(pol,drawName)
-    else:
-        if args.verbose:
-            #produce image if increased verbocity is requested even if no name is set.
-            print("Saving image to polymer.png by default.")
-            drawPol(pol,"polymer.png")
+        print("\n") #separating runs visually if more than one.
+    #main returns 0 for testing if successful.
+    return 0
 
-    #CALCULATIONS
-    if args.verbose:
-        print("requested calculations are",args.calculation)
-    if args.calculation is not None:
-        if not args.plot:
-            calcs=set(args.calculation)
-            data=doCalcs(pol_h,calcs) #use set to remove duplicates
-            data["N"]=args.n
-            data["smi"]=polSMILES
-            dicts=[data]
-            print(data)
-        else:
-            data,dicts=makePlot(POL_LIST,args.calculation,SMI_LIST,args.verbose)
-            
-        if args.export is not None:
-            exportToCSV(args.export,data,dicts,args.verbose)
-
-main()
+if __name__== "__main__":
+    main()

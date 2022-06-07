@@ -1,0 +1,16 @@
+{
+    "runs":
+    [
+        {
+            "n": 4,
+            "super_monomer": [
+                2,
+                "CC(C(=O)OCCCC)",
+                "CC(C)"
+            ],
+            "initiator": "Methoxy",
+            "terminator": "Benzyl",
+            "verbose": true
+        }
+    ]
+}

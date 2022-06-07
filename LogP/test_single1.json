@@ -1,0 +1,14 @@
+{
+    "runs":
+    [
+        {
+            "n": 4,
+            "read": "pol.mol",
+            "calculation": [
+                "SA",
+                "RG",
+                "LogP"
+            ]
+        }
+    ]
+}

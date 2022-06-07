@@ -1,0 +1,35 @@
+{
+    "runs":
+    [
+        {
+            "n": 4,
+            "read": "pol.mol",
+            "calculation": [
+                "SA",
+                "RG",
+                "LogP"
+            ]
+        },
+        {
+            "n": 4,
+            "single_monomer": "Styrene",
+            "calculation": [
+                "MHP"
+            ],
+            "plot": true,
+            "export": "data.csv",
+            "verbose": true
+        },
+        {
+            "n": 4,
+            "super_monomer": [
+                2,
+                "CC(C(=O)OCCCC)",
+                "CC(C)"
+            ],
+            "initiator": "Methoxy",
+            "terminator": "Benzyl",
+            "verbose": true
+        }
+    ]
+}
