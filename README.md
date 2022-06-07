@@ -101,4 +101,6 @@ This project has been tested with the following dependencies:
 '1.1'
 >>> csv.__version__
 '1.0'
+>>> json.__version__
+'2.0.9'
 ```
