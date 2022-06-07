@@ -1,6 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
-import argparse,os,csv,sys,json
+import argparse,os,csv,json#,sys
 import matplotlib.pyplot as plt
 
 ###Built-in dict. Can be divorced from this file later
@@ -114,14 +114,13 @@ def getArgs():
     args=parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict=vars(args)
-    if args.json is not None or len(sys.argv) == 1:
-        if args.json is not None:
+    if args.json is not None:# or len(sys.argv) == 1:
+        #if args.json is not None:
             run_list=getJsonArgs(args.json,vardict)
-        else:
-            run_list=getJsonArgs("test.json",vardict)
+        #else:
+        #    run_list=getJsonArgs("test.json",vardict)
     else:
         run_list=[vardict]
-    #print(run_list)
     return run_list
 
 def getRepeatUnit(single,super):
@@ -392,8 +391,8 @@ def main():
                 exportToCSV(vardict["export"],data,dicts,vardict["verbose"])
 
         print("\n") #separating runs visually if more than one.
-    #main returns 0 for testing if successful.
-    return 0
+    # #main returns 0 for testing if successful.
+    # return 0
 
 if __name__== "__main__":
     main()

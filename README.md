@@ -90,7 +90,7 @@ The list of dictionaries created by importing the paramaters from the json file 
 
 ## Dependencies
 
-This project has been tested with the following dependencies:
+This project has been tested with `Python 3.10.4` and the following dependencies:
 
 ```python
 >>> rdkit.__version__
