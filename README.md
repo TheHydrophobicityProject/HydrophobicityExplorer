@@ -33,7 +33,7 @@ The `-s` flag here allows us to define a "super-monomer" which is a repeating se
 
 ### Reading a Polymer From A File
 
-You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade .mol or .pdb file instead of spelling out the polymer with the `-m` or `-s` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the builtin help for details on that.
+You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade .mol or .pdb file instead of spelling out the polymer with the `-m` or `-s` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
 
 ```bash
 $ python3 MakePolymer.py -r pol.mol -c SA RG LogP
@@ -41,9 +41,25 @@ $ python3 MakePolymer.py -r pol.mol -c SA RG LogP
 ```
 The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
+### Saving Polymer to File
+
+The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
+
+```python
+$python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol
+Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
+This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
+attempting to save molecule to pol.mol
+Success.
+Saving image to polymer.png by default.
+requested calculations are ['MHP']
+{'SA': 605.1670849486483, 'LogP': 8.770700000000003, 'MHP': 0.014493022205172056, 'N': 4, 'smi': 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)'}
+```
+In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-f` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
+
 ### Plotting Size-Dependent Calculations
 
-The size-dependent plots of any calculations performed can be generated with the `-p` flag. The sizes plotted will range from 1 repeat unit to the number specified by the `-n` flag. Because the repeat unit needs to be well-defined, this plotting option is unavailable if the polymer is being read from a file.
+The size-dependent plots of any calculations performed can be generated with the `-p` flag. The sizes plotted will range from 1 repeat unit to the number specified by the `-n` flag. Because the repeat unit needs to be well-defined, this plotting option is unavailable if the polymer is being read from a file. Since the `-v` flag is used, a grid image of all the generated molecules will be created as well.
 
 The data can be exported with the `-e` flag. 
 

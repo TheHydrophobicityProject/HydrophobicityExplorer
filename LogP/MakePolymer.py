@@ -82,7 +82,7 @@ init_dict={
     'Vinyl': 'C=C'
 }
 
-def getJsonArgs(jsonFile,dict):
+def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J:
         runs_dict = json.load(J)
         for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
@@ -116,20 +116,20 @@ def getArgs():
     vardict = vars(args)
     if args.json is not None:# or len(sys.argv) == 1:
         #if args.json is not None:
-            run_list = getJsonArgs(args.json,vardict)
+            run_list = getJsonArgs(args.json, vardict)
         #else:
         #    run_list=getJsonArgs("test.json",vardict)
     else:
         run_list = [vardict]
     return run_list
 
-def getRepeatUnit(single,super):
+def getRepeatUnit(single, super):
     #Two cases: one monomer or supermonomer.
     #If both are specified something is wrong.
     if single is not None and super is not None:
         raise TypeError("Cannot specify both single and super monomers")
     #This gives a list of components of a super-monomer or just the string used for single monomer in dict
-    repeat_unit = list(filter(None,[single,super]))[0]
+    repeat_unit = list(filter(None, [single, super]))[0]
     return repeat_unit
 
 def createPolymerSMILES(i,n,m,t):
@@ -200,7 +200,7 @@ def makeSeveralPolymers(i,n,r,t,verbosity):
 
 def drawPol(pol, drawName):
     if type(pol) == list: #save a grid image instead
-        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i+1}" for i, mol in enumerate(pol)] ,subImgSize = (250, 250))
+        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i+1}" for i, mol in enumerate(pol)], subImgSize = (250, 250))
         img.save(drawName)
     else:
         Chem.Draw.MolToFile(pol, drawName)
@@ -295,19 +295,19 @@ def makePlot(pol_list, calculations, smiles_list, verbosity):
     for i, pol in enumerate(pol_list):
         calcs = set(calculations)
         pol_data = doCalcs(pol,calcs)
-        pol_data["N"] = i+1
+        pol_data["N"] = i + 1
         pol_data["smi"] = smiles_list[i]
         dicts.append(pol_data)
     data = {k: [d[k] for d in dicts] for k in dicts[0]}
     
-    ncols = len(data)-2
+    ncols = len(data) - 2
     figure, axis = plt.subplots(ncols = ncols)
     series = 0
     for key in data:
         if key != "N" and key != "smi":
-            axis[series].scatter(data["N"],data[key])
-            axis[series].set_title(key+" vs n")
-            series+= 1
+            axis[series].scatter(data["N"], data[key])
+            axis[series].set_title(f"{key} vs n")
+            series += 1
     figname = "Size-dependent-stats.png"
     plt.savefig(figname, bbox_inches = 'tight')
     print(f"Saved plot to {figname}")
@@ -316,7 +316,7 @@ def makePlot(pol_list, calculations, smiles_list, verbosity):
     return data, dicts
 
 def exportToCSV(exptName, data, dicts_list, verbose):
-    with open(exptName, "w", newline="") as c:
+    with open(exptName, "w", newline = "") as c:
         cols = list(data.keys())
         writer = csv.DictWriter(c, fieldnames = cols)
         writer.writeheader()
