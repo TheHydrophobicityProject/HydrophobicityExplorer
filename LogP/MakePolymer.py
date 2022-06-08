@@ -86,41 +86,41 @@ def getJsonArgs(jsonFile,dict):
     with open(jsonFile, 'r') as J:
         runs_dict = json.load(J)
         for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
-            run_keys=run.keys()
+            run_keys = run.keys()
             for dict_key in dict.keys():
                 if dict_key not in run_keys:
-                    run[dict_key]=dict[dict_key]
-    run_list=runs_dict["runs"]
+                    run[dict_key] = dict[dict_key]
+    run_list = runs_dict["runs"]
     return run_list
 
 def getArgs():
-    parser=argparse.ArgumentParser()
-    parser.add_argument("-n", type=int, help="The number of monomer or super-monomer units.")
-    parser.add_argument("-i", "--initiator", type=str, default="Hydrogen", help="Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
-    parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
-    parser.add_argument("-m","--single_monomer", type=str, help="Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
-    parser.add_argument("-s", "--super_monomer", type=str, nargs='*',
-                        help="A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
-    parser.add_argument("-d", "--draw", type=str, help="Filename for polymer image.")
-    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
-    parser.add_argument("-c","--calculation", type=str, nargs='*', 
-                        help="Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
-    parser.add_argument("-f","--file", type=str, help="The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
-    parser.add_argument("-r", "--read", type=str, help="The name/path to file you wish to import. Supported formats are .pdb and .mol")
-    parser.add_argument("-p", "--plot", default=False, action="store_true", 
-                        help="Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
-    parser.add_argument("-e", "--export", type=str, help="Include this option to export a .csv file of all data calculations. Specify the name here.")
-    parser.add_argument("-j", "--json", type=str, help="The path to a compatible .json file with any of the above arguments.")
-    args=parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", type = int, help = "The number of monomer or super-monomer units.")
+    parser.add_argument("-i", "--initiator", type = str, default = "Hydrogen", help = "Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
+    parser.add_argument("-t", "--terminator", type = str, default = "Hydrogen", help = "Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
+    parser.add_argument("-m","--single_monomer", type = str, help = "Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
+    parser.add_argument("-s", "--super_monomer", type = str, nargs = '*',
+                        help = "A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
+    parser.add_argument("-d", "--draw", type = str, help = "Filename for polymer image.")
+    parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
+    parser.add_argument("-c","--calculation", type = str, nargs = '*', 
+                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
+    parser.add_argument("-f","--file", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
+    parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb and .mol")
+    parser.add_argument("-p", "--plot", default = False, action = "store_true", 
+                        help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
+    parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
+    parser.add_argument("-j", "--json", type = str, help = "The path to a compatible .json file with any of the above arguments.")
+    args = parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
-    vardict=vars(args)
+    vardict = vars(args)
     if args.json is not None:# or len(sys.argv) == 1:
         #if args.json is not None:
-            run_list=getJsonArgs(args.json,vardict)
+            run_list = getJsonArgs(args.json,vardict)
         #else:
         #    run_list=getJsonArgs("test.json",vardict)
     else:
-        run_list=[vardict]
+        run_list = [vardict]
     return run_list
 
 def getRepeatUnit(single,super):
@@ -129,31 +129,31 @@ def getRepeatUnit(single,super):
     if single is not None and super is not None:
         raise TypeError("Cannot specify both single and super monomers")
     #This gives a list of components of a super-monomer or just the string used for single monomer in dict
-    repeat_unit=list(filter(None,[single,super]))[0]
+    repeat_unit = list(filter(None,[single,super]))[0]
     return repeat_unit
 
 def createPolymerSMILES(i,n,m,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
-    smiles_inators=[init_dict[x] if x in init_dict else x for x in given_inators]
-    if type(m)==list:
-        repeat_unit=""
-        repeat=1 #ommission of a coeficient implies 1 copy
+    smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
+    if type(m) == list:
+        repeat_unit = ""
+        repeat = 1 #ommission of a coeficient implies 1 copy
         for element in m:
             try:
-                repeat=int(element) #is this a string of an integer?
+                repeat = int(element) #is this a string of an integer?
             except:
-                repeat_unit+=repeat*element #if not, repeat the SMILES as many times as specified (or once if no coef. provided).
-                repeat=1 #reset coef.
+                repeat_unit += repeat * element #if not, repeat the SMILES as many times as specified (or once if no coef. provided).
+                repeat = 1 #reset coef.
     else:
-        repeat_unit=monomer_dict[m] #if not a list, look for the corresponding smiles in the dictionary, will throw error if not included.
+        repeat_unit = monomer_dict[m] #if not a list, look for the corresponding smiles in the dictionary, will throw error if not included.
     
-    polymer_SMILES=smiles_inators[0]+n*repeat_unit+smiles_inators[1] #concatonate all parts as a big SMILES.
+    polymer_SMILES = smiles_inators[0] + n * repeat_unit + smiles_inators[1] #concatonate all parts as a big SMILES.
     return polymer_SMILES
 
 def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question in optPol().
     ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=0)
-    best=[]
+    best = []
     for id in ids:
         prop = AllChem.MMFFGetMoleculeProperties(pol_h)
         ff = AllChem.MMFFGetMoleculeForceField(pol_h, prop, confId=id)
@@ -171,67 +171,67 @@ def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question
     
 def optPol(smiles):
     #make Mol object:
-    pol=Chem.MolFromSmiles(smiles)
+    pol = Chem.MolFromSmiles(smiles)
     #check mol
     Chem.SanitizeMol(pol)
     #opt steps
-    pol_h=Chem.AddHs(pol)
-    #pol_h=bestConformer(pol_h,100,42,2) #add support for changing these with cli arguments
-    AllChem.EmbedMolecule(pol_h,useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
+    pol_h = Chem.AddHs(pol)
+    #pol_h = bestConformer(pol_h,100,42,2) #add support for changing these with cli arguments
+    AllChem.EmbedMolecule(pol_h, useRandomCoords = True)
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters = 100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
 def makeSeveralPolymers(i,n,r,t,verbosity):
-    POL_LIST=[]
-    SMI_LIST=[]
-    Unopt_pols=[]
-    N_array=range(1,n+1)
+    POL_LIST = []
+    SMI_LIST = []
+    Unopt_pols = []
+    N_array = range(1, n+1)
     for j in N_array:
-        smi=createPolymerSMILES(i,j,r,t)
+        smi = createPolymerSMILES(i,j,r,t)
         if verbosity:
-            print("Done generating SMILES with n =",str(j),"now:",smi)
+            print(f"Done generating SMILES with n = {j} now: {smi}")
             print("Converting to mol now.")
-        pol_h,pol=optPol(smi)
+        pol_h,pol = optPol(smi)
         POL_LIST.append(pol_h)
         SMI_LIST.append(smi)
         Unopt_pols.append(pol)
     return POL_LIST, SMI_LIST, Unopt_pols
 
-def drawPol(pol,drawName):
+def drawPol(pol, drawName):
     if type(pol) == list: #save a grid image instead
-        img=Chem.Draw.MolsToGridImage(pol, legends=["n="+str(i+1) for i,mol in enumerate(pol)] ,subImgSize=(250, 250))
+        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i+1}" for i, mol in enumerate(pol)] ,subImgSize = (250, 250))
         img.save(drawName)
     else:
-        Chem.Draw.MolToFile(pol,drawName)
+        Chem.Draw.MolToFile(pol, drawName)
 
 def write_or_read_pol(pol_h_or_str,name):
     ext=name.split(".")[1]
-    if type(pol_h_or_str)==str: #"Read" if in read mode.
+    if type(pol_h_or_str) == str: #"Read" if in read mode.
         if os.path.exists(name):
             if ext == "pdb":
                 pol_h = Chem.MolFromPDBFile(name)
             elif ext == "mol":
                 pol_h = Chem.MolFromMolFile(name)
             else:
-                print("unsuported extention:",ext,"Please use .pdb, or .mol") #.xyz cannot be read by rdkit.
+                print(f"unsuported extention: {ext} Please use .pdb, or .mol") #.xyz cannot be read by rdkit.
                 quit()
-            polSMILES=Chem.MolToSmiles(pol_h)
-            pol=Chem.MolFromSmiles(polSMILES)
-            return pol_h,polSMILES,pol
+            polSMILES = Chem.MolToSmiles(pol_h)
+            pol = Chem.MolFromSmiles(polSMILES)
+            return pol_h, polSMILES, pol
         else:
             raise FileNotFoundError(name)
     else:
-        exit_status=0
+        exit_status = 0
         if ext == "xyz":
-            Chem.MolToXYZFile(pol_h_or_str,name)
+            Chem.MolToXYZFile(pol_h_or_str, name)
         elif ext == "pdb":
-            Chem.MolToPDBFile(pol_h_or_str,name)
+            Chem.MolToPDBFile(pol_h_or_str, name)
         elif ext == "mol":
-            Chem.MolToMolFile(pol_h_or_str,name)
+            Chem.MolToMolFile(pol_h_or_str, name)
         else:
-            print("Unsuported extention:",ext,"Please use .pdb, .xyz or .mol")
-            exit_status=1
+            print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
+            exit_status = 1
         return exit_status
 
 def Sasa(pol_h):#,best_conf_id):
@@ -253,146 +253,150 @@ def LogP(pol_h):
     return logP
 
 def RadGyration(pol_h):
-    RG=Chem.rdMolDescriptors.CalcRadiusOfGyration(pol_h)
+    RG = Chem.rdMolDescriptors.CalcRadiusOfGyration(pol_h)
     #Chem.Descriptors3D.RadiusOfGyration(pol_h)
     #both seem to give identical results based on "SMILES to Rg.ipynb"
     return RG
 
 def MolVolume(pol_h):
-    MV=Chem.AllChem.ComputeMolVolume(pol_h, confId=- 1, gridSpacing=0.2, boxMargin=2.0)
+    MV = Chem.AllChem.ComputeMolVolume(pol_h, confId=-1, gridSpacing=0.2, boxMargin=2.0)
     return MV
 
-def doCalcs(pol_h,calcs):
+def doCalcs(pol_h, calcs):
     #the variable calcs is a set
     #Calcs are only done if requested.
-    data={}
+    data = {}
     if "SA" in calcs or "MHP" in calcs:
-        sasa=Sasa(pol_h)
-        data["SA"]=sasa
+        sasa = Sasa(pol_h)
+        data["SA"] = sasa
         calcs.discard("SA")
     if "LogP" in calcs or "MHP" in calcs:
-        logP=LogP(pol_h)
-        data["LogP"]=logP
+        logP = LogP(pol_h)
+        data["LogP"] = logP
         calcs.discard("LogP")
     if "RG" in calcs:
-        rg=RadGyration(pol_h)
-        data["RG"]=rg
+        rg = RadGyration(pol_h)
+        data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv = MolVolume(pol_h)
-        data["MV"]=mv
+        mv  =  MolVolume(pol_h)
+        data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs:
-        mhp=logP/sasa
-        data["MHP"]=mhp
+        mhp = logP / sasa
+        data["MHP"] = mhp
         calcs.discard("MHP")
     if len(calcs) > 0:
-        print("Unrecognized calculation(s):",str(calcs)+". Use SA, LogP, MV, MHP or RG")
+        print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP or RG")
     return data
 
-def makePlot(pol_list,calculations,smiles_list,verbosity):
-    dicts=[]
-    for i,pol in enumerate(pol_list):
-        calcs=set(calculations)
-        pol_data=doCalcs(pol,calcs)
-        pol_data["N"]=i+1
-        pol_data["smi"]=smiles_list[i]
+def makePlot(pol_list, calculations, smiles_list, verbosity):
+    dicts = []
+    for i, pol in enumerate(pol_list):
+        calcs = set(calculations)
+        pol_data = doCalcs(pol,calcs)
+        pol_data["N"] = i+1
+        pol_data["smi"] = smiles_list[i]
         dicts.append(pol_data)
-    data={k: [d[k] for d in dicts] for k in dicts[0]}
+    data = {k: [d[k] for d in dicts] for k in dicts[0]}
     
-    ncols=len(data)-2
-    figure, axis = plt.subplots(ncols=ncols)
-    series=0
+    ncols = len(data)-2
+    figure, axis = plt.subplots(ncols = ncols)
+    series = 0
     for key in data:
         if key != "N" and key != "smi":
             axis[series].scatter(data["N"],data[key])
             axis[series].set_title(key+" vs n")
-            series+=1
-    figname="Size-dependent-stats.png"
-    plt.savefig(figname, bbox_inches='tight')
-    print("Saved plot to",figname)
+            series+= 1
+    figname = "Size-dependent-stats.png"
+    plt.savefig(figname, bbox_inches = 'tight')
+    print(f"Saved plot to {figname}")
     if verbosity:
         plt.show()
-    return data,dicts
+    return data, dicts
 
-def exportToCSV(exptName,data,dicts_list,verbose):
-    with open(exptName,"w",newline="") as c:
-        cols=list(data.keys())
-        writer=csv.DictWriter(c,fieldnames=cols)
+def exportToCSV(exptName, data, dicts_list, verbose):
+    with open(exptName, "w", newline="") as c:
+        cols = list(data.keys())
+        writer = csv.DictWriter(c, fieldnames = cols)
         writer.writeheader()
         writer.writerows(dicts_list)
-    print("done exporting data to .csv file.")
+    print("Done exporting data to .csv file.")
     if verbose:
         print(data)
 
 def main():
-    run_list=getArgs()
+    run_list = getArgs()
 
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
-            repeat_unit=getRepeatUnit(vardict["single_monomer"],vardict["super_monomer"])
+            repeat_unit = getRepeatUnit(vardict["single_monomer"],vardict["super_monomer"])
             if vardict["plot"]:
-                POL_LIST,SMI_LIST,UNOPT_POL_LIST=makeSeveralPolymers(vardict["initiator"],vardict["n"],repeat_unit,vardict["terminator"],vardict["verbose"])
+                POL_LIST,SMI_LIST,UNOPT_POL_LIST = makeSeveralPolymers(vardict["initiator"], vardict["n"],
+                                                        repeat_unit, vardict["terminator"], vardict["verbose"])
+
             else:
-                polSMILES=createPolymerSMILES(vardict["initiator"],vardict["n"],repeat_unit,vardict["terminator"])
+                polSMILES = createPolymerSMILES(vardict["initiator"], vardict["n"],
+                                repeat_unit, vardict["terminator"])
+
                 if vardict["verbose"]: #extra info if requested
-                    print("Polymer interpreted as:",vardict["initiator"],str(vardict["n"]),"*",str(repeat_unit),vardict["terminator"])
-                    print("This gives the following SMILES:",polSMILES)
-                pol_h,pol=optPol(polSMILES) #both are mol objects
+                    print(f'Polymer interpreted as: {vardict["initiator"]} {vardict["n"]} * {repeat_unit} {vardict["terminator"]}')
+                    print(f"This gives the following SMILES: {polSMILES}")
+                pol_h,pol = optPol(polSMILES) #both are mol objects
         else: #get mol from file
             if vardict["plot"]:
                     raise TypeError("You may not plot data read from a file.")
-            pol_h,polSMILES,pol=write_or_read_pol("Read",vardict["read"])
+            pol_h,polSMILES,pol = write_or_read_pol("Read", vardict["read"])
             #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
 
         #saving the polymer to a file.
         if vardict["file"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
             if vardict["verbose"]:
-                print("attempting to save molecule to",vardict["file"])
+                print(f'attempting to save molecule to {vardict["file"]}')
             if vardict["plot"]:
-                stat=0
+                stat = 0
                 base = vardict["file"].split(".")[0]
                 ext = vardict["file"].split(".")[1]
                 for i,mol in enumerate(POL_LIST):
-                    name=base+"_"+str(i+1)+"."+ext
-                    stat+=write_or_read_pol(mol,name)
+                    name = f"{base}_{i+1}.{ext}"
+                    stat += write_or_read_pol(mol, name)
             else:
-                stat=write_or_read_pol(pol_h,vardict["file"])
+                stat = write_or_read_pol(pol_h, vardict["file"])
             if vardict["verbose"] and stat == 0:
-                print("success.")
+                print("Success.")
 
         #drawing a picture of the polymer.
         if vardict["plot"]:
-            pol=UNOPT_POL_LIST #submit this list of mols for use in grid image.
+            pol = UNOPT_POL_LIST #submit this list of mols for use in grid image.
         if vardict["draw"] is not None:
-            drawName=vardict["draw"].split(".")[0]+".png"
-            drawPol(pol,drawName)
+            drawName = f'{vardict["draw"].split(".")[0]}.png'
+            drawPol(pol, drawName)
         else:
             if vardict["verbose"]:
                 #produce image if increased verbocity is requested even if no name is set.
                 print("Saving image to polymer.png by default.")
-                drawPol(pol,"polymer.png")
+                drawPol(pol, "polymer.png")
 
         #CALCULATIONS
         if vardict["verbose"]:
-            print("requested calculations are",vardict["calculation"])
+            print(f'requested calculations are {vardict["calculation"]}')
         if vardict["calculation"] is not None:
             if not vardict["plot"]:
-                calcs=set(vardict["calculation"])
-                data=doCalcs(pol_h,calcs) #use set to remove duplicates
-                data["N"]=vardict["n"]
-                data["smi"]=polSMILES
-                dicts=[data]
+                calcs = set(vardict["calculation"])
+                data = doCalcs(pol_h, calcs) #use set to remove duplicates
+                data["N"] = vardict["n"]
+                data["smi"] = polSMILES
+                dicts = [data]
                 print(data)
             else:
-                data,dicts=makePlot(POL_LIST,vardict["calculation"],SMI_LIST,vardict["verbose"])
+                data,dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, vardict["verbose"])
                 
             if vardict["export"] is not None:
-                exportToCSV(vardict["export"],data,dicts,vardict["verbose"])
+                exportToCSV(vardict["export"], data, dicts, vardict["verbose"])
 
         print("\n") #separating runs visually if more than one.
     # #main returns 0 for testing if successful.
     # return 0
 
-if __name__== "__main__":
+if __name__ == "__main__":
     main()

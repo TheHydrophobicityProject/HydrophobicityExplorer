@@ -61,7 +61,7 @@ Saving image to polymer.png by default.
 requested calculations are ['MHP']
 Saved plot to Size-dependent-stats.png
 # popup of plot appears
-done exporting data to .csv file.
+Done exporting data to .csv file.
 {'SA': [181.71900012667044, 325.84799130354446, 466.9956239244017, 607.5159276234424], 'LogP': [2.2490000000000006, 4.422900000000004, 6.596800000000006, 8.770700000000003], 'MHP': [0.012376251236427096, 0.013573507027943717, 0.014126042433896363, 0.01443698774172117], 'N': [1, 2, 3, 4], 'smi': ['CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)']}
 ```
 Nearly all of this output, including the plot popup and the polymer grid image, are excluded if the `-v` flag is excluded, but the image of the plot is still saved to a file. Because the calculation of MHP requires surface area and LogP values, they will always be included when MHP is specified in the list of desired calculations. When in this mode, if a name for an polymer file is specified, each molecule will be saved to a file based off the provided name. However, the number of mers in each molecule will be appended to the filename.
