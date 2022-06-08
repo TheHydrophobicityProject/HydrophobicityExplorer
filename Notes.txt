@@ -18,3 +18,5 @@ Enable users to hide plots for SA and LogP if not specified (xMHP or something l
 More details about packaging.
 
 See what functionality there is in the crossover notebooks.
+
+Branching? Temp? Pressure? Diferentiate between single polymer and bulk?

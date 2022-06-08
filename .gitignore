@@ -4,3 +4,4 @@ LogP/*.mol
 LogP/data.csv
 LogP/test_pol.py
 LogP/runsFromJson.py
+testing/largePlot.png
