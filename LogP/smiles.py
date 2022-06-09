@@ -65,7 +65,7 @@ monomer_dict={
     'Vinylalcohol': 'CC(O)'
 }
 
-#initiator dictionary (i.e. endgroup of polymer chain)
+#initiator and terminator dictionary (i.e. endgroups of polymer chain)
 init_dict={
     'Benzyl': 'c1ccccc1CO', 
     'Butyl': 'CCCC',

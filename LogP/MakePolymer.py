@@ -310,7 +310,7 @@ def main():
             drawPol(pol, drawName)
         else:
             if vardict["verbose"]:
-                #produce image if increased verbocity is requested even if no name is set.
+                #produce image if increased verbosity is requested even if no name is set.
                 print("Saving image to polymer.png by default.")
                 drawPol(pol, "polymer.png")
 
