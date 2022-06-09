@@ -1,87 +1,9 @@
 from functools import cache
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
-import argparse,os,csv,json#,sys
+import argparse,os,csv,json
 import matplotlib.pyplot as plt
-
-###Built-in dict. Can be divorced from this file later
-monomer_dict={
-
-    #amino acids
-    'ala': 'C[C@@H](C(=O)O)N',
-    'ala-prot': 'C[C@@H](C(=O)[O-])[NH3+]',
-    'beta-ala': 'NCCC(O)=O',
-    'beta-ala-prot': '[NH3+]CCC([O-])=O',
-    'L-cystiene': 'C([C@@H](C(=O)O)N)S',
-    'L-cystiene-prot': 'C([C@@H](C(=O)[O-])[NH3+])S',
-    'L-DOPA': 'N[C@H](C(O)=O)CC1=CC=C(O)C(O)=C1',
-    'L-DOPA-prot': '[NH3+][C@H](C([O-])=O)CC1=CC=C(O)C(O)=C1',
-    'glycine': 'C(C(=O)O)N',
-    'glycine-prot': 'C(C(=O)[O-])[NH3+]',
-    'L-isoleucine': 'N[C@@H](C(C)CC)C(O)=O',
-    'L-isoleucine-prot': '[NH3+][C@@H](C(C)CC)C([O-])=O',
-    'L-leucine': 'N[C@@H](CC(C)C)C(O)=O',
-    'L-leucine-prot': '[NH3+][C@@H](CC(C)C)C([O-])=O',
-    'L-phenylala': 'N[C@@H](CC1=CC=CC=C1)C(O)=O',
-    'L-phenylala-prot': '[NH3+][C@@H](CC1=CC=CC=C1)C([O-])=O',
-    'L-phenylala_F': 'N[C@@H](CC1=CC=C(F)C=C1)C(O)=O',
-    'L-phenylala_F-prot': '[NH3+][C@@H](CC1=CC=C(F)C=C1)C([O-])=O',
-    'L-phenylala_Cl': 'N[C@@H](CC1=CC=C(Cl)C=C1)C(O)=O',
-    'L-phenylala_Cl-prot': '[NH3+][C@@H](CC1=CC=C(Cl)C=C1)C([O-])=O',
-    'L-phenylala_N': 'N[C@@H](CC1=CC=C(N)C=C1)C(O)=O',
-    'L-phenylala_N-prot': '[NH3+][C@@H](CC1=CC=C(N)C=C1)C([O-])=O',
-    'L-phenylala_CN': 'N[C@@H](CC1=CC=C(C#N)C=C1)C(O)=O',
-    'L-phenylala_CN-prot': '[NH3+][C@@H](CC1=CC=C(C#N)C=C1)C([O-])=O',
-    'L-phenylgly': 'N[C@@H](C1=CC=CC=C1)C(O)=O',
-    'L-phenylgly-prot': '[NH3+][C@@H](C1=CC=CC=C1)C([O-])=O',
-    'L-proline': 'C1C[C@H](NC1)C(=O)O',
-    'L-proline-prot': '[O-]C(=O)[C@H](CCC2)[NH2+]2',
-    'L-threonine': 'C[C@H]([C@@H](C(=O)O)N)O',
-    'L-threonine-prot': 'C[C@H]([C@@H](C(=O)[O-])[NH3+])O',
-    'L-valine': 'CC(C)[C@@H](C(=O)O)N',
-    'L-valine-prot': 'CC(C)[C@@H](C(=O)[O-])[NH3+]',
-
-    #monomers for polyamides
-    'Nylon6': 'CCCCCC(=O)N',
-
-    #monomers and comonomers for polycarbonates
-    'BPA_Carbonate':  'c1ccc(cc1)C(C)(C)c1ccc(cc1)OC(=O)O',
-
-    #monomers and comonomers for polyesters
-    'Butylene_Adip': 'C(=O)CCCCC(=O)OCCCCO',
-    'Butylene_Succinate': 'C(=O)CCC(=O)OCCCCO', 
-    'Butylene_Terephthalate': 'CCCCOC(=O)c1ccc(cc1)C(=O)O',
-    'Ethylene_Terephthalate': 'CCOC(=O)c1ccc(cc1)C(=O)O', 
-    '3HBV': 'C(CC)CC(=O)O', 
-    '3HB': 'C(C)CC(=O)O',
-    'Lactic_acid': 'C(C)C(=O)O',
-
-    #monomers for polyethers
-    'Ethylene_oxide': 'CCO',
-    'Propylene_oxide': 'CC(C)O',
-
-    #Vinyl monomers written to depict primary addition of alkene (i.e. substituent is on second carbon of alkene)
-    'Butylacrylate': 'CC(C(=O)OCCCC)',
-    'Dimethylacrylamide': 'CC(C(=O)N(C)(C))',
-    'Ethylene': 'CC',
-    'Hydroxyethylmethacrylate': 'CC(C(=O)OCCO)(C)',
-    'Methylacrylate': 'CC(C(=O)OC)C',
-    'Methylmethacrylate': 'CC(C(=O)OC)(C)',
-    'Propylene': 'CC(C)',
-    'Styrene': 'CC(c1ccccc1)',
-    'Vinylalcohol': 'CC(O)'
-}
-
-#initiator dictionary (i.e. endgroup of polymer chain)
-init_dict={
-    'Benzyl': 'c1ccccc1CO', 
-    'Butyl': 'CCCC',
-    'Hydroxyl': 'O', 
-    'Hydrogen': '',
-    'Methoxy': 'CO', 
-    'Methyl': 'C', 
-    'Vinyl': 'C=C'
-}
+from smiles import monomer_dict, init_dict
 
 def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J:
@@ -115,11 +37,8 @@ def getArgs():
     args = parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
-    if args.json is not None:# or len(sys.argv) == 1:
-        #if args.json is not None:
-            run_list = getJsonArgs(args.json, vardict)
-        #else:
-        #    run_list=getJsonArgs("test.json",vardict)
+    if args.json is not None:
+        run_list = getJsonArgs(args.json, vardict)
     else:
         run_list = [vardict]
     return run_list
@@ -369,7 +288,7 @@ def main():
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
-            pol_h,polSMILES,pol = write_or_read_pol(vardict["read"], read=True)
+            pol_h, polSMILES, pol = write_or_read_pol(vardict["read"], read=True)
             #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
 
         #saving the polymer to a file.
@@ -413,8 +332,6 @@ def main():
                 exportToCSV(vardict["export"], data, dicts, verbosity=vardict["verbose"])
 
         print("\n") #separating runs visually if more than one.
-    # #main returns 0 for testing if successful.
-    # return 0
 
 if __name__ == "__main__":
     main()
