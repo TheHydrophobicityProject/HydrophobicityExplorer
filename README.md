@@ -8,7 +8,7 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 
 ### Specifying Polymer Components
 
-There is a dictionary of monomers and terminal units builtin `MakePolymer.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The -v flag increases verbocity.
+There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
 
 ```bash
 $ python3 MakePolymer.py -n 3 -m Styrene -v
@@ -18,7 +18,7 @@ Saving image to polymer.png by default.
 
 requested calculations are None
 ```
-Because verbocity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the -d flag.
+Because verbosity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the `-d` flag.
 The initiator and terminal groups default to Hydrogen if none are specified.
 
 Here is another example with a more complex set of arguments:
@@ -86,6 +86,7 @@ Nearly all of this output, including the plot popup and the polymer grid image, 
 
 Json files can be used instead of or in conjunction with any of the above command-line arguments.
 Examples of valid json files are provided, but the most important aspect is the `runs` array:
+
 ```json
 {
     "runs":
@@ -102,6 +103,7 @@ Examples of valid json files are provided, but the most important aspect is the 
     ]
 }
 ```
+
 The list of dictionaries created by importing the paramaters from the json file is filled in with the default values for parameters like `"plot"` or `"export"`, then each dictonary of inputs is run in succession. The provided command-line arguments are overwritten by the corresponding argument in the json file.
 
 ## Dependencies
