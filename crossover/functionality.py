@@ -19,12 +19,11 @@ def linreg(xdata,ydata,p):
     for i in range(0,len(xdata)):
         x=xdata[i]
         y=ydata[i]
-
         xy+=x*y
     
     #must have the same amount of entries in x and y
-    b=float(((len(xdata)*xy)-(sum(xdata)*sum(ydata)))/((len(xdata)*(sum(n.square(xdata))))-(sum(xdata)**2)))
-    bo= float((sum(ydata)-b*sum(xdata))/len(xdata))
+    b = float(((len(xdata) * xy) - (sum(xdata) * sum(ydata))) / ((len(xdata) * (sum(n.square(xdata)))) - (sum(xdata)**2)))
+    bo = float((sum(ydata) - b * sum(xdata)) / len(xdata))
 
     #finding y values for linear trendline
     estvalues=[]
@@ -51,7 +50,6 @@ def logreg(xdata,ydata,p):
     for i in range(0,len(xdata)):
         x=xdata[i]
         y=ydata[i]
-
         xy+=x*y
     
     #must have the same amount of entries in x and y
@@ -93,7 +91,4 @@ x=[2,4,6,8,10,12,14]
 y=[0.0137,0.0145,0.0151,0.0151,0.0152,0.0154,0.0153]
 
 logreg(x,y,0)
-
-
 #saving data as png and compiling graphs 
-

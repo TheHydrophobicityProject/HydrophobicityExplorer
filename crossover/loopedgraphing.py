@@ -1,25 +1,21 @@
 import numpy as np
 import datacatch as data
-def loop(x,yddict,file=0):
-    import matplotlib.pyplot as plt
-    import functionality as f
-    import crossoverpatchup as c
-    
-    
+import matplotlib.pyplot as plt
+import functionality as f
+import crossoverpatchup as c
+
+def loop(x,yddict,file=0):    
     fig, axs = plt.subplots(len(yddict))
-    # fig.suptitle('Vertically stacked crossovers')
     fig.tight_layout()
     
     fig.text(0.5, 0.04, 'common xlabel', ha='center', va='center',color='red')
     fig.text(0.06, 0.5, 'common ylabel', ha='center', va='center', rotation='vertical',color='red')
-
 
     #looping through 2d list graphing the data crossovers
     #variable keeping track of index
     indextrack=0
     for key in yddict:
         #crossover unit to split trendline
-
         crossunit=c.crossover(x,yddict[key],0)
 
         #dataslpit trendlines
@@ -43,4 +39,3 @@ def loop(x,yddict,file=0):
         orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
-

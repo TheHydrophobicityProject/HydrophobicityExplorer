@@ -1,7 +1,7 @@
-def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=False,ax=None):
-    import functionality as f
-    import matplotlib.pyplot as plt
-    
+import functionality as f
+import matplotlib.pyplot as plt
+
+def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=False,ax=None):   
     frontxaxisbin=[]  #coordinates for linear reg line near orgin
     frontyaxisbin=[]
     
@@ -19,7 +19,6 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
         frontxaxisbin.append(xi)
         frontyaxisbin.append(yi)
         
-        
         #ith r2 value
         #i>1 for defined r2 value
         if i>=0:
@@ -31,7 +30,7 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
                 frontyaxisbin.remove(yi)
                 break
             
-    #TODO make more efficinent
+    #todo make more efficinent
     for i in range(0, len(xdata)):
         #building up the data (but backwards this time)
         #getting the ith datapoint
@@ -43,8 +42,7 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
         #dropping it in the bin
         backxaxisbin.append(xi)
         backyaxisbin.append(yi)
-        
-        
+                
         #ith r2 value
         #i>1 for defined r2 value
 
@@ -90,13 +88,8 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
         ax.plot(xdata,backline)
         ax.plot(xdata,ydata,'o')
 
-
-#x=[2,4,6,8,10,12,14]
 x=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] #number of monomer units
 
-#y=[0.0137,0.0145,0.0151,0.0151,0.0152,0.0154,0.0153]
 y=[0.0124, 0.0136, 0.014, 0.0143, 0.0145, 0.0148, 0.0149, 0.0148, 0.015, 0.0149] #LogP/SA values for polystyrene
 
 crossover(x,y,1)  #1 enables plotting of lines
-        
-        
