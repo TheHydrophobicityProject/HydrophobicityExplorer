@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from scipy.stats import pearsonr
 import seaborn as sb
 
 df = pd.read_csv(r'C:\Users\rtm11\Box\rtm11_files\Documents\python\vol_datav4.csv')

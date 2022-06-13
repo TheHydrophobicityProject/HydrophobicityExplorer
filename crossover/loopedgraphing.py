@@ -1,5 +1,3 @@
-import numpy as np
-import datacatch as data
 import matplotlib.pyplot as plt
 import functionality as f
 import crossoverpatchup as c

@@ -88,8 +88,10 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
         ax.plot(xdata,backline)
         ax.plot(xdata,ydata,'o')
 
-x=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] #number of monomer units
+def main():
+    x=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] #number of monomer units
+    y=[0.0124, 0.0136, 0.014, 0.0143, 0.0145, 0.0148, 0.0149, 0.0148, 0.015, 0.0149] #LogP/SA values for polystyrene
+    crossover(x,y,1)  #1 enables plotting of lines
 
-y=[0.0124, 0.0136, 0.014, 0.0143, 0.0145, 0.0148, 0.0149, 0.0148, 0.015, 0.0149] #LogP/SA values for polystyrene
-
-crossover(x,y,1)  #1 enables plotting of lines
+if __name__ == "__main__":
+    main()

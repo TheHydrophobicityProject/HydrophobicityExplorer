@@ -1,16 +1,14 @@
 #data organizer loop
-#this simply plots data 
-#remember to bring up the use of numpy for data
+#this simply plots data
 import matplotlib.pyplot as plt
+import numpy as n
+
 def graphdata(datasetx, datasety, xlabel=None,ylabel=None):
-    import matplotlib.pyplot as plt
     plt.plot(datasetx,datasety,'red') #ro is scatterplot
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
 
 def linreg(xdata,ydata,p):
-    import matplotlib.pyplot as plt
-    import numpy as n
     #calculating mean
     m=n.mean(ydata)
 
@@ -40,9 +38,6 @@ def linreg(xdata,ydata,p):
 
 #logrithmic regression
 def logreg(xdata,ydata,p):
-    import matplotlib.pyplot as plt
-    import numpy as n
-
     xplotted=xdata
     xdata=n.log(xdata)
     #calculating logrithmic regression coefficients
@@ -68,10 +63,6 @@ def logreg(xdata,ydata,p):
 
 #calculating r2
 def R2(xdata,ydata,yest):
-
-    import matplotlib.pyplot as plt
-    import numpy as n
-
     ybar=n.mean(ydata)
 
     #estimated values and normalvalues minus mean of y
@@ -87,8 +78,12 @@ def R2(xdata,ydata,yest):
 
     return r2
 
-x=[2,4,6,8,10,12,14]
-y=[0.0137,0.0145,0.0151,0.0151,0.0152,0.0154,0.0153]
+def main():
+    x=[2,4,6,8,10,12,14]
+    y=[0.0137,0.0145,0.0151,0.0151,0.0152,0.0154,0.0153]
 
-logreg(x,y,0)
-#saving data as png and compiling graphs 
+    logreg(x,y,0)
+    #saving data as png and compiling graphs 
+
+if __name__ == "__main__":
+    main()
