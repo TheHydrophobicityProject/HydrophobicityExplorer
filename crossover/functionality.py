@@ -20,7 +20,11 @@ def linreg(xdata,ydata,p):
         xy+=x*y
     
     #must have the same amount of entries in x and y
-    b = float(((len(xdata) * xy) - (sum(xdata) * sum(ydata))) / ((len(xdata) * (sum(n.square(xdata)))) - (sum(xdata)**2)))
+    # b = float(((len(xdata) * xy) - (sum(xdata) * sum(ydata))) / ((len(xdata) * (sum(n.square(xdata)))) - (sum(xdata)**2)))
+    b_numerator=((len(xdata) * xy) - (sum(xdata) * sum(ydata)))
+    b_denominator=((len(xdata) * (sum(n.square(xdata)))) - (sum(xdata)**2))
+    print(f'{b_numerator = }, {b_denominator = }')
+    b=float(b_numerator/b_denominator)
     bo = float((sum(ydata) - b * sum(xdata)) / len(xdata))
 
     #finding y values for linear trendline

@@ -1,7 +1,7 @@
 import functionality as f
 import matplotlib.pyplot as plt
 
-def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=False,ax=None):   
+def crossover(xdata, ydata, plotlines=False, r2front=0.9, r2back=0.9, returnPlot=False, ax=None):   
     frontxaxisbin=[]  #coordinates for linear reg line near orgin
     frontyaxisbin=[]
     
@@ -47,7 +47,7 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
         #i>1 for defined r2 value
 
         if i>=1:
-            R2i=f.R2(backxaxisbin,backyaxisbin,f.linreg(backxaxisbin,backyaxisbin,0)["estvalues"][0])
+            R2i=f.R2(backxaxisbin,backyaxisbin, f.linreg(backxaxisbin,backyaxisbin, 0)["estvalues"][0])
             #checking for drop in r2
             if R2i<r2back:
                 break
@@ -91,7 +91,7 @@ def crossover(xdata,ydata,plotlines=False,r2front=0.9,r2back=0.9,returnPlot=Fals
 def main():
     x=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10] #number of monomer units
     y=[0.0124, 0.0136, 0.014, 0.0143, 0.0145, 0.0148, 0.0149, 0.0148, 0.015, 0.0149] #LogP/SA values for polystyrene
-    crossover(x,y,1)  #1 enables plotting of lines
+    crossover(x, y, 1)  #1 enables plotting of lines
 
 if __name__ == "__main__":
     main()
