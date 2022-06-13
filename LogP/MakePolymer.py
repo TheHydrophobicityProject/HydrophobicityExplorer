@@ -99,7 +99,7 @@ def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question
         econf = (en, id)
         best.append(econf)
     best.sort()
-    if len(best==0):
+    if len(best == 0):
         raise Exception("Error: No valid conformations found for the molecule. Try increasing the number of conformations.")
     # The best conformer is the first tuple and the ID of that conformer is the second value in the tuple
     best_id = int(best[0][1])
@@ -119,7 +119,7 @@ def optPol(smiles):
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
-def make_One_or_More_Polymers(i,n,r,t,*,verbosity=False,plot=False):
+def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
@@ -150,7 +150,7 @@ def drawPol(pol, drawName):
     else:
         Chem.Draw.MolToFile(pol, drawName)
 
-def write_or_read_pol(name,*,verbosity=False,read=False,mol=None):
+def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
     ext=name.split(".")[1]
     if read:
         if os.path.exists(name):
@@ -252,10 +252,8 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
     
     ncols = len(data) - 2
 
-    if ncols == 1:
-        calc_key = calculations[0]
-        if calc_key == "XMHP":
-            calc_key = "MHP"
+    if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
+        calc_key = [k if k != "XMHP" else "MHP" for k in calculations][0] #use given calc as key unless XMHP, then use MHP.
         plt.plot(data["N"], data[calc_key],'o')
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
@@ -270,7 +268,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
                 series += 1
     figname = "Size-dependent-stats.png"
     plt.savefig(figname, bbox_inches = 'tight')
-    print(f"Saved plot to {figname}")
+    print(f'Saved plot to {figname}')
     if verbosity:
         plt.show()
     return data, dicts
@@ -290,7 +288,7 @@ def main():
 
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
-            repeat_unit = getRepeatUnit(vardict["single_monomer"],vardict["super_monomer"])
+            repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["super_monomer"])
                         
             if vardict["plot"]:
                 POL_LIST, SMI_LIST, UNOPT_POL_LIST = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],

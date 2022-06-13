@@ -13,8 +13,6 @@ I will delete notebooks no longer needed since they will not be in the final pro
 
 TODO
 
-Enable users to hide plots for SA and LogP if not specified (xMHP or something like that instead of MHP)
-
 More details about packaging.
 
 See what functionality there is in the crossover notebooks.
