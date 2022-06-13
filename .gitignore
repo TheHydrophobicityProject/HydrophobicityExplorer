@@ -4,4 +4,5 @@ LogP/*.mol
 LogP/data.csv
 LogP/test_pol.py
 LogP/__pycache__
+LogP/Size-dependent-stats.png
 testing/largePlot.png

@@ -27,7 +27,7 @@ def getArgs():
     parser.add_argument("-d", "--draw", type = str, help = "Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
-                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported)) and RG (radius of gyration).")
+                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb and .mol")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
@@ -213,13 +213,15 @@ def doCalcs(pol_h, calcs):
     #the variable calcs is a set
     #Calcs are only done if requested.
     data = {}
-    if "SA" in calcs or "MHP" in calcs:
+    if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
         sasa = Sasa(pol_h)
-        data["SA"] = sasa
+        if not "XMHP" in calcs:
+            data["SA"] = sasa
         calcs.discard("SA")
-    if "LogP" in calcs or "MHP" in calcs:
+    if "LogP" in calcs or "MHP" in calcs or "XMHP" in calcs:
         logP = LogP(pol_h)
-        data["LogP"] = logP
+        if not "XMHP" in calcs:
+            data["LogP"] = logP
         calcs.discard("LogP")
     if "RG" in calcs:
         rg = RadGyration(pol_h)
@@ -229,12 +231,13 @@ def doCalcs(pol_h, calcs):
         mv  =  MolVolume(pol_h)
         data["MV"] = mv
         calcs.discard("MV")
-    if "MHP" in calcs:
+    if "MHP" in calcs or "XMHP" in calcs:
         mhp = logP / sasa
         data["MHP"] = mhp
         calcs.discard("MHP")
+        calcs.discard("XMHP")
     if len(calcs) > 0:
-        print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP or RG")
+        print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or RG")
     return data
 
 def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
@@ -248,13 +251,23 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
     data = {k: [d[k] for d in dicts] for k in dicts[0]}
     
     ncols = len(data) - 2
-    figure, axis = plt.subplots(ncols = ncols)
-    series = 0
-    for key in data:
-        if key != "N" and key != "smi":
-            axis[series].scatter(data["N"], data[key])
-            axis[series].set_title(f"{key} vs n")
-            series += 1
+
+    if ncols == 1:
+        calc_key = calculations[0]
+        if calc_key == "XMHP":
+            calc_key = "MHP"
+        plt.plot(data["N"], data[calc_key],'o')
+        plt.title(f'{calc_key} vs n')
+        plt.xlabel('n') 
+        plt.ylabel(f'{calc_key}')
+    else:
+        figure, axis = plt.subplots(ncols = ncols)
+        series = 0
+        for key in data:
+            if key != "N" and key != "smi":
+                axis[series].scatter(data["N"], data[key])
+                axis[series].set_title(f"{key} vs n")
+                series += 1
     figname = "Size-dependent-stats.png"
     plt.savefig(figname, bbox_inches = 'tight')
     print(f"Saved plot to {figname}")
@@ -321,12 +334,13 @@ def main():
             if not vardict["plot"]:
                 calcs = set(vardict["calculation"])
                 data = doCalcs(pol_h, calcs) #use set to remove duplicates
+                print(data)
                 data["N"] = vardict["n"]
                 data["smi"] = polSMILES
                 dicts = [data]
                 print(data)
             else:
-                data,dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, verbosity=vardict["verbose"])
+                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, verbosity=vardict["verbose"])
                 
             if vardict["export"] is not None:
                 exportToCSV(vardict["export"], data, dicts, verbosity=vardict["verbose"])
