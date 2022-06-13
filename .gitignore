@@ -1,8 +1,7 @@
-LogP/polymer.png
+LogP/*.png
 LogP/pol.*
 LogP/*.mol
-LogP/data.csv
+LogP/*.csv
 LogP/test_pol.py
 LogP/__pycache__
-LogP/Size-dependent-stats.png
-testing/largePlot.png
+testing/*.png
