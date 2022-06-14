@@ -67,7 +67,7 @@ monomer_dict={
 
 #initiator and terminator dictionary (i.e. endgroups of polymer chain)
 init_dict={
-    'Benzyl': 'c1ccccc1CO', 
+    'Benzyl_alcohol': 'c1ccccc1CO', 
     'Butyl': 'CCCC',
     'Hydroxyl': 'O', 
     'Hydrogen': '',
