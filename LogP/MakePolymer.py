@@ -270,6 +270,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
     plt.savefig(figname, bbox_inches = 'tight')
     print(f'Saved plot to {figname}')
     if verbosity:
+        print(data)
         plt.show()
     return data, dicts
 
@@ -332,7 +333,6 @@ def main():
             if not vardict["plot"]:
                 calcs = set(vardict["calculation"])
                 data = doCalcs(pol_h, calcs) #use set to remove duplicates
-                print(data)
                 data["N"] = vardict["n"]
                 data["smi"] = polSMILES
                 dicts = [data]
@@ -341,7 +341,11 @@ def main():
                 data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, verbosity=vardict["verbose"])
                 
             if vardict["export"] is not None:
-                exportToCSV(vardict["export"], data, dicts, verbosity=vardict["verbose"])
+                if vardict["plot"]: #we don't need to print data twice if both -p and -e use verbosity=True
+                    verbo=False
+                else:
+                    verbo=vardict["verbose"]        
+                exportToCSV(vardict["export"], data, dicts, verbosity=verbo)
 
         print("\n") #separating runs visually if more than one.
 
