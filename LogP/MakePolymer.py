@@ -95,32 +95,74 @@ def get_building_blocks(i,t,m):
 
     return init, term, repeat_unit
 
-def attatch_frags(frag,polymer_smiles):
+def attatch_frags(polymer_smiles,*,add_initiator=None,add_terminator=None): #the initiator and terminator are the kwargs
     polList=[]
     pol=Chem.MolFromSmiles(polymer_smiles)
+    
+    fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum()==0]
+    conn_atoms = [pol.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
     polList.append(pol)
-    #put the two mols into the same object (still no bond between them.)
-    merged=Chem.CombineMols(frag, pol)
-    mergedrw=Chem.RWMol(merged)
-    polList.append(mergedrw)
-    #indicies of atoms connected to "*" (atomic number == 0)
-    fake_atoms = [a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0]
-    #atom objects that neighbor dummy atoms
-    conn_atoms = [mergedrw.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
-    mergedrw.AddBond(conn_atoms[0],conn_atoms[1],Chem.rdchem.BondType.SINGLE)
-    polList.append(mergedrw)
     drawPol(polList,"test.png")
-    print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
-    mergedrw.RemoveAtom(fake_atoms[0])
-    fake_atoms = [a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0]
-    print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
-    polList.append(mergedrw)
+
+    inators=[]
+    if add_initiator is not None:
+        head=pol.GetAtomWithIdx(conn_atoms[0])
+        head.SetProp("atomNote", "head")
+        inators.append(add_initiator)
+        if add_terminator is not None:
+            tail=pol.GetAtomWithIdx(conn_atoms[1])
+            tail.SetProp("atomNote", "tail")
+            inators.append(add_terminator)
+    elif add_terminator is not None:
+        tail=pol.GetAtomWithIdx(conn_atoms[0])
+        tail.SetProp("atomNote", "tail")
+        inators.append(add_terminator)
+    else:
+        raise Exception(f"unknown combination of inators {add_initiator = }, {add_terminator = }.")
+    
+    polList.append(pol)
     drawPol(polList,"test.png")
-    if len(fake_atoms)>0:
-        mergedrw.RemoveAtom(fake_atoms[0])
-        print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
+
+    mergedrw=pol
+
+    for inator in inators:
+        fake_atoms = [a.GetIdx() for a in inator.GetAtoms() if a.GetAtomicNum()==0]
+        conn_atoms = [inator.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
+        attatch=inator.GetAtomWithIdx(conn_atoms[0])
+        attatch.SetProp("atomNote", "attatch")
+        #put the two mols into the same object (still no bond between them.)
+        merged=Chem.CombineMols(inator, mergedrw)
+        mergedrw=Chem.RWMol(merged)
         polList.append(mergedrw)
         drawPol(polList,"test.png")
+
+        attachments=[a.GetIdx() for a in mergedrw.GetAtoms() if a.HasProp('atomNote')]
+        print(attachments)
+
+        inator_attatchment=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="attatch"][0]
+        if inator == add_initiator:
+            bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="head"][0]
+        if inator == add_terminator:
+            bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="tail"][0]
+
+        mergedrw.AddBond(bond_here,inator_attatchment,Chem.rdchem.BondType.SINGLE)
+        polList.append(mergedrw)
+        drawPol(polList,"test.png")
+        mergedrw.GetAtomWithIdx(inator_attatchment).SetProp('atomNote',"done")
+
+    numDummies=0
+    for atom in mergedrw.GetAtoms():
+        if atom.GetAtomicNum()==0:
+            atom.SetProp('dummyLabel',"dummy")
+            numDummies+=1
+    polList.append(mergedrw)
+    drawPol(polList,"test.png")
+    
+    for i in range(numDummies):
+        mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0][0])
+        polList.append(mergedrw)
+        drawPol(polList,"test.png")
+
     smi=Chem.MolToSmiles(mergedrw)
     return smi
 
@@ -133,21 +175,23 @@ def createPolymerSMILES(i,n,m,t):
 
     if type(init) != str:
         polymer_SMILES="*"+polymer_SMILES
-        print(f"converting polymer body {polymer_SMILES} to mol object")
-        polymer_SMILES = attatch_frags(init,polymer_SMILES)
+        add_initiator=True
     else:
+        add_initiator=False
         polymer_SMILES = init + polymer_SMILES
-
-    print(f"polymer smiles is {polymer_SMILES} after adding initiator")
+        print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
             
     if type(term) != str:
         polymer_SMILES=polymer_SMILES+"*"
-        print(f"converting polymer body {polymer_SMILES} to mol object")
-        polymer_SMILES = attatch_frags(term,polymer_SMILES)
+        add_terminator=True
     else:
+        add_terminator=False
         polymer_SMILES = polymer_SMILES + term
+        print(f"polymer smiles is {polymer_SMILES} after adding terminator smiles")
 
-    print(f"polymer smiles is {polymer_SMILES} after adding terminator")
+    if add_terminator or add_initiator:
+        print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
+        polymer_SMILES = attatch_frags(polymer_SMILES,add_initiator=init,add_terminator=term)
 
     return polymer_SMILES
 
