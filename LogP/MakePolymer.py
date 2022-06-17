@@ -64,7 +64,7 @@ def inator_smi_lookup(i,t):
     smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
     return smiles_inators
 
-def get_building_blocks(i,t,m):
+def get_building_blocks(i,t,m,*,verbosity=False):
     smiles_inators = inator_smi_lookup(i,t)
     if type(m) == list:
         repeat_unit = ""
@@ -82,13 +82,15 @@ def get_building_blocks(i,t,m):
     term = smiles_inators[1]
 
     if init != "" and init[0] == "*":
-        print("initiator smiles in wrong direction. Converting to mol object.")
+        if verbosity:
+            print("initiator smiles in wrong direction. Converting to mol object.")
         init = Chem.MolFromSmiles(init)
     else:
         init=init.replace("*","")
 
     if term != "" and term[-1:] == "*":
-        print("terminator smiles in wrong direction. Converting to mol object.")
+        if verbosity:
+            print("terminator smiles in wrong direction. Converting to mol object.")
         term = Chem.MolFromSmiles(term)
     else:
         term=term.replace("*","")
@@ -158,11 +160,13 @@ def attatch_frags(polymer_smiles,*,add_initiator=(False,None),add_terminator=(Fa
     smi=Chem.MolToSmiles(mergedrw)
     return smi
 
-def createPolymerSMILES(i,n,m,t):
-    init, term, repeat_unit = get_building_blocks(i,t,m)
+def createPolymerSMILES(i,n,m,t,*,verbosity=False):
+    init, term, repeat_unit = get_building_blocks(i,t,m,verbosity=verbosity)
 
     polymer_SMILES = n * repeat_unit
-    print(f"polymer smiles is {polymer_SMILES} before any end groups")
+
+    if verbosity:
+        print(f"polymer smiles is {polymer_SMILES} before any end groups")
 
     if type(init) != str:
         polymer_SMILES="*"+polymer_SMILES
@@ -170,7 +174,8 @@ def createPolymerSMILES(i,n,m,t):
     else:
         add_initiator=False
         polymer_SMILES = init + polymer_SMILES
-        print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
+        if verbosity:
+            print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
             
     if type(term) != str:
         polymer_SMILES=polymer_SMILES+"*"
@@ -178,10 +183,12 @@ def createPolymerSMILES(i,n,m,t):
     else:
         add_terminator=False
         polymer_SMILES = polymer_SMILES + term
-        print(f"polymer smiles is {polymer_SMILES} after adding terminator smiles")
+        if verbosity:
+            print(f"polymer smiles is {polymer_SMILES} after adding terminator smiles")
 
     if add_terminator or add_initiator:
-        print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
+        if verbosity:
+            print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
         polymer_SMILES = attatch_frags(polymer_SMILES,add_initiator=(add_initiator,init),add_terminator=(add_terminator,term))
 
     return polymer_SMILES
@@ -224,7 +231,7 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
     if plot:
         N_array = range(1, n+1)
         for j in N_array:
-            smi = createPolymerSMILES(i,j,r,t)
+            smi = createPolymerSMILES(i,j,r,t,verbosity=verbosity)
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to mol now.")
@@ -234,7 +241,7 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols
     else:
-        smi = createPolymerSMILES(i,n,r,t)
+        smi = createPolymerSMILES(i,n,r,t,verbosity=verbosity)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {smi}")
