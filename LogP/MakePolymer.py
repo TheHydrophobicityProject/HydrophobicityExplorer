@@ -95,7 +95,7 @@ def get_building_blocks(i,t,m):
 
     return init, term, repeat_unit
 
-def attatch_frags(polymer_smiles,*,add_initiator=None,add_terminator=None): #the initiator and terminator are the kwargs
+def attatch_frags(polymer_smiles,*,add_initiator=(False,None),add_terminator=(False,None)): #the initiator and terminator are the kwargs
     polList=[]
     pol=Chem.MolFromSmiles(polymer_smiles)
     
@@ -105,20 +105,22 @@ def attatch_frags(polymer_smiles,*,add_initiator=None,add_terminator=None): #the
     drawPol(polList,"test.png")
 
     inators=[]
-    if add_initiator is not None:
+    if add_initiator[0]:
         head=pol.GetAtomWithIdx(conn_atoms[0])
         head.SetProp("atomNote", "head")
-        inators.append(add_initiator)
-        if add_terminator is not None:
+        inators.append(add_initiator[1])
+        if add_terminator[0]:
             tail=pol.GetAtomWithIdx(conn_atoms[1])
             tail.SetProp("atomNote", "tail")
-            inators.append(add_terminator)
-    elif add_terminator is not None:
+            inators.append(add_terminator[1])
+    elif add_terminator[0]:
         tail=pol.GetAtomWithIdx(conn_atoms[0])
         tail.SetProp("atomNote", "tail")
-        inators.append(add_terminator)
+        inators.append(add_terminator[1])
     else:
         raise Exception(f"unknown combination of inators {add_initiator = }, {add_terminator = }.")
+
+    print(f"combo of inators {add_initiator = }, {add_terminator = }.")
     
     polList.append(pol)
     drawPol(polList,"test.png")
@@ -140,9 +142,9 @@ def attatch_frags(polymer_smiles,*,add_initiator=None,add_terminator=None): #the
         print(attachments)
 
         inator_attatchment=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="attatch"][0]
-        if inator == add_initiator:
+        if inator == add_initiator[1]:
             bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="head"][0]
-        if inator == add_terminator:
+        if inator == add_terminator[1]:
             bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="tail"][0]
 
         mergedrw.AddBond(bond_here,inator_attatchment,Chem.rdchem.BondType.SINGLE)
@@ -170,7 +172,6 @@ def createPolymerSMILES(i,n,m,t):
     init, term, repeat_unit = get_building_blocks(i,t,m)
 
     polymer_SMILES = n * repeat_unit
-
     print(f"polymer smiles is {polymer_SMILES} before any end groups")
 
     if type(init) != str:
@@ -191,7 +192,7 @@ def createPolymerSMILES(i,n,m,t):
 
     if add_terminator or add_initiator:
         print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
-        polymer_SMILES = attatch_frags(polymer_SMILES,add_initiator=init,add_terminator=term)
+        polymer_SMILES = attatch_frags(polymer_SMILES,add_initiator=(add_initiator,init),add_terminator=(add_terminator,term))
 
     return polymer_SMILES
 
