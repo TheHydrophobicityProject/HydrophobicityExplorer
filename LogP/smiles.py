@@ -72,7 +72,8 @@ init_dict={
     'Butyl': 'CCCC',
     'Hydroxyl': 'O', 
     'Hydrogen': '',
-    'Methoxy': 'CO*', 
+    'Methoxy': 'CO*',
+    'Ethoxy': 'CCO*', 
     'Methyl': 'C', 
     'Vinyl': 'C=C'
 }

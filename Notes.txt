@@ -18,3 +18,8 @@ More details about packaging.
 See what functionality there is in the crossover notebooks.
 
 Branching? Temp? Pressure? Diferentiate between single polymer and bulk?
+
+For several configurations the current setup works. However, python3 MakePolymer.py -n 2 -m Styrene -i Benzyl -t Methoxy -v does not. 
+The intermediate smiles produced afer adding the initiator group is gross: c1ccc(CCC(CCc2ccccc2)c2ccccc2)cc1. Maybe instead of adding asterixes\
+to polymer body one at a time we use some outlandish element to act as a place-holder for at least one insertion point so we don't have to rely
+on rdkit's smiles-writing skills

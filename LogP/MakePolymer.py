@@ -80,12 +80,75 @@ def get_building_blocks(i,t,m):
     
     init = smiles_inators[0]
     term = smiles_inators[1]
-    
+
+    if init != "" and init[0] == "*":
+        print("initiator smiles in wrong direction. Converting to mol object.")
+        init = Chem.MolFromSmiles(init)
+    else:
+        init=init.replace("*","")
+
+    if term != "" and term[-1:] == "*":
+        print("terminator smiles in wrong direction. Converting to mol object.")
+        term = Chem.MolFromSmiles(term)
+    else:
+        term=term.replace("*","")
+
     return init, term, repeat_unit
+
+def attatch_frags(frag,polymer_smiles):
+    polList=[]
+    pol=Chem.MolFromSmiles(polymer_smiles)
+    polList.append(pol)
+    #put the two mols into the same object (still no bond between them.)
+    merged=Chem.CombineMols(frag, pol)
+    mergedrw=Chem.RWMol(merged)
+    polList.append(mergedrw)
+    #indicies of atoms connected to "*" (atomic number == 0)
+    fake_atoms = [a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0]
+    #atom objects that neighbor dummy atoms
+    conn_atoms = [mergedrw.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
+    mergedrw.AddBond(conn_atoms[0],conn_atoms[1],Chem.rdchem.BondType.SINGLE)
+    polList.append(mergedrw)
+    drawPol(polList,"test.png")
+    print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
+    mergedrw.RemoveAtom(fake_atoms[0])
+    fake_atoms = [a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0]
+    print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
+    polList.append(mergedrw)
+    drawPol(polList,"test.png")
+    if len(fake_atoms)>0:
+        mergedrw.RemoveAtom(fake_atoms[0])
+        print(f"TYPE OF MERGEDRW IS {type(mergedrw)}")
+        polList.append(mergedrw)
+        drawPol(polList,"test.png")
+    smi=Chem.MolToSmiles(mergedrw)
+    return smi
 
 def createPolymerSMILES(i,n,m,t):
     init, term, repeat_unit = get_building_blocks(i,t,m)
-    polymer_SMILES = init + n * repeat_unit + term #concatonate all parts as a big SMILES.
+
+    polymer_SMILES = n * repeat_unit
+
+    print(f"polymer smiles is {polymer_SMILES} before any end groups")
+
+    if type(init) != str:
+        polymer_SMILES="*"+polymer_SMILES
+        print(f"converting polymer body {polymer_SMILES} to mol object")
+        polymer_SMILES = attatch_frags(init,polymer_SMILES)
+    else:
+        polymer_SMILES = init + polymer_SMILES
+
+    print(f"polymer smiles is {polymer_SMILES} after adding initiator")
+            
+    if type(term) != str:
+        polymer_SMILES=polymer_SMILES+"*"
+        print(f"converting polymer body {polymer_SMILES} to mol object")
+        polymer_SMILES = attatch_frags(term,polymer_SMILES)
+    else:
+        polymer_SMILES = polymer_SMILES + term
+
+    print(f"polymer smiles is {polymer_SMILES} after adding terminator")
+
     return polymer_SMILES
 
 def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question in optPol().
