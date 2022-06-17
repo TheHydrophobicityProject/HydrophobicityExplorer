@@ -96,14 +96,13 @@ def get_building_blocks(i,t,m):
     return init, term, repeat_unit
 
 def attatch_frags(polymer_smiles,*,add_initiator=(False,None),add_terminator=(False,None)): #the initiator and terminator are the kwargs
-    polList=[]
     pol=Chem.MolFromSmiles(polymer_smiles)
-    
+    #get indicies of "*" atoms
     fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum()==0]
+    #and their neighbors (to which we will actually be attatching.)
     conn_atoms = [pol.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
-    polList.append(pol)
-    drawPol(polList,"test.png")
 
+    #label the head and tail, accounting for possible absense of one or both inators.
     inators=[]
     if add_initiator[0]:
         head=pol.GetAtomWithIdx(conn_atoms[0])
@@ -120,50 +119,41 @@ def attatch_frags(polymer_smiles,*,add_initiator=(False,None),add_terminator=(Fa
     else:
         raise Exception(f"unknown combination of inators {add_initiator = }, {add_terminator = }.")
 
-    print(f"combo of inators {add_initiator = }, {add_terminator = }.")
-    
-    polList.append(pol)
-    drawPol(polList,"test.png")
-
+    #set name to what will be used after one loop completes.
     mergedrw=pol
-
     for inator in inators:
+        #see above.
         fake_atoms = [a.GetIdx() for a in inator.GetAtoms() if a.GetAtomicNum()==0]
-        conn_atoms = [inator.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
-        attatch=inator.GetAtomWithIdx(conn_atoms[0])
+        #this time we just isolate atom object instead of index.
+        attatch = [inator.GetAtomWithIdx(x).GetNeighbors()[0] for x in fake_atoms][0]
+        #label.
         attatch.SetProp("atomNote", "attatch")
         #put the two mols into the same object (still no bond between them.)
         merged=Chem.CombineMols(inator, mergedrw)
+        #change to rwmol object which can be changed.
         mergedrw=Chem.RWMol(merged)
-        polList.append(mergedrw)
-        drawPol(polList,"test.png")
 
+        #indicies of atoms with notes
         attachments=[a.GetIdx() for a in mergedrw.GetAtoms() if a.HasProp('atomNote')]
-        print(attachments)
-
+        #isolating proper index from list to use in bond formation.
         inator_attatchment=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="attatch"][0]
         if inator == add_initiator[1]:
             bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="head"][0]
         if inator == add_terminator[1]:
             bond_here=[i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote')=="tail"][0]
-
+        #make bond
         mergedrw.AddBond(bond_here,inator_attatchment,Chem.rdchem.BondType.SINGLE)
-        polList.append(mergedrw)
-        drawPol(polList,"test.png")
+        #change label so that atom is not targeted a second time for bond formation.
         mergedrw.GetAtomWithIdx(inator_attatchment).SetProp('atomNote',"done")
 
+    #count up number of dummy atoms ("*")
     numDummies=0
     for atom in mergedrw.GetAtoms():
         if atom.GetAtomicNum()==0:
-            atom.SetProp('dummyLabel',"dummy")
             numDummies+=1
-    polList.append(mergedrw)
-    drawPol(polList,"test.png")
-    
+    #remove the dummy atoms (need to do one at a time)
     for i in range(numDummies):
         mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum()==0][0])
-        polList.append(mergedrw)
-        drawPol(polList,"test.png")
 
     smi=Chem.MolToSmiles(mergedrw)
     return smi

@@ -19,12 +19,7 @@ See what functionality there is in the crossover notebooks.
 
 Branching? Temp? Pressure? Diferentiate between single polymer and bulk?
 
-MakePolymer.py -n 2 -m Styrene -i Benzyl -t Benzyl -v doesn't work, but python3 MakePolymer.py -n 2 -m Styrene -i Benzyl -t Methoxy -v now does!
-
-For several configurations the current setup works. Keep fixing and testing.
-
-other possible approaches: https://sourceforge.net/p/rdkit/mailman/message/18450857/
-dummyLabels: https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo7G0rUeAC0Mpp70edCdX5a7Suz%3DjQo4t_Ci4Mk%3D3h%2BUnA%40mail.gmail.com/
+rdkit resources:
+https://sourceforge.net/p/rdkit/mailman/message/18450857/
+https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo7G0rUeAC0Mpp70edCdX5a7Suz%3DjQo4t_Ci4Mk%3D3h%2BUnA%40mail.gmail.com/
 https://greglandrum.github.io/rdkit-blog/tutorial/prototypes/drawing/2021/08/07/rgd-and-highlighting.html
-
-"dummyLabel --> (on dummy atoms) read from/written to CTABs as the atom symbol"
