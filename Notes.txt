@@ -23,3 +23,9 @@ For several configurations the current setup works. However, python3 MakePolymer
 The intermediate smiles produced afer adding the initiator group is gross: c1ccc(CCC(CCc2ccccc2)c2ccccc2)cc1. Maybe instead of adding asterixes\
 to polymer body one at a time we use some outlandish element to act as a place-holder for at least one insertion point so we don't have to rely
 on rdkit's smiles-writing skills
+
+other possible approaches: https://sourceforge.net/p/rdkit/mailman/message/18450857/
+dummyLabels: https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo7G0rUeAC0Mpp70edCdX5a7Suz%3DjQo4t_Ci4Mk%3D3h%2BUnA%40mail.gmail.com/
+https://greglandrum.github.io/rdkit-blog/tutorial/prototypes/drawing/2021/08/07/rgd-and-highlighting.html
+
+"dummyLabel --> (on dummy atoms) read from/written to CTABs as the atom symbol"
