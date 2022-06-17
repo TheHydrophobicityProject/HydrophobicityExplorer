@@ -1,8 +1,3 @@
-What is the database in DBgenerate.py for? 
-From what I can gather from skimming is that this runs calculations on cocalc?
-Some of the functions that generate mol objects in rdkit are not present since rdkit is imported but never used.
-For now, I'll work on translating the notebooks to python and making them more general.
-
 There is no selection for the "best" conformer as in some of the other jupyter notebooks. This can be added soon, just seeing utility of the current suite of command-line aruments.
 -->AllChem.MMFFOptimizeMolecule(pol_h, maxIters=1000) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*)
 
@@ -15,6 +10,6 @@ TODO
 
 More details about packaging.
 
-See what functionality there is in the crossover notebooks.
+See what functionality there is in the crossover notebooks. --> save for V2
 
-Branching? Temp? Pressure? Diferentiate between single polymer and bulk?
+Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> save for V2
