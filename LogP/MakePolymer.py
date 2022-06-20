@@ -206,14 +206,14 @@ def optPol(smiles):
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
-def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity = False, plot = False):
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
     if plot:
         N_array = range(1, n+1)
         for j in N_array:
-            smi = createPolymerSMILES(i,j,r,t,verbosity=verbosity)
+            smi = createPolymerSMILES(i, j, r, t, verbosity = verbosity)
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to mol now.")
@@ -223,7 +223,7 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols
     else:
-        smi = createPolymerSMILES(i,n,r,t,verbosity=verbosity)
+        smi = createPolymerSMILES(i, n, r, t, verbosity = verbosity)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {smi}")
@@ -232,12 +232,12 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
 
 def drawPol(pol, drawName):
     if type(pol) == list: #save a grid image instead
-        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i+1}" for i, mol in enumerate(pol)], subImgSize = (250, 250))
+        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i + 1}" for i, mol in enumerate(pol)], subImgSize = (250, 250))
         img.save(drawName)
     else:
         Chem.Draw.MolToFile(pol, drawName)
 
-def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
+def write_or_read_pol(name, *, verbosity = False, read = False, mol = None):
     ext=name.split(".")[1]
     if read:
         if os.path.exists(name):
@@ -293,7 +293,7 @@ def RadGyration(pol_h):
     return RG
 
 def MolVolume(pol_h):
-    MV = Chem.AllChem.ComputeMolVolume(pol_h, confId=-1, gridSpacing=0.2, boxMargin=2.0)
+    MV = Chem.AllChem.ComputeMolVolume(pol_h, confId = -1, gridSpacing = 0.2, boxMargin = 2.0)
     return MV
 
 def doCalcs(pol_h, calcs):
@@ -327,7 +327,7 @@ def doCalcs(pol_h, calcs):
         print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or RG")
     return data
 
-def makePlot(pol_list, calculations, smiles_list, *, verbosity=False):
+def makePlot(pol_list, calculations, smiles_list, *, verbosity = False):
     dicts = []
     for i, pol in enumerate(pol_list):
         calcs = set(calculations)
@@ -396,7 +396,7 @@ def main():
                 base = vardict["file"].split(".")[0]
                 ext = vardict["file"].split(".")[1]
                 for i, mol in enumerate(POL_LIST):
-                    name = f"{base}_{i+1}.{ext}"
+                    name = f"{base}_{i + 1}.{ext}"
                     write_or_read_pol(name, mol=mol)
             else:
                 write_or_read_pol(vardict["file"], mol=pol_h)
