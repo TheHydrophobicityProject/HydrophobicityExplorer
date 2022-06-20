@@ -64,8 +64,8 @@ def inator_smi_lookup(i,t):
     smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
     return smiles_inators
 
-def get_building_blocks(i,t,m):
-    smiles_inators = inator_smi_lookup(i,t)
+def get_building_blocks(i,t,m,*, verbosity = False):
+    smiles_inators = inator_smi_lookup(i, t)
     if type(m) == list:
         repeat_unit = ""
         repeat = 1 #ommission of a coeficient implies 1 copy
@@ -80,32 +80,119 @@ def get_building_blocks(i,t,m):
     
     init = smiles_inators[0]
     term = smiles_inators[1]
-    
+
+    if init != "" and init[0] == "*":
+        if verbosity:
+            print("initiator smiles in wrong direction. Converting to mol object.")
+        init = Chem.MolFromSmiles(init)
+    else:
+        init = init.replace("*","")
+
+    if term != "" and term[-1:] == "*":
+        if verbosity:
+            print("terminator smiles in wrong direction. Converting to mol object.")
+        term = Chem.MolFromSmiles(term)
+    else:
+        term = term.replace("*", "")
+
     return init, term, repeat_unit
 
-def createPolymerSMILES(i,n,m,t):
-    init, term, repeat_unit = get_building_blocks(i,t,m)
-    polymer_SMILES = init + n * repeat_unit + term #concatonate all parts as a big SMILES.
-    return polymer_SMILES
+def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminator = (False, None)): #the initiator and terminator are the kwargs
+    pol = Chem.MolFromSmiles(polymer_smiles)
+    #get indicies of "*" atoms
+    fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum() == 0]
+    #and their neighbors (to which we will actually be attatching.)
+    conn_atoms = [pol.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
 
-def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question in optPol().
-    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=0)
-    best = []
-    for id in ids:
-        prop = AllChem.MMFFGetMoleculeProperties(pol_h)
-        ff = AllChem.MMFFGetMoleculeForceField(pol_h, prop, confId=id)
-        ff.Minimize()
-        en = float(ff.CalcEnergy())
-        econf = (en, id)
-        best.append(econf)
-    best.sort()
-    if len(best == 0):
-        raise Exception("Error: No valid conformations found for the molecule. Try increasing the number of conformations.")
-    # The best conformer is the first tuple and the ID of that conformer is the second value in the tuple
-    best_id = int(best[0][1])
-    # Return the best ID
-    return best_id
-    
+    #label the head and tail, accounting for possible absense of one or both inators.
+    inators = []
+    if add_initiator[0]:
+        head = pol.GetAtomWithIdx(conn_atoms[0])
+        head.SetProp("atomNote", "head")
+        inators.append(add_initiator[1])
+        if add_terminator[0]:
+            tail = pol.GetAtomWithIdx(conn_atoms[1])
+            tail.SetProp("atomNote", "tail")
+            inators.append(add_terminator[1])
+    elif add_terminator[0]:
+        tail = pol.GetAtomWithIdx(conn_atoms[0])
+        tail.SetProp("atomNote", "tail")
+        inators.append(add_terminator[1])
+    else:
+        raise Exception(f"unknown combination of inators {add_initiator = }, {add_terminator = }.")
+
+    #set name to what will be used after one loop completes.
+    mergedrw = pol
+    for inator in inators:
+        #see above.
+        fake_atoms = [a.GetIdx() for a in inator.GetAtoms() if a.GetAtomicNum() == 0]
+        #this time we just isolate atom object instead of index.
+        attatch = [inator.GetAtomWithIdx(x).GetNeighbors()[0] for x in fake_atoms][0]
+        #label.
+        attatch.SetProp("atomNote", "attatch")
+        #put the two mols into the same object (still no bond between them.)
+        merged = Chem.CombineMols(inator, mergedrw)
+        #change to rwmol object which can be changed.
+        mergedrw = Chem.RWMol(merged)
+
+        #indicies of atoms with notes
+        attachments = [a.GetIdx() for a in mergedrw.GetAtoms() if a.HasProp('atomNote')]
+        #isolating proper index from list to use in bond formation.
+        inator_attatchment = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "attatch"][0]
+        if inator == add_initiator[1]:
+            bond_here = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "head"][0]
+        if inator == add_terminator[1]:
+            bond_here = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "tail"][0]
+        #make bond
+        mergedrw.AddBond(bond_here, inator_attatchment, Chem.rdchem.BondType.SINGLE)
+        #change label so that atom is not targeted a second time for bond formation.
+        mergedrw.GetAtomWithIdx(inator_attatchment).SetProp('atomNote', 'done')
+
+    #count up number of dummy atoms ("*")
+    numDummies = 0
+    for atom in mergedrw.GetAtoms():
+        if atom.GetAtomicNum() == 0:
+            numDummies += 1
+    #remove the dummy atoms (need to do one at a time)
+    for i in range(numDummies):
+        mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0][0])
+
+    smi = Chem.MolToSmiles(mergedrw)
+    return smi
+
+def createPolymerSMILES(i,n,m,t,*, verbosity = False):
+    init, term, repeat_unit = get_building_blocks(i, t, m, verbosity = verbosity)
+
+    polymer_SMILES = n * repeat_unit
+
+    if verbosity:
+        print(f"polymer smiles is {polymer_SMILES} before any end groups")
+
+    if type(init) != str:
+        polymer_SMILES = "*" + polymer_SMILES
+        add_initiator = True
+    else:
+        add_initiator = False
+        polymer_SMILES = init + polymer_SMILES
+        if verbosity and init != "":
+            print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
+            
+    if type(term) != str:
+        polymer_SMILES = polymer_SMILES + "*"
+        add_terminator = True
+    else:
+        add_terminator = False
+        polymer_SMILES = polymer_SMILES + term
+        if verbosity and init != "":
+            print(f"polymer smiles is {polymer_SMILES} after adding terminator smiles")
+
+    if add_terminator or add_initiator:
+        if verbosity:
+            print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
+        polymer_SMILES = attatch_frags(polymer_SMILES, add_initiator = (add_initiator, init), add_terminator = (add_terminator, term))
+
+    return polymer_SMILES
+   
 def optPol(smiles):
     #make Mol object:
     pol = Chem.MolFromSmiles(smiles)
@@ -126,7 +213,7 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
     if plot:
         N_array = range(1, n+1)
         for j in N_array:
-            smi = createPolymerSMILES(i,j,r,t)
+            smi = createPolymerSMILES(i,j,r,t,verbosity=verbosity)
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to mol now.")
@@ -136,7 +223,7 @@ def make_One_or_More_Polymers(i,n,r,t, *, verbosity=False, plot=False):
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols
     else:
-        smi = createPolymerSMILES(i,n,r,t)
+        smi = createPolymerSMILES(i,n,r,t,verbosity=verbosity)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {smi}")

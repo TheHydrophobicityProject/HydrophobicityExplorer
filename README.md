@@ -12,10 +12,10 @@ There are dictionaries of monomers and terminal units in `smiles.py` The composi
 
 ```bash
 $ python3 MakePolymer.py -n 3 -m Styrene -v
+polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Polymer interpreted as: Hydrogen 3 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 Saving image to polymer.png by default.
-
 requested calculations are None
 ```
 Because verbosity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the `-d` flag.
@@ -23,9 +23,12 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 4 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl -v
-Polymer interpreted as: Methoxy 4 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
-This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)c1ccccc1CO
+$ python3 MakePolymer.py -n 2 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl -v
+polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
+polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding initiator smiles
+polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
+Polymer interpreted as: Methoxy 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
+This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
 Saving image to polymer.png by default.
 requested calculations are None
 ```
@@ -45,12 +48,11 @@ The above example also shows how calculations are specified. Each calculation ha
 
 The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
 
-```python
-$python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol
+```bash
+$ python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol
+polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
-attempting to save molecule to pol.mol
-Success.
 Saving image to polymer.png by default.
 requested calculations are ['MHP']
 {'SA': 605.1670849486483, 'LogP': 8.770700000000003, 'MHP': 0.014493022205172056, 'N': 4, 'smi': 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)'}
@@ -64,21 +66,19 @@ The size-dependent plots of any calculations performed can be generated with the
 The data can be exported with the `-e` flag. 
 
 ```bash
-$ python3 MakePolymer.py -n 4 -m Styrene -c MHP -p -e data.csv -v
+$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v #XMHP requests that the MHP data be eXclusively returned.
+polymer smiles is CC(c1ccccc1) before any end groups
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
 Converting to mol now.
+polymer smiles is CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
 Converting to mol now.
-Done generating SMILES with n = 3 now: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
-Converting to mol now.
-Done generating SMILES with n = 4 now: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
-Converting to mol now.
 Saving image to polymer.png by default.
-requested calculations are ['MHP']
+requested calculations are ['XMHP']
 Saved plot to Size-dependent-stats.png
-# popup of plot appears
+{'MHP': [0.012376251236427096, 0.013573507027943717], 'N': [1, 2], 'smi': ['CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)']}
+#popup of plot appears.
 Done exporting data to .csv file.
-{'SA': [181.71900012667044, 325.84799130354446, 466.9956239244017, 607.5159276234424], 'LogP': [2.2490000000000006, 4.422900000000004, 6.596800000000006, 8.770700000000003], 'MHP': [0.012376251236427096, 0.013573507027943717, 0.014126042433896363, 0.01443698774172117], 'N': [1, 2, 3, 4], 'smi': ['CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)']}
 ```
 Nearly all of this output, including the plot popup and the polymer grid image, are excluded if the `-v` flag is excluded, but the image of the plot is still saved to a file. Because the calculation of MHP requires surface area and LogP values, they will always be included when MHP is specified in the list of desired calculations. When in this mode, if a name for an polymer file is specified, each molecule will be saved to a file based off the provided name. However, the number of mers in each molecule will be appended to the filename.
 

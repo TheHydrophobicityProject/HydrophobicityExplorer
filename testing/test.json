@@ -30,6 +30,38 @@
             "initiator": "Methoxy",
             "terminator": "Benzyl",
             "verbose": true
+        },
+        {
+            "n": 4,
+            "super_monomer": [
+                2,
+                "CC(C(=O)OCCCC)",
+                "CC(C)"
+            ],
+            "initiator": "Benzyl",
+            "terminator": "Methoxy",
+            "verbose": true
+        },
+        {
+            "n": 4,
+            "single_monomer": "Dimethylacrylamide",
+            "initiator": "Methoxy",
+            "terminator": "Methoxy",
+            "verbose": true,
+            "calculation": [
+                "SA",
+                "LogP"
+            ]
+        },
+        {
+            "n": 4,
+            "single_monomer": "Styrene",
+            "initiator": "Benzyl",
+            "terminator": "Benzyl_alcohol",
+            "verbose": true,
+            "calculation": [
+                "XMHP"
+            ]
         }
     ]
 }

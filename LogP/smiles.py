@@ -67,12 +67,13 @@ monomer_dict={
 
 #initiator dictionary
 init_dict={
-    'Benzyl': 'Cc1ccccc1',
-    'Benzyl_alcohol': 'cc1ccccc1CO', 
+    'Benzyl': '*Cc1ccccc1',
+    'Benzyl_alcohol': '*Cc1ccccc1O', 
     'Butyl': 'CCCC',
     'Hydroxyl': 'O', 
     'Hydrogen': '',
-    'Methoxy': 'CO', 
+    'Methoxy': 'CO*',
+    'Ethoxy': 'CCO*', 
     'Methyl': 'C', 
     'Vinyl': 'C=C'
 }
