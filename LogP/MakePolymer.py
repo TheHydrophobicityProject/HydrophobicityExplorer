@@ -107,15 +107,15 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     #label the head and tail, accounting for possible absense of one or both inators.
     inators = []
     if add_initiator[0]:
-        head=pol.GetAtomWithIdx(conn_atoms[0])
+        head = pol.GetAtomWithIdx(conn_atoms[0])
         head.SetProp("atomNote", "head")
         inators.append(add_initiator[1])
         if add_terminator[0]:
-            tail=pol.GetAtomWithIdx(conn_atoms[1])
+            tail = pol.GetAtomWithIdx(conn_atoms[1])
             tail.SetProp("atomNote", "tail")
             inators.append(add_terminator[1])
     elif add_terminator[0]:
-        tail=pol.GetAtomWithIdx(conn_atoms[0])
+        tail = pol.GetAtomWithIdx(conn_atoms[0])
         tail.SetProp("atomNote", "tail")
         inators.append(add_terminator[1])
     else:
@@ -192,25 +192,7 @@ def createPolymerSMILES(i,n,m,t,*, verbosity = False):
         polymer_SMILES = attatch_frags(polymer_SMILES, add_initiator = (add_initiator, init), add_terminator = (add_terminator, term))
 
     return polymer_SMILES
-
-def bestConformer(pol_h,numConfs,seed): #currently unused. See notes or question in optPol().
-    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=numConfs, randomSeed=seed, useExpTorsionAnglePrefs=True, numThreads=0)
-    best = []
-    for id in ids:
-        prop = AllChem.MMFFGetMoleculeProperties(pol_h)
-        ff = AllChem.MMFFGetMoleculeForceField(pol_h, prop, confId=id)
-        ff.Minimize()
-        en = float(ff.CalcEnergy())
-        econf = (en, id)
-        best.append(econf)
-    best.sort()
-    if len(best == 0):
-        raise Exception("Error: No valid conformations found for the molecule. Try increasing the number of conformations.")
-    # The best conformer is the first tuple and the ID of that conformer is the second value in the tuple
-    best_id = int(best[0][1])
-    # Return the best ID
-    return best_id
-    
+   
 def optPol(smiles):
     #make Mol object:
     pol = Chem.MolFromSmiles(smiles)
