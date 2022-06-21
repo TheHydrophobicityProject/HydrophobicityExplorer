@@ -34,6 +34,12 @@ requested calculations are None
 ```
 The `-s` flag here allows us to define a "super-monomer" which is a repeating sequence of smaller monomers in a specific order. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
 
+#### Modifying The SMILES Dictionary
+
+Monomers should be added to the `monomer_dict` in `smiles.py` with the head of the monomer at the left of the SMILES string and the tail at the right. This allows easy construction of the polymer body by simply repeating this string `n` times.
+
+Initiator and terminator groups should be added to `init_dict` and the atom to which the rest of the polymer should attatch must be denoted with `*`. Additionally, the SMILES must be written such that the `*` is the first or last character in the string. If the end-group is palindromic no asterisk is necessary. The existing dictionary has examples of each of these conditions.
+
 ### Reading a Polymer From A File
 
 You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade .mol or .pdb file instead of spelling out the polymer with the `-m` or `-s` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
