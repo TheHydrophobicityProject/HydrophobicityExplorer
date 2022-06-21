@@ -1,4 +1,5 @@
 from functools import cache
+from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import AllChem,Draw,Descriptors,rdFreeSASA
 import argparse,os,csv,json
@@ -34,6 +35,7 @@ def getArgs():
                         help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
     parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
     parser.add_argument("-j", "--json", type = str, help = "The path to a compatible .json file with any of the above arguments.")
+    parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
     args = parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
@@ -189,7 +191,7 @@ def createPolymerSMILES(i,n,m,t,*, verbosity = False):
     if add_terminator or add_initiator:
         if verbosity:
             print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
-        polymer_SMILES = attatch_frags(polymer_SMILES, add_initiator = (add_initiator, init), add_terminator = (add_terminator, term))
+        polymer_SMILES = attatch_frags(polymer_SMILES, add_initiator=(add_initiator, init), add_terminator=(add_terminator, term))
 
     return polymer_SMILES
    
@@ -200,44 +202,76 @@ def optPol(smiles):
     Chem.SanitizeMol(pol)
     #opt steps
     pol_h = Chem.AddHs(pol)
-    #pol_h = bestConformer(pol_h,100,42,2) #add support for changing these with cli arguments
-    AllChem.EmbedMolecule(pol_h, useRandomCoords = True)
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters = 100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
+    AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity = False, plot = False):
+def confirmStructure(smi,*, proceed=None):
+    drawPol(Chem.MolFromSmiles(smi),"confirm.png")
+    img = Image.open("confirm.png")
+    img.show()
+    inp = input("Does this look right? [Y/n]")
+    if os.path.exists("confirm.png"):
+        os.remove("confirm.png")
+
+    if inp.lower() == "y" or inp == "":
+        inp=True
+    else:
+        inp = False
+        print("Please try adjusting input and try again.")
+        quit()
+    
+    if proceed is not None:
+        return inp
+
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False):
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
     if plot:
         N_array = range(1, n+1)
+
+        if confirm == True:
+            proceed=False
+        else:
+            proceed=True
+
         for j in N_array:
-            smi = createPolymerSMILES(i, j, r, t, verbosity = verbosity)
+            smi = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
+
+            if confirm == True and proceed == False:
+                proceed = confirmStructure(smi, proceed=proceed)
+
+            if verbosity:
                 print("Converting to mol now.")
-            pol_h,pol = optPol(smi)
+            pol_h, pol = optPol(smi)
             POL_LIST.append(pol_h)
             SMI_LIST.append(smi)
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols
     else:
-        smi = createPolymerSMILES(i, n, r, t, verbosity = verbosity)
+        smi = createPolymerSMILES(i, n, r, t, verbosity=verbosity)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {smi}")
+
+        if confirm:
+            confirmStructure(smi)
+        
         pol_h,pol = optPol(smi) #both are mol objects
         return pol_h, smi, pol
 
 def drawPol(pol, drawName):
     if type(pol) == list: #save a grid image instead
-        img=Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i + 1}" for i, mol in enumerate(pol)], subImgSize = (250, 250))
+        img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {i + 1}" for i, mol in enumerate(pol)], subImgSize=(250, 250))
         img.save(drawName)
     else:
         Chem.Draw.MolToFile(pol, drawName)
 
-def write_or_read_pol(name, *, verbosity = False, read = False, mol = None):
+def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
     ext=name.split(".")[1]
     if read:
         if os.path.exists(name):
@@ -270,12 +304,8 @@ def write_or_read_pol(name, *, verbosity = False, read = False, mol = None):
 
 def Sasa(pol_h):#,best_conf_id):
     # Now calculate LogP and SASA
-    # Calculate SASA based on the best conformer
-    # classifyAtoms CRASHED when I tried it with, confIdx=best_conf_id
-    # but someone needs to go back and make sure it's actually OK to use it without
-    # and that that won't cause problems!
+    # Calculate SASA
     radii = Chem.rdFreeSASA.classifyAtoms(pol_h)
-    #sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii, confIdx=best_conf_id)
     sasa = Chem.rdFreeSASA.CalcSASA(pol_h, radii)    
     return sasa
 
@@ -380,10 +410,10 @@ def main():
                         
             if vardict["plot"]:
                 POL_LIST, SMI_LIST, UNOPT_POL_LIST = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"])
+                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
             else:
                 pol_h, polSMILES, pol = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"])
+                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"

@@ -6,12 +6,14 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 
 ## Usage and Examples
 
+Note that the following examples all use the `-q` flag. This is used to supress the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. This may be more important when using smiles inputs that do not come stock with this program. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
+
 ### Specifying Polymer Components
 
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
 
 ```bash
-$ python3 MakePolymer.py -n 3 -m Styrene -v
+$ python3 MakePolymer.py -n 3 -m Styrene -v -q
 polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Polymer interpreted as: Hydrogen 3 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
@@ -23,7 +25,7 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 2 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl -v
+$ python3 MakePolymer.py -n 2 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl -v -q
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
 polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding initiator smiles
 polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
@@ -45,7 +47,7 @@ Initiator and terminator groups should be added to `init_dict` and the atom to w
 You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade .mol or .pdb file instead of spelling out the polymer with the `-m` or `-s` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
 
 ```bash
-$ python3 MakePolymer.py -r pol.mol -c SA RG LogP
+$ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 {'SA': 911.5262248851872, 'LogP': 14.510599999999974, 'RG': 7.430526236202889, 'N': None, 'smi': 'CCCCOC(=O)C(COC)CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)c1ccccc1CO)C(=O)OCCCC)C(=O)OCCCC)C(=O)OCCCC'}
 ```
 The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
@@ -55,7 +57,7 @@ The above example also shows how calculations are specified. Each calculation ha
 The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
 
 ```bash
-$ python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol
+$ python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol -q
 polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
@@ -72,7 +74,7 @@ The size-dependent plots of any calculations performed can be generated with the
 The data can be exported with the `-e` flag. 
 
 ```bash
-$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v #XMHP requests that the MHP data be eXclusively returned.
+$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v -q #XMHP requests that the MHP data be eXclusively returned.
 polymer smiles is CC(c1ccccc1) before any end groups
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
 Converting to mol now.
@@ -116,7 +118,7 @@ The list of dictionaries created by importing the paramaters from the json file 
 
 This project has been tested with `Python 3.10.4` and the following dependencies:
 
-```python
+```python3
 >>> rdkit.__version__
 '2020.03.2'
 >>> matplotlib.__version__
@@ -127,4 +129,6 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 '1.0'
 >>> json.__version__
 '2.0.9'
+>>> PIL.__version__
+'9.1.1'
 ```

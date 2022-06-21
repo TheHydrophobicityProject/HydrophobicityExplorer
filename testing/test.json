@@ -8,7 +8,8 @@
                 "SA",
                 "RG",
                 "LogP"
-            ]
+            ],
+            "quiet": true
         },
         {
             "n": 4,
@@ -18,10 +19,12 @@
             ],
             "plot": true,
             "export": "data.csv",
+            "quiet": true,
             "verbose": true
         },
         {
             "n": 4,
+            "quiet": true,
             "super_monomer": [
                 2,
                 "CC(C(=O)OCCCC)",
@@ -33,6 +36,7 @@
         },
         {
             "n": 4,
+            "quiet": true,
             "super_monomer": [
                 2,
                 "CC(C(=O)OCCCC)",
@@ -44,6 +48,7 @@
         },
         {
             "n": 4,
+            "quiet": true,
             "single_monomer": "Dimethylacrylamide",
             "initiator": "Methoxy",
             "terminator": "Methoxy",
@@ -55,6 +60,7 @@
         },
         {
             "n": 4,
+            "quiet": true,
             "single_monomer": "Styrene",
             "initiator": "Benzyl",
             "terminator": "Benzyl_alcohol",
