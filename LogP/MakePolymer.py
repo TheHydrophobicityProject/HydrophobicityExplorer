@@ -217,6 +217,7 @@ def confirmStructure(smi,*, proceed=None):
 
     if inp.lower() == "y" or inp == "":
         inp=True
+        print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
     else:
         inp = False
         print("Please try adjusting input and try again.")
