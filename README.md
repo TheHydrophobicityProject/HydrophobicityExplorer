@@ -6,7 +6,7 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 
 ## Usage and Examples
 
-Note that the following examples all use the `-q` flag. This is used to supress the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. This may be more important when using smiles inputs that do not come stock with this program. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
+Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. This may be more important when using smiles inputs that do not come stock with this program. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
 
 ### Specifying Polymer Components
 
@@ -38,7 +38,7 @@ The `-s` flag here allows us to define a "super-monomer" which is a repeating se
 
 #### Modifying The SMILES Dictionary
 
-Monomers should be added to the `monomer_dict` in `smiles.py` with the head of the monomer at the left of the SMILES string and the tail at the right. This allows easy construction of the polymer body by simply repeating this string `n` times.
+Monomers should be added to the `monomer_dict` in `smiles.py` with the tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written 'CC(C)'. This allows easy construction of the polymer body by simply repeating this string `n` times.
 
 Initiator and terminator groups should be added to `init_dict` and the atom to which the rest of the polymer should attatch must be denoted with `*`. Additionally, the SMILES must be written such that the `*` is the first or last character in the string. If the end-group is palindromic no asterisk is necessary. The existing dictionary has examples of each of these conditions.
 
