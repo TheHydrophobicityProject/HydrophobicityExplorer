@@ -13,7 +13,7 @@ Note that the following examples all use the `-q` flag. This suppresses the defa
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
 
 ```bash
-$ python3 MakePolymer.py -n 3 -m Styrene -v -q
+$ python3 MakePolymer.py -n 3 -m Styrene -v -q   # -n is number of monomers
 polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Polymer interpreted as: Hydrogen 3 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
@@ -34,7 +34,7 @@ This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCC
 Saving image to polymer.png by default.
 requested calculations are None
 ```
-The `-s` flag here allows us to define a "super-monomer" which is a repeating sequence of smaller monomers in a specific order. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
+The `-s` flag here allows us to define comonomers which are repeating sequences of smaller monomers in a specific order. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
 
 #### Modifying The SMILES Dictionary
 
