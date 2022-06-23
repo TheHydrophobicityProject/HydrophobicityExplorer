@@ -34,7 +34,7 @@ This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCC
 Saving image to polymer.png by default.
 requested calculations are None
 ```
-The `-s` flag here allows us to define comonomers which are repeating sequences of smaller monomers in a specific order. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
+The `-s` flag defines the sequence or specific order of comonomers. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
 
 #### Modifying The SMILES Dictionary
 
