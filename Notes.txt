@@ -24,3 +24,15 @@ preview should always be of n=1 even for non-plotting jobs so it is easy to see 
 
 Each run in plotting run needs to re-add the end groups. This should eventually be fixed, though optimization of structure will still take by far
 the longest time.
+
+
+As a long-term strategy, a user would have multiple options for choosing a force field or even use their own force field.
+For polymers, here are some options:
+
+http://www.sklogwiki.org/SklogWiki/index.php/COMPASS_force_field
+
+http://www.sklogwiki.org/SklogWiki/index.php/PCFF_force_field
+
+A longer list: http://www.sklogwiki.org/SklogWiki/index.php/Category:Force_fields
+
+Often force fields are optimized for particular polymers (see https://pubs.acs.org/doi/10.1021/ct200251x for PLA) or solvents.
