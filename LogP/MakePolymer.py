@@ -151,10 +151,9 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         mergedrw.GetAtomWithIdx(inator_attatchment).SetProp('atomNote', 'done')
 
     #count up number of dummy atoms ("*")
-    numDummies = 0
-    for atom in mergedrw.GetAtoms():
-        if atom.GetAtomicNum() == 0:
-            numDummies += 1
+    dummies = [a for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0]
+    numDummies = len(dummies)
+    
     #remove the dummy atoms (need to do one at a time)
     for i in range(numDummies):
         mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0][0])
@@ -170,7 +169,7 @@ def createPolymerSMILES(i,n,m,t,*, verbosity = False):
     if verbosity:
         print(f"polymer smiles is {polymer_SMILES} before any end groups")
 
-    if type(init) != str:
+    if type(init) != str: #i.e. a mol object instead
         polymer_SMILES = "*" + polymer_SMILES
         add_initiator = True
     else:
@@ -179,7 +178,7 @@ def createPolymerSMILES(i,n,m,t,*, verbosity = False):
         if verbosity and init != "":
             print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
             
-    if type(term) != str:
+    if type(term) != str: #i.e. a mol object instead
         polymer_SMILES = polymer_SMILES + "*"
         add_terminator = True
     else:

@@ -11,12 +11,16 @@ https://sourceforge.net/p/rdkit/mailman/message/18450857/
 https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/CAKwxoo7G0rUeAC0Mpp70edCdX5a7Suz%3DjQo4t_Ci4Mk%3D3h%2BUnA%40mail.gmail.com/
 https://greglandrum.github.io/rdkit-blog/tutorial/prototypes/drawing/2021/08/07/rgd-and-highlighting.html
 
+See what functionality there is in the crossover notebooks. --> save for V2
+Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> save for V2
+
 TODO
 
 More details about packaging.
 
-See what functionality there is in the crossover notebooks. --> save for V2
-Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> save for V2
+add labels in image preview about where attachments are
+
+preview should always be of n=1 even for non-plotting jobs so it is easy to see what end groups are connected.
 
 Each run in plotting run needs to re-add the end groups. This should eventually be fixed, though optimization of structure will still take by far
 the longest time.
