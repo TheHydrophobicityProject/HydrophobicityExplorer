@@ -40,7 +40,7 @@ The `-s` flag here allows us to define comonomers which are repeating sequences 
 
 Monomers should be added to the `monomer_dict` in `smiles.py` with the tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written 'CC(C)'. This allows easy construction of the polymer body by simply repeating this string `n` times.
 
-Initiator and terminator groups should be added to `init_dict` and the atom to which the rest of the polymer should attatch must be denoted with `*`. Additionally, the SMILES must be written such that the `*` is the first or last character in the string. If the end-group is palindromic no asterisk is necessary. The existing dictionary has examples of each of these conditions.
+Initiator and terminator groups should be added to `init_dict` and the atom to which the rest of the polymer should attatch must be denoted with `*`. The use of '*' is inspired by polymergenome.org. Additionally, the SMILES must be written such that the `*` is the first or last character in the string. If the end-group is palindromic no asterisk is necessary. The existing dictionary has examples of each of these conditions.
 
 ### Reading a Polymer From A File
 
