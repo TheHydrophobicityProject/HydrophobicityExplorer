@@ -141,10 +141,13 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         attachments = [a.GetIdx() for a in mergedrw.GetAtoms() if a.HasProp('atomNote')]
         #isolating proper index from list to use in bond formation.
         inator_attatchment = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "attatch"][0]
+
         if inator == add_initiator[1]:
             bond_here = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "head"][0]
+
         if inator == add_terminator[1]:
             bond_here = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "tail"][0]
+            
         #make bond
         mergedrw.AddBond(bond_here, inator_attatchment, Chem.rdchem.BondType.SINGLE)
         #change label so that atom is not targeted a second time for bond formation.
@@ -153,7 +156,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     #count up number of dummy atoms ("*")
     dummies = [a for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0]
     numDummies = len(dummies)
-    
+
     #remove the dummy atoms (need to do one at a time)
     for i in range(numDummies):
         mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0][0])
@@ -161,38 +164,51 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     smi = Chem.MolToSmiles(mergedrw)
     return smi
 
-def createPolymerSMILES(i,n,m,t,*, verbosity = False):
-    init, term, repeat_unit = get_building_blocks(i, t, m, verbosity = verbosity)
-
-    polymer_SMILES = n * repeat_unit
-
+def add_inator_smiles(smi, init, term, *, verbosity=False):
     if verbosity:
-        print(f"polymer smiles is {polymer_SMILES} before any end groups")
+            print(f"polymer smiles is {smi} before any end groups")
 
     if type(init) != str: #i.e. a mol object instead
-        polymer_SMILES = "*" + polymer_SMILES
+        smi = "*" + smi
         add_initiator = True
     else:
         add_initiator = False
-        polymer_SMILES = init + polymer_SMILES
+        smi = init + smi
         if verbosity and init != "":
-            print(f"polymer smiles is {polymer_SMILES} after adding initiator smiles")
+            print(f"polymer smiles is {smi} after adding initiator smiles")
             
     if type(term) != str: #i.e. a mol object instead
-        polymer_SMILES = polymer_SMILES + "*"
+        smi = smi + "*"
         add_terminator = True
     else:
         add_terminator = False
-        polymer_SMILES = polymer_SMILES + term
+        smi = smi + term
         if verbosity and init != "":
-            print(f"polymer smiles is {polymer_SMILES} after adding terminator smiles")
+            print(f"polymer smiles is {smi} after adding terminator smiles")
 
     if add_terminator or add_initiator:
         if verbosity:
-            print(f"converting polymer body {polymer_SMILES} to mol object to add frags")
-        polymer_SMILES = attatch_frags(polymer_SMILES, add_initiator=(add_initiator, init), add_terminator=(add_terminator, term))
+            print(f"converting polymer body {smi} to mol object to add frags")
+        smi = attatch_frags(smi, add_initiator=(add_initiator, init), add_terminator=(add_terminator, term))
 
-    return polymer_SMILES
+    return smi
+
+def createPolymerSMILES(i,n,m,t,*, verbosity = False, test = False):
+    init, term, repeat_unit = get_building_blocks(i,t,m, verbosity=verbosity)
+
+    polymer_SMILES = n * repeat_unit
+    
+    if test:
+        test_smi = repeat_unit
+        test_smi = add_inator_smiles(test_smi, init, term, verbosity=verbosity)
+        verbosity = False
+    
+    full_smiles = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
+
+    if test:
+        return test_smi, full_smiles
+    else:
+        return full_smiles
    
 def optPol(smiles):
     #make Mol object:
@@ -221,7 +237,7 @@ def confirmStructure(smi,*, proceed=None):
         inp = False
         print("Please try adjusting input and try again.")
         quit()
-    
+
     if proceed is not None:
         return inp
 
@@ -233,9 +249,9 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         N_array = range(1, n+1)
 
         if confirm == True:
-            proceed=False
+            proceed = False
         else:
-            proceed=True
+            proceed = True
 
         for j in N_array:
             smi = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
@@ -253,16 +269,17 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols
     else:
-        smi = createPolymerSMILES(i, n, r, t, verbosity=verbosity)
+        test_smi, full_smi = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
-            print(f"This gives the following SMILES: {smi}")
+            print(f"This gives the following SMILES: {full_smi}")
 
         if confirm:
-            confirmStructure(smi)
+            print("Showing structure with n=1 to confirm correct end groups")
+            confirmStructure(test_smi)
         
-        pol_h,pol = optPol(smi) #both are mol objects
-        return pol_h, smi, pol
+        pol_h,pol = optPol(full_smi) #both are mol objects
+        return pol_h, full_smi, pol
 
 def drawPol(pol, drawName):
     if type(pol) == list: #save a grid image instead
