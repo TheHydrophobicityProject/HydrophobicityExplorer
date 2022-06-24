@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 from smiles import monomer_dict, init_dict
 
 def getJsonArgs(jsonFile, dict):
-    with open(jsonFile, 'r') as J:
-        runs_dict = json.load(J)
+    with open(jsonFile, 'r') as J: #open json file
+        runs_dict = json.load(J) #read it
         for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
             run_keys = run.keys()
-            for dict_key in dict.keys():
-                if dict_key not in run_keys:
-                    run[dict_key] = dict[dict_key]
-    run_list = runs_dict["runs"]
+            for dict_key in dict.keys(): #the keys submitted to the func (derrived from CLI arguments)
+                if dict_key not in run_keys: #if there is a key provided by user not in the dict derrived from the json file
+                    run[dict_key] = dict[dict_key] #then add it
+    run_list = runs_dict["runs"] #now we have a list of runs with all arguments from file and command line.
     return run_list
 
 def getArgs():
@@ -42,7 +42,7 @@ def getArgs():
     if args.json is not None:
         run_list = getJsonArgs(args.json, vardict)
     else:
-        run_list = [vardict]
+        run_list = [vardict] #args assumed to be in list later due to above.
     return run_list
 
 def getRepeatUnit(single, super):
@@ -83,19 +83,20 @@ def get_building_blocks(i,t,m,*, verbosity = False):
     init = smiles_inators[0]
     term = smiles_inators[1]
 
-    if init != "" and init[0] == "*":
+    ###Can probably wrap this repeated stuff into a function.
+    if init != "" and init[0] == "*": #the attatchment point does not face rest of polymer
         if verbosity:
             print("initiator smiles in wrong direction. Converting to mol object.")
         init = Chem.MolFromSmiles(init)
     else:
-        init = init.replace("*","")
+        init = init.replace("*","") #remove asterisk if not using rdkit method
 
-    if term != "" and term[-1:] == "*":
+    if term != "" and term[-1:] == "*": #see above
         if verbosity:
             print("terminator smiles in wrong direction. Converting to mol object.")
         term = Chem.MolFromSmiles(term)
     else:
-        term = term.replace("*", "")
+        term = term.replace("*", "") #remove asterisk if not using rdkit method
 
     return init, term, repeat_unit
 
@@ -166,23 +167,23 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
 
 def add_inator_smiles(smi, init, term, *, verbosity=False):
     if verbosity:
-            print(f"polymer smiles is {smi} before any end groups")
+        print(f"polymer smiles is {smi} before any end groups")
 
     if type(init) != str: #i.e. a mol object instead
         smi = "*" + smi
-        add_initiator = True
+        add_initiator = True # we will attatch with mol-based methods
     else:
         add_initiator = False
-        smi = init + smi
+        smi = init + smi #just attatch as string instead
         if verbosity and init != "":
             print(f"polymer smiles is {smi} after adding initiator smiles")
             
     if type(term) != str: #i.e. a mol object instead
-        smi = smi + "*"
+        smi = smi + "*" #same as above but for terminator. Attachment point is at end this time.
         add_terminator = True
     else:
         add_terminator = False
-        smi = smi + term
+        smi = smi + term #same as above but for terminator
         if verbosity and init != "":
             print(f"polymer smiles is {smi} after adding terminator smiles")
 
@@ -198,15 +199,17 @@ def createPolymerSMILES(i,n,m,t,*, verbosity = False, test = False):
 
     polymer_SMILES = n * repeat_unit
     
-    if test:
+    if test: # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
+        #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
         test_smi = repeat_unit
         test_smi = add_inator_smiles(test_smi, init, term, verbosity=verbosity)
-        verbosity = False
+        verbosity = False #turn off verbosity for the next generation because we already talk it through the first time.
     
     full_smiles = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
     if test:
-        return test_smi, full_smiles
+        return test_smi, full_smiles #return test smiles too so it can be previewed. It is fast to make both before confirmation
+        #but we do the confirmation before optimizing geometry.
     else:
         return full_smiles
    
@@ -222,14 +225,18 @@ def optPol(smiles):
     #maybe this number of itterations should be specified with cli arguments (give option).
     return pol_h, pol
 
-def confirmStructure(smi,*, proceed=None):
-    drawPol(Chem.MolFromSmiles(smi),"confirm.png")
+def confirmStructure(smi, *, proceed=None):
+    #save image to temporary file
+    drawPol(Chem.MolFromSmiles(smi), "confirm.png")
     img = Image.open("confirm.png")
+    #show it to user
     img.show()
     inp = input("Does this look right? [Y/n]")
+    
     if os.path.exists("confirm.png"):
         os.remove("confirm.png")
 
+    #affirmation is y, Y or just hitting enter
     if inp.lower() == "y" or inp == "":
         inp=True
         print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
@@ -239,7 +246,7 @@ def confirmStructure(smi,*, proceed=None):
         quit()
 
     if proceed is not None:
-        return inp
+        return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
 def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False):
     POL_LIST = []
@@ -258,11 +265,13 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
 
+            #ask for confirmation if needed
             if confirm == True and proceed == False:
                 proceed = confirmStructure(smi, proceed=proceed)
 
             if verbosity:
                 print("Converting to mol now.")
+
             pol_h, pol = optPol(smi)
             POL_LIST.append(pol_h)
             SMI_LIST.append(smi)
