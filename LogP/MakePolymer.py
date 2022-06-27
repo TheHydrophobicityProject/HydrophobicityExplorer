@@ -89,7 +89,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
             print("initiator smiles in wrong direction. Converting to mol object.")
         init = Chem.MolFromSmiles(init)
     else:
-        init = init.replace("*","") #remove asterisk if not using rdkit method
+        init = init.replace("*", "") #remove asterisk if not using rdkit method
 
     if term != "" and term[-1:] == "*": #see above
         if verbosity:
@@ -261,13 +261,14 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             proceed = True
 
         for j in N_array:
-            smi = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
+            if j == 1 and confirm and not proceed:
+                test_smi, smi = createPolymerSMILES(i,j,r,t,verbosity=verbosity, test=True)
+                verbosity=False
+                proceed = confirmStructure(test_smi, proceed=proceed)
+            if j > 1:
+                smi = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
-
-            #ask for confirmation if needed
-            if confirm == True and proceed == False:
-                proceed = confirmStructure(smi, proceed=proceed)
 
             if verbosity:
                 print("Converting to mol now.")
