@@ -1,10 +1,5 @@
-There is no selection for the "best" conformer as in some of the other jupyter notebooks. This can be added soon, just seeing utility of the current suite of command-line aruments.
--->AllChem.MMFFOptimizeMolecule(pol_h, maxIters=1000) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*)
-
 Do we want to highlight parts of the molecule?
 https://www.rdkit.org/docs/Cookbook.html#highlight-a-substructure-in-a-molecule
-
-I will delete notebooks no longer needed since they will not be in the final product and they are still on cocalc.
 
 rdkit resources:
 https://sourceforge.net/p/rdkit/mailman/message/18450857/
@@ -19,8 +14,6 @@ TODO
 More details about packaging.
 
 add labels in image preview about where attachments are
-
-preview should always be of n=1 even for non-plotting jobs so it is easy to see what end groups are connected.
 
 Each run in plotting run needs to re-add the end groups. This should eventually be fixed, though optimization of structure will still take by far
 the longest time.

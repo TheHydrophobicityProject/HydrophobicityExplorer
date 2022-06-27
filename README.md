@@ -8,6 +8,8 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 
 Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. This may be more important when using smiles inputs that do not come stock with this program. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
 
+Regardless of the provided value of `n`, the preview will only show one monomer for simplicity.
+
 ### Specifying Polymer Components
 
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
