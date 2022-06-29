@@ -54,6 +54,14 @@ $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 ```
 The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
+#### Completely Custom Input Molecules
+If the methods contained within this program are inadequet for the type of molecule desired, the accessory script `custom_input_to_mol_file.py` may be useful. It can read Smiles, Smarts or Inchi strings and produce a .mol file that can be read for calculations with the master script.
+
+Use the following to show instructions for this script.
+```python3
+python3 custom_input_to_mol_file.py -h
+```
+
 ### Saving Polymer to File
 
 The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.

@@ -7,7 +7,7 @@ def getArgs():
     parser.add_argument("-s", "--smiles", type=str, help="Complete smiles string to be converted.")
     parser.add_argument("-m", "--smarts", type=str, help="Complete smarts string to be converted.")
     parser.add_argument("-i", "--inchi", type=str, help="Complete inchi string to be converted.")
-    parser.add_argument("-f", "--file", type=str, help="filename you would like to use. The format NAME_numberOfMonomers is best.")
+    parser.add_argument("-f", "--file", type=str, help="filename you would like to use. The format NAME_numberOfMonomers.mol is required.")
     args = parser.parse_args()
     return args
 
@@ -31,9 +31,9 @@ def main():
     given_args = { k:v for (k, v) in VARS.items() if v is not None }
 
     if len(given_args) > 2 and args.file is not None:
-        print("Please only provide one argument.")
+        print("Please only provide one input molecule type.")
         quit()
-        
+
     if args.file is None:
         print("please provide a filename with the -f flag.")
         quit()
