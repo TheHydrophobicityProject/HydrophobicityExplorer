@@ -388,7 +388,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity = False):
     dicts = []
     for i, pol in enumerate(pol_list):
         calcs = set(calculations)
-        pol_data = doCalcs(pol,calcs)
+        pol_data = doCalcs(pol, calcs)
         pol_data["N"] = i + 1
         pol_data["smi"] = smiles_list[i]
         dicts.append(pol_data)
