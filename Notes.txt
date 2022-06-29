@@ -11,6 +11,14 @@ Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> sav
 
 TODO
 
+ability to use dict keys for -s type inputs
+
+accessory script for random mix of monomers.
+
+better count of n. For -s jobs with 2 of 1 and 3 of another per supermonomer. n should really multiplied by 6.
+
+throw an error when non-pallendromic end group is provided without an asterisk.
+
 More details about packaging.
 
 add labels in image preview about where attachments are
