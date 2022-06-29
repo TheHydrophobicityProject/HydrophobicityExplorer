@@ -221,8 +221,8 @@ def optPol(smiles):
     #opt steps
     pol_h = Chem.AddHs(pol)
     AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=100) #does this repeated optimization obviate the need for the bestConformer function (copied from polymer LogP v4_4_4_alla*) 
-    #maybe this number of itterations should be specified with cli arguments (give option).
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=250)
+
     return pol_h, pol
 
 def confirmStructure(smi, *, proceed=None):
