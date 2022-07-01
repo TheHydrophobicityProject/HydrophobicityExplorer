@@ -13,7 +13,7 @@ TODO
 
 accessory script for random mix of monomers.
 
-throw an error when non-pallendromic end group is provided without an asterisk.
+throw an error when non-palindromic end group is provided without an asterisk.
 
 More details about packaging.
 
