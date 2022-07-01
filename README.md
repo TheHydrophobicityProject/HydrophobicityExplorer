@@ -27,7 +27,7 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 2 -s 2 "CC(C(=O)OCCCC)" "CC(C)" -i Methoxy -t Benzyl -v -q
+$ python3 MakePolymer.py -n 2 -s 2 Butylacrylate "CC(C)" -i Methoxy -t Benzyl -v -q
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
 polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding initiator smiles
 polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
@@ -36,7 +36,7 @@ This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCC
 Saving image to polymer.png by default.
 requested calculations are None
 ```
-The `-s` flag defines the sequence or specific order of comonomers. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES.
+The `-s` flag defines the sequence or specific order of comonomers. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-s` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the -s flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
 
 #### Modifying The SMILES Dictionary
 

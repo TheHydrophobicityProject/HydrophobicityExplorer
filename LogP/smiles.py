@@ -1,4 +1,4 @@
-monomer_dict={
+monomer_dict = {
 
     #amino acids
     'ala': 'C[C@@H](C(=O)O)N',
@@ -66,7 +66,7 @@ monomer_dict={
 }
 
 #initiator dictionary
-init_dict={
+init_dict = {
     'Benzyl': '*Cc1ccccc1',
     'Benzyl_alcohol': '*Cc1ccccc1O', 
     'Butyl': 'CCCC',
