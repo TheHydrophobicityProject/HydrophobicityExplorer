@@ -83,7 +83,7 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
         raise ValueError("end group smiles is not palendromic and has no attatchment point specified.")
     else:
         inator = inator.replace("*", "") #remove asterisk if not using rdkit method
-        
+
     return inator
 
 def get_building_blocks(i,t,m,*, verbosity = False):
@@ -257,6 +257,7 @@ def confirmStructure(smi, *, proceed=None):
     
     if os.path.exists("confirm.png"):
         os.remove("confirm.png")
+        #delete the file
 
     #affirmation is y, Y or just hitting enter
     if inp.lower() == "y" or inp == "":
@@ -266,6 +267,7 @@ def confirmStructure(smi, *, proceed=None):
         inp = False
         print("Please try adjusting input and try again.")
         quit()
+        #aborts so user can retry
 
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
@@ -277,6 +279,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     if plot:
         N_array = range(1, n+1)
 
+        #this allows us to confirm only once for plotting jobs
         if confirm == True:
             proceed = False
         else:
@@ -293,7 +296,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
-                print("Converting to mol now.")
+                print("Converting to RDkit mol now.")
 
             pol_h, pol = optPol(smi)
             POL_LIST.append(pol_h)
@@ -316,15 +319,16 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 def drawPol(pol, drawName, *, mpn=1):
     if type(pol) == list: #save a grid image instead
         img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {(i + 1) * mpn}" for i, mol in enumerate(pol)], subImgSize=(250, 250))
+        #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
         img.save(drawName)
     else:
-        Chem.Draw.MolToFile(pol, drawName,)
+        Chem.Draw.MolToFile(pol, drawName)
 
 def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
     ext = name.split(".")[1]
     if read:
         if os.path.exists(name):
-
+            #is the file type valid?
             if ext == "pdb":
                 pol_h = Chem.MolFromPDBFile(name)
             elif ext == "mol":
@@ -341,7 +345,7 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
     else:
         if verbosity:
             print(f'attempting to save molecule to {name}')
-
+        #is the file type valid?
         if ext == "xyz":
             Chem.MolToXYZFile(mol, name)
         elif ext == "pdb":
@@ -379,15 +383,16 @@ def MolVolume(pol_h):
 def doCalcs(pol_h, calcs):
     #The variable /calcs/ is a set
     #Calcs are only done if requested.
+    #remove entries from set after each calculation and print the unrecognised ones at the end.
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
         sasa = Sasa(pol_h)
-        if not "XMHP" in calcs:
+        if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["SA"] = sasa
         calcs.discard("SA")
     if "LogP" in calcs or "MHP" in calcs or "XMHP" in calcs:
         logP = LogP(pol_h)
-        if not "XMHP" in calcs:
+        if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["LogP"] = logP
         calcs.discard("LogP")
     if "RG" in calcs:
@@ -407,7 +412,7 @@ def doCalcs(pol_h, calcs):
         print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or RG")
     return data
 
-def makePlot(pol_list, calculations, smiles_list, *, verbosity = False, mpn=1):
+def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
     dicts = []
     for i, pol in enumerate(pol_list):
         calcs = set(calculations)
@@ -426,9 +431,11 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity = False, mpn=1):
         plt.xlabel('n') 
         plt.ylabel(f'{calc_key}')
     else:
+        #need to make multiple subplots if multiple calcs requested.
         figure, axis = plt.subplots(ncols = ncols)
         series = 0
         for key in data:
+            #we can't plot N vs N or anything to do with smiles
             if key != "N" and key != "smi":
                 axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
@@ -443,12 +450,14 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity = False, mpn=1):
 
 def exportToCSV(exptName, data, dicts_list, verbosity=False):
     with open(exptName, "w", newline = "") as c:
+        #set column names as dict keys
         cols = list(data.keys())
         writer = csv.DictWriter(c, fieldnames = cols)
         writer.writeheader()
+        #write the data.
         writer.writerows(dicts_list)
     print(f"Done exporting data to {exptName}.")
-    if verbosity:
+    if verbosity: #this is turned off by main() if plotting is also turned on since both functions can print data and that is only needed once.
         print(data)
 
 def main():
