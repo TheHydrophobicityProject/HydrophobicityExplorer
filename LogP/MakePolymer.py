@@ -66,6 +66,26 @@ def inator_smi_lookup(i,t):
     smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
     return smiles_inators
 
+def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
+    if not Init and not Term:
+        raise ValueError("Need to specify wether end group is terminator or initiator.")
+    
+    if Init:
+        idx = 0 #look at first char of initiator
+    else:
+        idx = -1 #look at last character of terminator
+
+    if inator != "" and inator[idx] == "*": #the attatchment point does not face the rest of polymer
+        if verbosity:
+            print("initiator smiles in wrong direction. Converting to mol object.")
+        inator = Chem.MolFromSmiles(inator)
+    elif inator != inator[::-1] and "*" not in inator:
+        raise ValueError("end group smiles is not palendromic and has no attatchment point specified.")
+    else:
+        inator = inator.replace("*", "") #remove asterisk if not using rdkit method
+        
+    return inator
+
 def get_building_blocks(i,t,m,*, verbosity = False):
     smiles_inators = inator_smi_lookup(i, t)
     #pull results from list
@@ -96,20 +116,8 @@ def get_building_blocks(i,t,m,*, verbosity = False):
         repeat_unit = monomer_smi_lookup(m) #if not a list, look for the corresponding smiles in the dictionary, will throw error if not included.
         monomers_per_n = 1
 
-    ###Can probably wrap this repeated stuff into a function.
-    if init != "" and init[0] == "*": #the attatchment point does not face rest of polymer
-        if verbosity:
-            print("initiator smiles in wrong direction. Converting to mol object.")
-        init = Chem.MolFromSmiles(init)
-    else:
-        init = init.replace("*", "") #remove asterisk if not using rdkit method
-
-    if term != "" and term[-1:] == "*": #see above
-        if verbosity:
-            print("terminator smiles in wrong direction. Converting to mol object.")
-        term = Chem.MolFromSmiles(term)
-    else:
-        term = term.replace("*", "") #remove asterisk if not using rdkit method
+    init = validate_end_group(init, Init=True, verbosity=verbosity)
+    term = validate_end_group(term, Term=True, verbosity=verbosity)
     
     return init, term, repeat_unit, monomers_per_n
 
@@ -135,7 +143,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         tail.SetProp("atomNote", "tail")
         inators.append(add_terminator[1])
     else:
-        raise Exception(f"unknown combination of inators {add_initiator = }, {add_terminator = }.")
+        raise Exception(f"Unknown combination of inators {add_initiator = }, {add_terminator = }.")
 
     #set name to what will be used after one loop completes.
     mergedrw = pol
@@ -252,7 +260,7 @@ def confirmStructure(smi, *, proceed=None):
 
     #affirmation is y, Y or just hitting enter
     if inp.lower() == "y" or inp == "":
-        inp=True
+        inp = True
         print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
     else:
         inp = False
@@ -293,7 +301,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             Unopt_pols.append(pol)
         return POL_LIST, SMI_LIST, Unopt_pols, m_per_n
     else:
-        test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True) #m_per_n of one is not actually returned here.
+        test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {full_smi}")
