@@ -64,7 +64,9 @@ def inator_smi_lookup(i,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
     smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
-    return smiles_inators
+    init = smiles_inators [0]
+    term = smiles_inators[1]
+    return init, term
 
 def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
     if not Init and not Term:
@@ -87,11 +89,8 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
     return inator
 
 def get_building_blocks(i,t,m,*, verbosity = False):
-    smiles_inators = inator_smi_lookup(i, t)
-    #pull results from list
-    init = smiles_inators[0]
-    term = smiles_inators[1]
-
+    init, term = inator_smi_lookup(i, t)
+    
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
         deciphered_dict_keys = [monomer_dict[x] if x in monomer_dict else x for x in m]
