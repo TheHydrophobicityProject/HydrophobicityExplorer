@@ -242,7 +242,7 @@ def optPol(smiles):
     #opt steps
     pol_h = Chem.AddHs(pol)
     AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=250)
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=5000)
 
     return pol_h, pol
 
