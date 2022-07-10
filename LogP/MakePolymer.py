@@ -163,7 +163,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         #isolating proper index from list to use in bond formation.
         inator_attatchment = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "attatch"][0]
 
-        if inator == add_initiator[1]:
+        if inator == add_initiator[1]: #inator changes with each pass through the loop
             bond_here = [i for i in attachments if mergedrw.GetAtomWithIdx(i).GetProp('atomNote') == "head"][0]
 
         if inator == add_terminator[1]:
@@ -172,7 +172,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         #make bond
         mergedrw.AddBond(bond_here, inator_attatchment, Chem.rdchem.BondType.SINGLE)
         #change label so that atom is not targeted a second time for bond formation.
-        mergedrw.GetAtomWithIdx(inator_attatchment).SetProp('atomNote', 'done')
+        mergedrw.GetAtomWithIdx(inator_attatchment).ClearProp('atomNote')
 
     #count up number of dummy atoms ("*")
     dummies = [a for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0]
@@ -499,7 +499,7 @@ def main():
             if vardict["verbose"]:
                 #produce image if increased verbosity is requested even if no name is set.
                 print("Saving image to polymer.png by default.")
-                print(f"{M_PER_N = }")
+                # print(f"{M_PER_N = }")
                 drawPol(pol, "polymer.png", mpn=M_PER_N)
 
         #CALCULATIONS
