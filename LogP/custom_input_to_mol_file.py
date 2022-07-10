@@ -57,7 +57,7 @@ def main():
     AllChem.MMFFOptimizeMolecule(mol_h, maxIters=5000)
     #maybe this number of itterations should be specified with cli arguments (give option).
     
-    Chem.MolToMolFile(mol, args.file)
+    Chem.MolToMolFile(mol_h, args.file)
 
 if __name__ == "__main__":
     main()
