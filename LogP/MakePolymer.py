@@ -122,12 +122,12 @@ def get_building_blocks(i,t,m,*, verbosity = False):
 
 def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminator = (False, None)): #the initiator and terminator are the kwargs
     pol = Chem.MolFromSmiles(polymer_smiles)
-    #get indicies of "*" atoms
+    #get indicies of fake atoms ("*")
     fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum() == 0]
     #and their neighbors (to which we will actually be attatching.)
     conn_atoms = [pol.GetAtomWithIdx(x).GetNeighbors()[0].GetIdx() for x in fake_atoms]
 
-    #label the head and tail, accounting for possible absense of one or both inators.
+    #lable the head and tail, accounting for possible absense of one or both inators.
     inators = []
     if add_initiator[0]:
         head = pol.GetAtomWithIdx(conn_atoms[0])
@@ -151,7 +151,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         fake_atoms = [a.GetIdx() for a in inator.GetAtoms() if a.GetAtomicNum() == 0]
         #this time we just isolate atom object instead of index.
         attatch = [inator.GetAtomWithIdx(x).GetNeighbors()[0] for x in fake_atoms][0]
-        #label.
+        #lable.
         attatch.SetProp("atomNote", "attatch")
         #put the two mols into the same object (still no bond between them.)
         merged = Chem.CombineMols(inator, mergedrw)
@@ -178,7 +178,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     dummies = [a for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0]
     numDummies = len(dummies)
 
-    #remove the dummy atoms (need to do one at a time)
+    #remove the dummy atoms (need to do one at a time because index changes each time).
     for i in range(numDummies):
         mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0][0])
 
@@ -204,7 +204,7 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
     else:
         add_terminator = False
         smi = smi + term #same as above but for terminator
-        if verbosity and init != "":
+        if verbosity and init != "": #no need to print this extra info if adding "" (Hydrogen)
             print(f"polymer smiles is {smi} after adding terminator smiles")
 
     if add_terminator or add_initiator:
@@ -223,7 +223,7 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
         #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
         test_smi = repeat_unit
         test_smi = add_inator_smiles(test_smi, init, term, verbosity=verbosity)
-        verbosity = False #turn off verbosity for the next generation because we already talk it through the first time.
+        verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
     full_smiles = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
@@ -241,21 +241,23 @@ def optPol(smiles):
     Chem.SanitizeMol(pol)
     #opt steps
     pol_h = Chem.AddHs(pol)
-    AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=5000)
+    #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
+    AllChem.EmbedMolecule(pol_h, useRandomCoords=True) 
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=5000) 
+    #this number can probably be lowered. It was raised initially when a typo prevented display of proper geom in some accessory scripts.
 
     return pol_h, pol
 
 def confirmStructure(smi, *, proceed=None):
     #save image to temporary file
-    drawPol(Chem.MolFromSmiles(smi), "confirm.png")
-    img = Image.open("confirm.png")
+    drawPol(Chem.MolFromSmiles(smi), "tmp_confirm.png")
+    img = Image.open("tmp_confirm.png")
     #show it to user
     img.show()
     inp = input("Does this look right? [Y/n]")
     
-    if os.path.exists("confirm.png"):
-        os.remove("confirm.png")
+    if os.path.exists("tmp_confirm.png"):
+        os.remove("tmp_confirm.png")
         #delete the file
 
     #affirmation is y, Y or just hitting enter
@@ -263,7 +265,7 @@ def confirmStructure(smi, *, proceed=None):
         inp = True
         print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
     else:
-        inp = False
+        # inp = False #not actually used since program quits.
         print("Please try adjusting input and try again.")
         quit()
         #aborts so user can retry
@@ -275,9 +277,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
-    if plot:
+    if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
-
         #this allows us to confirm only once for plotting jobs
         if confirm == True:
             proceed = False
@@ -286,7 +287,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
         for j in N_array:
             if j == 1 and confirm and not proceed:
-                test_smi, smi, m_per_n = createPolymerSMILES(i,j,r,t,verbosity=verbosity, test=True)
+                test_smi, smi, m_per_n = createPolymerSMILES(i,j,r,t, verbosity=verbosity, test=True)
                 verbosity = False
                 proceed = confirmStructure(test_smi, proceed=proceed)
             
@@ -296,13 +297,14 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to RDkit mol now.")
-
+            #get opt and unopt molecules.
             pol_h, pol = optPol(smi)
             POL_LIST.append(pol_h)
-            SMI_LIST.append(smi)
             Unopt_pols.append(pol)
+            #save smiles
+            SMI_LIST.append(smi)
         return POL_LIST, SMI_LIST, Unopt_pols, m_per_n
-    else:
+    else: #just one polymer.
         test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
@@ -335,13 +337,14 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
             else:
                 print(f"unsuported extention: {ext} Please use .pdb, or .mol") #.xyz cannot be read by rdkit.
                 quit()
-
+            #convert to smiles so it can be visualized
             polSMILES = Chem.MolToSmiles(pol_h)
             pol = Chem.MolFromSmiles(polSMILES)
+            #but visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
             return pol_h, polSMILES, pol
         else:
             raise FileNotFoundError(name)
-    else:
+    else: #i.e. write file.
         if verbosity:
             print(f'attempting to save molecule to {name}')
         #is the file type valid?
@@ -380,9 +383,9 @@ def MolVolume(pol_h):
     return MV
 
 def doCalcs(pol_h, calcs):
-    #The variable /calcs/ is a set
+    #The type of variable /calcs/ is set
     #Calcs are only done if requested.
-    #remove entries from set after each calculation and print the unrecognised ones at the end.
+    #remove entries from set after each calculation and print the unrecognized ones at the end.
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
         sasa = Sasa(pol_h)
@@ -439,7 +442,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
                 axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
                 series += 1
-    figname = "Size-dependent-stats.png"
+    figname = "Size-dependent-stats.png" #should be able to change this
     plt.savefig(figname, bbox_inches = 'tight')
     print(f'Saved plot to {figname}')
     if verbosity:
