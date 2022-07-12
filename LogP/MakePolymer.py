@@ -243,7 +243,7 @@ def optPol(smiles):
     pol_h = Chem.AddHs(pol)
     #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
     AllChem.EmbedMolecule(pol_h, useRandomCoords=True) 
-    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=5000) 
+    AllChem.MMFFOptimizeMolecule(pol_h, maxIters=2500) 
     #this number can probably be lowered. It was raised initially when a typo prevented display of proper geom in some accessory scripts.
 
     return pol_h, pol
@@ -407,7 +407,7 @@ def doCalcs(pol_h, calcs):
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
         mhp = logP / sasa
-        data["MHP"] = mhp
+        data["LogP/SA"] = mhp
         calcs.discard("MHP")
         calcs.discard("XMHP")
     if len(calcs) > 0:
@@ -415,6 +415,7 @@ def doCalcs(pol_h, calcs):
     return data
 
 def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
+    units = { "LogP/SA":"Angstroms^-2", "LogP":"", "RG":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
     dicts = []
     for i, pol in enumerate(pol_list):
         calcs = set(calculations)
@@ -427,11 +428,11 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
     ncols = len(data) - 2
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
-        calc_key = [k if k != "XMHP" else "MHP" for k in calculations][0] #use given calc as key unless XMHP, then use MHP.
+        calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
         plt.plot(data["N"], data[calc_key], 'o')
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
-        plt.ylabel(f'{calc_key}')
+        plt.ylabel(f'{calc_key} ({units[calc_key]})')
     else:
         #need to make multiple subplots if multiple calcs requested.
         figure, axis = plt.subplots(ncols = ncols)
