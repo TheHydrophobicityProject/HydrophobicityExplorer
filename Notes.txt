@@ -11,7 +11,7 @@ Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> sav
 
 TODO
 
-add documentation for random smiles generation.
+Random organization of set composition instead of mathematically random based on weights
 
 mmffVariant : “MMFF94” or “MMFF94s”
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html

@@ -1,6 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from MakePolymer import optPol
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -18,7 +19,7 @@ def checkFilename(filename):
         print("Bad file extention. Please use Name_n.mol")
         quit()
 
-    n=split[0].split("_")[-1]
+    n = split[0].split("_")[-1]
     try:
         int(n)
     except:
@@ -27,7 +28,7 @@ def checkFilename(filename):
 
 def main():
     args = getArgs()
-    VARS=vars(args)
+    VARS = vars(args)
     given_args = { k:v for (k, v) in VARS.items() if v is not None }
 
     if len(given_args) > 2 and args.file is not None:
@@ -41,21 +42,17 @@ def main():
         checkFilename(args.file)
 
     if args.smiles is not None:
-        mol=Chem.MolFromSmiles(args.smiles)
+        mol = Chem.MolFromSmiles(args.smiles)
     elif args.smarts is not None:
-        mol=Chem.MolFromSmarts(args.smarts)
+        mol = Chem.MolFromSmarts(args.smarts)
     elif args.inchi is not None:
         mol = Chem.MolFromInchi(args.inchi)
     else:
         print("I am confused")
         quit()
 
-    Chem.SanitizeMol(mol)
-    #opt steps
-    mol_h = Chem.AddHs(mol)
-    AllChem.EmbedMolecule(mol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(mol_h, maxIters=2500)
-    #maybe this number of itterations should be specified with cli arguments (give option).
+    #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
+    mol_h, mol = optPol(Chem.MolToSmiles(mol)) 
     
     Chem.MolToMolFile(mol_h, args.file)
 
