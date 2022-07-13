@@ -54,7 +54,7 @@ def main():
     #opt steps
     mol_h = Chem.AddHs(mol)
     AllChem.EmbedMolecule(mol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(mol_h, maxIters=5000)
+    AllChem.MMFFOptimizeMolecule(mol_h, maxIters=2500)
     #maybe this number of itterations should be specified with cli arguments (give option).
     
     Chem.MolToMolFile(mol_h, args.file)

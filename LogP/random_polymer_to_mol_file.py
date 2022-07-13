@@ -3,7 +3,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from random import choices
 from smiles import monomer_dict
-from MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles
+from MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -68,14 +68,7 @@ def main():
     total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
     print("Finished adding end groups. Beginning optimization.")
 
-    mol = Chem.MolFromSmiles(total_smiles)
-    
-    Chem.SanitizeMol(mol)
-    #opt steps
-    mol_h = Chem.AddHs(mol)
-    AllChem.EmbedMolecule(mol_h, useRandomCoords=True)
-    AllChem.MMFFOptimizeMolecule(mol_h, maxIters=5000)
-    #maybe this number of itterations should be specified with cli arguments (give option).
+    mol_h, mol = optPol(total_smiles)
     
     Chem.MolToMolFile(mol_h, file_name)
 
