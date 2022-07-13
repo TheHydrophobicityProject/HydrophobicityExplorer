@@ -13,6 +13,10 @@ TODO
 
 add documentation for random smiles generation.
 
+mmffVariant : “MMFF94” or “MMFF94s”
+https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
+optimizeConfs maybe get like 10 confs (decide later how many).
+
 add details about how to run the script.
 Installation instructions.
 Change super monomer to comonomer
