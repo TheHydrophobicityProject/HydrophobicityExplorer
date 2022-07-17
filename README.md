@@ -8,7 +8,7 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 
 Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. This may be more important when using smiles inputs that do not come stock with this program. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
 
-Regardless of the provided value of `n`, the preview will only show one monomer for simplicity.
+Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](README.md#specifying-multiple-comonomers) for simplicity.
 
 ### Specifying Polymer Components
 
@@ -25,6 +25,7 @@ requested calculations are None
 Because verbosity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the `-d` flag.
 The initiator and terminal groups default to Hydrogen if none are specified.
 
+# Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
 $ python3 MakePolymer.py -n 2 -s 2 Butylacrylate "CC(C)" -i Methoxy -t Benzyl -v -q
@@ -54,13 +55,19 @@ $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 ```
 The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
-#### Completely Custom Input Molecules
+#### Alternative Input Methods
+
+# Custom Input
 If the methods contained within this program are inadequet for the type of molecule desired, the accessory script `custom_input_to_mol_file.py` may be useful. It can read Smiles, Smarts or Inchi strings and produce a .mol file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script.
-```python3
-python3 custom_input_to_mol_file.py -h
+```bash
+$ python3 custom_input_to_mol_file.py -h
 ```
+# Random Composition
+The accessory script `random_polymer_to_mol_file.py` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order.
+
+For example, the command `python3 random_polymer_to_mol_file.py -n 20 -m 2 Styrene Vinylalcohol -f rand.mol` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol and save it to `rand_20.mol` (The number of monomers is added to the filename automatically), which can be read by `MakePolymer.py`.
 
 ### Saving Polymer to File
 
