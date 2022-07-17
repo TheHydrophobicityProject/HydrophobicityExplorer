@@ -13,9 +13,10 @@ TODO
 
 Random organization of set composition instead of mathematically random based on weights
 
-mmffVariant : “MMFF94” or “MMFF94s”
+mmffVariant : “MMFF94” or “MMFF94s” --> the s means static and refers to slightly different parameters for nitrogen in crystal structuress. It isn't super important for us since carbon is much more important for geometry.
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
 optimizeConfs maybe get like 10 confs (decide later how many).
+m2.SetProp("_Name","cyclobutane")
 
 add details about how to run the script.
 Installation instructions.
