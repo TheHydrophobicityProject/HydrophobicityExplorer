@@ -1,7 +1,6 @@
-LogP/*.png
-LogP/pol.*
-LogP/*.mol
-LogP/*.csv
+*/*.png
+*/pol.*
+*/*.mol
+*/*.csv
 LogP/test_pol.py
 LogP/__pycache__
-testing/*.png
