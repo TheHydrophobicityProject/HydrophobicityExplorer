@@ -4,3 +4,8 @@
 */*.csv
 LogP/test_pol.py
 LogP/__pycache__
+build
+mhp.egg-info
+dist
+*/*.pyc
+*.pyc

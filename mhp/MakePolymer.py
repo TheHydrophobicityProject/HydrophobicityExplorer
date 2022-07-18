@@ -4,7 +4,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import argparse, os, csv, json
 import matplotlib.pyplot as plt
-from smiles import monomer_dict, init_dict
+from mhp.smiles import monomer_dict, init_dict
 
 def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J: #open json file
