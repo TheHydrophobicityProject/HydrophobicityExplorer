@@ -10,10 +10,6 @@ See what functionality there is in the crossover notebooks. --> save for V2
 Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> save for V2
 
 TODO
-
-Random organization of set composition instead of mathematically random based on weights
-
-mmffVariant : “MMFF94” or “MMFF94s”
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
 optimizeConfs maybe get like 10 confs (decide later how many).
 
