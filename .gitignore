@@ -4,3 +4,5 @@
 */*.csv
 LogP/test_pol.py
 LogP/__pycache__
+build
+*.egg*
