@@ -96,7 +96,8 @@ The size-dependent plots of any calculations performed can be generated with the
 The data can be exported to a `.csv` file with the `-e` flag. 
 
 ```bash
-$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v -q #XMHP requests that the MHP data be eXclusively returned.
+#XMHP requests that the MHP data be eXclusively returned instead of including the LogP and SA values as well.
+$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v -q
 polymer smiles is CC(c1ccccc1) before any end groups
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
 Converting to mol now.
