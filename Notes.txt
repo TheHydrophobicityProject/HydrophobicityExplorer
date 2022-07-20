@@ -11,15 +11,11 @@ Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> sav
 
 TODO
 
-Random organization of set composition instead of mathematically random based on weights
-
-mmffVariant : “MMFF94” or “MMFF94s”
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
 optimizeConfs maybe get like 10 confs (decide later how many).
 
 add details about how to run the script.
 Installation instructions.
-Change super monomer to comonomer
 
 How to benchmark?
 Rg ~ N^1/3 Bulk, no solvent
