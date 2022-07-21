@@ -25,15 +25,15 @@ def optMoreConfs(smiles):
     pol_h = setup(smiles)
     ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=5, useRandomCoords=True, numThreads=0)
     touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=0, maxIters=2500) #default 200 iterations.
-    return touple_list
+    return touple_list, pol_h
     # 51.50327501296997 twice the time but 10X the data with 10 confs.
     # 25.218886041641234 when using 5 confs and 200 iters
 
-
+NUMRUNS = 1
 #optimize a fairly difficult molecule several times to see how good each optimization method is.
-for i in range(5):
+for i in range(NUMRUNS):
     start = time.time()
-    touple_list = optMoreConfs(smiles)
+    touple_list, pol_h = optMoreConfs(smiles)
     end = time.time()
     duration = end - start
     print(i, duration)
@@ -43,3 +43,12 @@ average = sum(times) / len(times)
 print(f"{average = }")
 
 print(touple_list)
+
+#Writing all the conformations to a sdf file.
+writer = Chem.SDWriter('pol_h_confs.sdf')
+for cid in range(pol_h.GetNumConformers()):
+    pol_h.SetProp('_Name', f'conformer_{cid}')
+    # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
+    writer.write(pol_h, confId=cid)
+
+# Calculating avgerage properties
