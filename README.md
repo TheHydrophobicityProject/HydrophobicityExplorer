@@ -7,6 +7,7 @@ The script `MakePolymer.py` has a wide range of command-line options that allow 
 ## Usage and Examples
 
 Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. For example:
+
 <img src="images/preview_example.png">
 
 Is the confirmation image that would appear when [this example](README.md#specifying-multiple-comonomers) is run without the `-q` flag.
