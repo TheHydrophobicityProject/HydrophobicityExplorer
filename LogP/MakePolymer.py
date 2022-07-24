@@ -338,7 +338,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
 def drawPol(pol, drawName, *, mpn=1):
     if type(pol) == list: #save a grid image instead
-        img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {(i + 1) * mpn}" for i, mol in enumerate(pol)], subImgSize=(250, 250))
+        img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {(i + 1) * mpn}" for i in range(len(pol))], subImgSize=(250, 250))
         #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
         img.save(drawName)
     else:
