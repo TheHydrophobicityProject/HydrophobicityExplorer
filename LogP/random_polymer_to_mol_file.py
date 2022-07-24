@@ -12,7 +12,8 @@ def getArgs():
     parser.add_argument("-m", type=str, nargs='*',
             help="Space-separated list of monomer keys from smiles.py or a custom smiles string for a monomer unit. The head of the monomer must be to the left and the attachment points must be at the ends of the string. Integer coefficients can be used to influence composition of the polymer. The exact method used depends on the use of the -p flag.")
     parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
-    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically.")
+
+    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically. Input will be forced to use .sdf format.")
     parser.add_argument("-p", "--protocol", type=str, default="ratio",
             help="The method of polymer body generation. The valid options are \"weight\" or \"ratio\" [default]. The coefficients that lead each monomer will be converted to a percentage of the total monomers and a polymer with a random ordering of monomers of that specific composition will be generated. If you specify \"weight\" the polymer composition will be random with weights favoring the monomers with higher coefficients. This could result in polymers with a different emperical formula than the coefficient would indicate.")
     args = parser.parse_args()
@@ -20,7 +21,7 @@ def getArgs():
 
 def prepFilename(filename, n):
     split = filename.split(".") #split off file extention in case provided.
-    name = f"{split[0]}_{n}.mol"
+    name = f"{split[0]}_{n}.sdf"
     return name
 
 def getCoeffs(Coefs_and_monomers):
@@ -106,9 +107,7 @@ def main():
     total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
     print("Finished adding end groups. Beginning optimization.")
 
-    mol_h, mol = optPol(total_smiles)
-    
-    Chem.MolToMolFile(mol_h, file_name)
+    pol, suppl = optPol(total_smiles, name=file_name) #this function will also save the file.
 
     print(f"Done. Saved to {file_name}")
 
