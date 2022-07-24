@@ -254,7 +254,7 @@ def optPol(smiles):
         raise Exception("Optimization failed to converge. Rereun with higher maxIters.")
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    sdfFilename="tmp.sdf"
+    sdfFilename = "tmp.sdf"
     writer = Chem.SDWriter(sdfFilename)
     for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
         cid = conf.GetId() #The numbers may not be sequential.
@@ -355,31 +355,67 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                 pol_h = Chem.MolFromPDBFile(name)
             elif ext == "mol":
                 pol_h = Chem.MolFromMolFile(name)
-            # elif ext == "sdf":
-            #     suppl = Chem.SDMolSupplier(name)
-            #     for pol in suppl: #grab one conf so we can visualize
-            #         pol_h = pol
-            #         break #we break the loop since only one conf is needed to visualize
+            elif ext == "sdf":
+                suppl = Chem.SDMolSupplier(name)
+                for pol in suppl: #grab one conf so we can visualize
+                    pol_h = pol
+                    break #we break the loop since only one conf is needed to visualize
             else:
                 print(f"unsuported extention: {ext} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
                 quit()
+
+            if suppl is None:
+                sdf_name="tmp.sdf"
+                writer = Chem.SDWriter(sdf_name)
+                writer.write(pol_h)
+                suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
+                os.remove(sdf_name)
+
             #convert to smiles so it can be visualized
             polSMILES = Chem.MolToSmiles(pol_h)
             pol = Chem.MolFromSmiles(polSMILES)
             #but visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
-            return pol_h, polSMILES, pol#, suppl
+            return suppl, polSMILES, pol #These are used for calcs, smiles part of csv and 2D visualization.
         else:
             raise FileNotFoundError(name)
     else: #i.e. write file.
         if verbosity:
             print(f'attempting to save molecule to {name}')
+
+        #what are we dealing with?
+        if type(mol) == type(Chem.SDMolSupplier()):
+            suppl = True
+            for pol in mol:
+                first_conf = pol
+                cid = -1
+                break #we will only be writing the first conf in the iterable for non-sdf files.
+        else:
+            suppl = False
+            for conf in mol.GetConformers():
+                first_conf = mol #keep name convention consistent.
+                cid = conf.GetId()
+                break #we will only be writing the first conf in the iterable for non-sdf files.
+
         #is the file type valid?
-        if ext == "xyz":
-            Chem.MolToXYZFile(mol, name)
+        if ext == "sdf":
+            writer = Chem.SDWriter(name)
+            if suppl:
+                for pol in mol:
+                  writer.write(pol)
+            else: #is a mol opject        
+                for conf in mol.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
+                    cid = conf.GetId() #The numbers may not be sequential.
+                    mol.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
+                    # mol.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
+                    writer.write(mol, confId=cid)
+        
+        elif ext == "xyz":
+            Chem.MolToXYZFile(first_conf, name, confId = cid)
         elif ext == "pdb":
-            Chem.MolToPDBFile(mol, name)
+            Chem.MolToPDBFile(first_conf, name, confId = cid)
         elif ext == "mol":
-            Chem.MolToMolFile(mol, name)
+            Chem.MolToMolFile(first_conf, name, confId = cid)
+        
         else:
             print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
             quit()
