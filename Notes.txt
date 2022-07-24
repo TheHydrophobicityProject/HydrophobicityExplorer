@@ -9,16 +9,17 @@ https://greglandrum.github.io/rdkit-blog/tutorial/prototypes/drawing/2021/08/07/
 See what functionality there is in the crossover notebooks. --> save for V2
 Branching? Temp? Pressure? Diferentiate between single polymer and bulk? --> save for V2
 
-TODO
 mmffVariant : “MMFF94” or “MMFF94s” --> the s means static and refers to slightly different parameters for nitrogen in crystal structuress. It isn't super important for us since carbon is much more important for geometry.
+
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
-optimizeConfs maybe get like 10 confs (decide later how many).
 m2.SetProp("_Name","cyclobutane")
 
 optimization docs: 
 https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem.rdForceFieldHelpers.MMFFOptimizeMoleculeConfs
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
+TODO
+static parameters should be easily accessible (numIters, num confs, etc.) Read from config file
 add details about how to run the script.
 Installation instructions.
 

@@ -25,7 +25,7 @@
         {
             "n": 4,
             "quiet": true,
-            "super_monomer": [
+            "comonomer_block": [
                 2,
                 "CC(C(=O)OCCCC)",
                 "CC(C)"
@@ -37,7 +37,7 @@
         {
             "n": 4,
             "quiet": true,
-            "super_monomer": [
+            "comonomer_block": [
                 2,
                 "CC(C(=O)OCCCC)",
                 "CC(C)"

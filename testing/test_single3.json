@@ -3,7 +3,7 @@
     [
         {
             "n": 4,
-            "super_monomer": [
+            "comonomer_block": [
                 2,
                 "CC(C(=O)OCCCC)",
                 "CC(C)"
