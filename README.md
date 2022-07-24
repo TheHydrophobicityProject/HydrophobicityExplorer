@@ -52,7 +52,7 @@ Initiator and terminator groups should be added to `init_dict` and the atom to w
 
 ### Reading a Polymer From A File
 
-You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
+You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.sdf`, `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
 
 ```bash
 $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
@@ -72,7 +72,7 @@ $ python3 custom_input_to_mol_file.py -h
 # Random Composition
 The accessory script `random_polymer_to_mol_file.py` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order.
 
-For example, the command `python3 random_polymer_to_mol_file.py -n 20 -m 2 Styrene Vinylalcohol -f rand.mol` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol and save it to `rand_20.mol` (The number of monomers is added to the filename automatically), which can be read by `MakePolymer.py`.
+For example, the command `python3 random_polymer_to_mol_file.py -n 20 -m 2 Styrene Vinylalcohol -f rand.sdf` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol and save it to `rand_20.sdf` (The number of monomers is added to the filename automatically), which can be read by `MakePolymer.py`.
 
 ### Saving Polymer to File
 
