@@ -8,15 +8,15 @@ def getArgs():
     parser.add_argument("-s", "--smiles", type=str, help="Complete smiles string to be converted.")
     parser.add_argument("-m", "--smarts", type=str, help="Complete smarts string to be converted.")
     parser.add_argument("-i", "--inchi", type=str, help="Complete inchi string to be converted.")
-    parser.add_argument("-f", "--file", type=str, help="filename you would like to use. The format NAME_numberOfMonomers.mol is required.")
+    parser.add_argument("-f", "--file", type=str, help="filename you would like to use. The format NAME_numberOfMonomers.sdf is required.")
     args = parser.parse_args()
     return args
 
 def checkFilename(filename):
     split = filename.split(".")
 
-    if split[-1] != "mol":
-        print("Bad file extention. Please use Name_n.mol")
+    if split[-1] != "sdf":
+        print("Bad file extention. Please use Name_n.sdf")
         quit()
 
     n = split[0].split("_")[-1]
@@ -52,9 +52,7 @@ def main():
         quit()
 
     #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
-    mol_h, mol = optPol(Chem.MolToSmiles(mol)) 
-    
-    Chem.MolToMolFile(mol_h, args.file)
+    pol, suppl = optPol(Chem.MolToSmiles(mol), name=args.file) #this function also saves the file.
 
 if __name__ == "__main__":
     main()

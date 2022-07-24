@@ -12,13 +12,13 @@ def getArgs():
     parser.add_argument("-m", type=str, nargs='*',
             help="Space-separated list of monomer keys from smiles.py or a custom smiles string for a monomer unit. The head of the monomer must be to the left and the attachment points must be at the ends of the string. Integer coefficients can be used to add bias towards a given monomer. For example, 2 A B means A is twice as likely to be used as B when selecting the next monomer.")
     parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
-    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically.")
+    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically. Input will be forced to use .sdf format.")
     args = parser.parse_args()
     return args
 
 def prepFilename(filename, n):
     split = filename.split(".") #split off file extention in case provided.
-    name = f"{split[0]}_{n}.mol"
+    name = f"{split[0]}_{n}.sdf"
     return name
 
 def makePolymerBody(weighted_monomer_list, n):
@@ -68,9 +68,7 @@ def main():
     total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
     print("Finished adding end groups. Beginning optimization.")
 
-    mol_h, mol = optPol(total_smiles)
-    
-    Chem.MolToMolFile(mol_h, file_name)
+    pol, suppl = optPol(total_smiles, name=file_name) #this function will also save the file.
 
     print(f"Done. Saved to {file_name}")
 

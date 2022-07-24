@@ -234,7 +234,7 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
     else:
         return full_smiles, m_per_n
    
-def optPol(smiles):
+def optPol(smiles, *, name=None):
     #make Mol object:
     pol = Chem.MolFromSmiles(smiles)
     #check mol
@@ -254,7 +254,13 @@ def optPol(smiles):
         raise Exception("Optimization failed to converge. Rereun with higher maxIters.")
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    sdfFilename = "tmp.sdf"
+    if name is None:
+        sdfFilename = "tmp.sdf"
+    else:
+        ext = name.split(".")[1]
+        if ext != "sdf":
+            raise Exception("Filename must use .sdf format.")
+        sdfFilename = name
     writer = Chem.SDWriter(sdfFilename)
     for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
         cid = conf.GetId() #The numbers may not be sequential.
@@ -263,7 +269,9 @@ def optPol(smiles):
         writer.write(pol_h, confId=cid)
     
     suppl = Chem.SDMolSupplier(sdfFilename) #itterator that has all mols in the sdf file.
-    os.remove(sdfFilename)
+    
+    if name is None:
+        os.remove(sdfFilename)
 
     return pol, suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
