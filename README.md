@@ -31,7 +31,7 @@ requested calculations are None
 Because verbosity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the `-d` flag.
 The initiator and terminal groups default to Hydrogen if none are specified.
 
-# Specifying Multiple Comonomers
+## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
 $ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Methoxy -t Benzyl -v -q
@@ -61,16 +61,16 @@ $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 ```
 The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
-#### Alternative Input Methods
+## Alternative Input Methods
 
-# Custom Input
+### Custom Input
 If the methods contained within this program are inadequet for the type of molecule desired, the accessory script `custom_input_to_mol_file.py` may be useful. It can read Smiles, Smarts or Inchi strings and produce a .mol file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script.
 ```bash
 $ python3 custom_input_to_mol_file.py -h
 ```
-# Random Composition
+### Random Composition
 The accessory script `random_polymer_to_mol_file.py` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order.
 
 For example, the command `python3 random_polymer_to_mol_file.py -n 20 -m 2 Styrene Vinylalcohol -f rand.sdf` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol and save it to `rand_20.sdf` (The number of monomers is added to the filename automatically), which can be read by `MakePolymer.py`.
@@ -90,7 +90,7 @@ requested calculations are ['MHP']
 ```
 In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-f` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
 
-### Plotting Size-Dependent Calculations
+## Plotting Size-Dependent Calculations
 
 The size-dependent plots of any calculations performed can be generated with the `-p` flag. The sizes plotted will range from 1 repeat unit to the number specified by the `-n` flag. Because the repeat unit needs to be well-defined, this plotting option is unavailable if the polymer is being read from a file. Since the `-v` flag is used, a grid image of all the generated molecules will be created as well.
 
@@ -115,9 +115,9 @@ Done exporting data to .csv file.
 Nearly all of this output, including the plot popup and the polymer grid image, are excluded if the `-v` flag is excluded, but the image of the plot is still saved to a file. Because the calculation of MHP requires surface area and LogP values, they will always be included when MHP is specified in the list of desired calculations. When in this mode, if a name for an polymer file is specified, each molecule will be saved to a file based off the provided name. However, the number of mers in each molecule will be appended to the filename.
 
 An example plot of Styrene LogP/SA with n <= 10:
-# <img src="images/plot_example.png">
+<img src="images/plot_example.png">
 
-### Running Jobs With Config Files
+## Running Jobs With Config Files
 
 Json files can be used instead of or in conjunction with any of the above command-line arguments.
 Examples of valid json files are provided, but the most important aspect is the `runs` array:
