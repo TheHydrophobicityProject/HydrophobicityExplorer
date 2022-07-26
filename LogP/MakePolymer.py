@@ -6,6 +6,16 @@ import argparse, os, csv, json
 import matplotlib.pyplot as plt
 from smiles import monomer_dict, init_dict
 
+def getStaticSettings():
+    if os.path.exists("settings.json"):
+        with open("settings.json", "r") as S: #this is where many defaults are set so they can easily be changed.
+            settings_dict = json.load(S)
+            return settings_dict
+    else:
+        return {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
+                "drawing_subImgSize_edge":250, "drawing_default":"polymer.png", "MV_gridSpacing":0.2,
+                "MV_boxMargin" :2.0, "plot_dataPoint":"o", "plot_Filename":"Size-dependent-stats.png"}
+
 def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J: #open json file
         runs_dict = json.load(J) #read it
@@ -234,7 +244,7 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
     else:
         return full_smiles, m_per_n
    
-def optPol(smiles, *, name=None): #name is provided my supplemental scripts.
+def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
     #make Mol object:
     pol = Chem.MolFromSmiles(smiles)
     #check mol
@@ -242,10 +252,10 @@ def optPol(smiles, *, name=None): #name is provided my supplemental scripts.
     #opt steps
     pol_h = Chem.AddHs(pol)
     #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
-    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=5, useRandomCoords=True, numThreads=0) #get multiple conformers for better stats
+    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=nConfs, useRandomCoords=True, numThreads=threads) #get multiple conformers for better stats
     # AllChem.EmbedMolecule(pol_h, useRandomCoords=True) 
     # AllChem.MMFFOptimizeMolecule(pol_h, maxIters=2500) 
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=0, maxIters=1500) #default 200 iterations.
+    touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=threads, maxIters=iters) #default 200 iterations.
     for i, tup in enumerate(touple_list):
         if tup[0] == 1:
             pol_h.RemoveConformer(i)
@@ -300,7 +310,7 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False):
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500}):
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
@@ -325,7 +335,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to RDkit mol now.")
             #get opt and unopt molecules.
-            pol, pol_h = optPol(smi)
+            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
             POL_LIST.append(pol_h)
             Unopt_pols.append(pol)
             #save smiles
@@ -341,12 +351,12 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
         
-        pol, pol_h = optPol(full_smi) #both are mol objects
+        pol, pol_h = optPol(full_smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #both are mol objects
         return pol_h, full_smi, pol, m_per_n
 
-def drawPol(pol, drawName, *, mpn=1):
+def drawPol(pol, drawName, *, mpn=1, image_size=250):
     if type(pol) == list: #save a grid image instead
-        img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {(i + 1) * mpn}" for i in range(len(pol))], subImgSize=(250, 250))
+        img = Chem.Draw.MolsToGridImage(pol, legends = [f"n = {(i + 1) * mpn}" for i in range(len(pol))], subImgSize=(image_size, image_size))
         #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
         img.save(drawName)
     else:
@@ -373,7 +383,7 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                 quit()
 
             if suppl is None:
-                sdf_name="tmp.sdf"
+                sdf_name = "tmp.sdf"
                 writer = Chem.SDWriter(sdf_name)
                 writer.write(pol_h)
                 suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
@@ -461,14 +471,14 @@ def RadGyration(pol_h):
     #both seem to give identical results based on "SMILES to Rg.ipynb"
     return avg_stat(rg_list)
 
-def MolVolume(pol_h):
+def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
     mv_list = []
     for mol in pol_h:
-        mv_list.append(Chem.AllChem.ComputeMolVolume(mol, gridSpacing = 0.2, boxMargin = 2.0))
+        mv_list.append(Chem.AllChem.ComputeMolVolume(mol, gridSpacing=grid_spacing, boxMargin=box_margin))
 
     return avg_stat(mv_list)
 
-def doCalcs(pol_h, calcs):
+def doCalcs(pol_h, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
     #The type of variable /calcs/ is set
     #Calcs are only done if requested.
     #remove entries from set after each calculation and print the unrecognized ones at the end.
@@ -488,7 +498,7 @@ def doCalcs(pol_h, calcs):
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_h)
+        mv  =  MolVolume(pol_h, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
@@ -500,7 +510,7 @@ def doCalcs(pol_h, calcs):
         print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or RG")
     return data
 
-def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
+def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, data_marker='o', fig_filename="Size-dependent-stats.png"):
     units = { "LogP/SA":"Angstroms^-2", "LogP":"", "RG":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
     dicts = []
     for i, pol in enumerate(pol_list):
@@ -515,7 +525,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
         calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
-        plt.plot(data["N"], data[calc_key], 'o')
+        plt.plot(data["N"], data[calc_key], data_marker)
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
         plt.ylabel(f'{calc_key} ({units[calc_key]})')
@@ -529,7 +539,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1):
                 axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
                 series += 1
-    figname = "Size-dependent-stats.png" #should be able to change this
+    figname = fig_filename
     plt.savefig(figname, bbox_inches = 'tight')
     print(f'Saved plot to {figname}')
     if verbosity:
@@ -550,6 +560,7 @@ def exportToCSV(exptName, data, dicts_list, verbosity=False):
         print(data)
 
 def main():
+    default_dict = getStaticSettings()
     run_list = getArgs()
 
     for vardict in run_list:
@@ -558,10 +569,10 @@ def main():
                         
             if vardict["plot"]:
                 POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
             else:
                 pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
@@ -585,12 +596,13 @@ def main():
             pol = UNOPT_POL_LIST #submit this list of mols for use in grid image.
         if vardict["draw"] is not None:
             drawName = f'{vardict["draw"].split(".")[0]}.png'
-            drawPol(pol, drawName, mpn=M_PER_N)
+            drawPol(pol, drawName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
         else:
             if vardict["verbose"]:
+                defaultName = default_dict["drawing_default"]
                 #produce image if increased verbosity is requested even if no name is set.
-                print("Saving image to polymer.png by default.")
-                drawPol(pol, "polymer.png", mpn=M_PER_N)
+                print(f"Saving image to {defaultName} by default.")
+                drawPol(pol, defaultName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
 
         #CALCULATIONS
         if vardict["verbose"]:
@@ -598,13 +610,14 @@ def main():
         if vardict["calculation"] is not None:
             if not vardict["plot"]:
                 calcs = set(vardict["calculation"])
-                data = doCalcs(pol_h, calcs) #use set to remove duplicates
+                data = doCalcs(pol_h, calcs, defaults=default_dict) #use set to remove duplicates
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
                 dicts = [data]
                 print(data)
             else:
-                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, verbosity=vardict["verbose"], mpn=M_PER_N)
+                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
+                    verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"])
                 
             if vardict["export"] is not None:
                 if vardict["plot"]: #we don't need to print data twice if both -p and -e use verbosity=True

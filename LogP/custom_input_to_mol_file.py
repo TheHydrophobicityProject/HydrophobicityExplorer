@@ -1,7 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from MakePolymer import optPol
+from MakePolymer import optPol, getStaticSettings
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -15,19 +15,23 @@ def getArgs():
 def checkFilename(filename):
     split = filename.split(".")
 
+    plea = "Please use Name_n.sdf"
+
     if split[-1] != "sdf":
-        print("Bad file extention. Please use Name_n.sdf")
+        print(f"Bad file extention. {plea}")
         quit()
 
     n = split[0].split("_")[-1]
     try:
         int(n)
     except:
-        print("Please add an N to your filename. Name_n.mol")
+        print(f"Please add N to your filename. {plea}")
         quit()
 
 def main():
     args = getArgs()
+    defaults = getStaticSettings()
+
     VARS = vars(args)
     given_args = { k:v for (k, v) in VARS.items() if v is not None }
 
@@ -48,11 +52,12 @@ def main():
     elif args.inchi is not None:
         mol = Chem.MolFromInchi(args.inchi)
     else:
-        print("I am confused")
+        print("I am confused. Input format not recognised.")
         quit()
 
     #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
-    pol, suppl = optPol(Chem.MolToSmiles(mol), name=args.file) #this function also saves the file.
+    pol, suppl = optPol(Chem.MolToSmiles(mol), name=args.file, 
+        nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function also saves the file.
 
 if __name__ == "__main__":
     main()
