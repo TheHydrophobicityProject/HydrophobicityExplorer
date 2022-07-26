@@ -7,9 +7,14 @@ import matplotlib.pyplot as plt
 from smiles import monomer_dict, init_dict
 
 def getStaticSettings():
-    with open("settings.json", "r") as S: #this is where many defaults are set so they can easily be changed.
-        settings_dict = json.load(S)
-        return settings_dict
+    if os.path.exists("settings.json"):
+        with open("settings.json", "r") as S: #this is where many defaults are set so they can easily be changed.
+            settings_dict = json.load(S)
+            return settings_dict
+    else:
+        return {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
+                "drawing_subImgSize_edge":250, "drawing_default":"polymer.png", "MV_gridSpacing":0.2,
+                "MV_boxMargin" :2.0, "plot_dataPoint":"o", "plot_Filename":"Size-dependent-stats.png"}
 
 def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J: #open json file
