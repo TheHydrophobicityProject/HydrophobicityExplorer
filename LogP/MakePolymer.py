@@ -234,7 +234,7 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
     else:
         return full_smiles, m_per_n
    
-def optPol(smiles, *, name=None):
+def optPol(smiles, *, name=None): #name is provided my supplemental scripts.
     #make Mol object:
     pol = Chem.MolFromSmiles(smiles)
     #check mol
@@ -558,10 +558,10 @@ def main():
                         
             if vardict["plot"]:
                 POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
             else:
                 pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                                                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
@@ -590,7 +590,6 @@ def main():
             if vardict["verbose"]:
                 #produce image if increased verbosity is requested even if no name is set.
                 print("Saving image to polymer.png by default.")
-                # print(f"{M_PER_N = }")
                 drawPol(pol, "polymer.png", mpn=M_PER_N)
 
         #CALCULATIONS
