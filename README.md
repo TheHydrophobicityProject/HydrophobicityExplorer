@@ -117,6 +117,27 @@ Nearly all of this output, including the plot popup and the polymer grid image, 
 An example plot of Styrene LogP/SA with n <= 10:
 <img src="images/plot_example.png">
 
+## Changing Default Settings
+
+Some settings are not accessible with command-line arguments. They can be changed in the file `settings.json`. Comments are not allowed in json files so each of these options are explained here.
+
+```python
+{
+    "opt_numConfs":5, #The number of conformations you would like to generate. Increasing this greatly increases run time.
+    "opt_numThreads":0, #The number of threads you would like to use for the optimization and conf generation. 0 means maximum possible.
+    "opt_maxIters":1500, #The number of iterations used in optimization. Increase this if a job fails to optimize
+    "drawing_subImgSize_edge":250, #The side length of a subimage when saved. 
+    "drawing_default":"polymer.png", #The name of an image saved by default (verbosity turned on with no image name specified.)
+    "MV_gridSpacing":0.2, #Used for molar volume calculation
+    "MV_boxMargin" :2.0, #Used for molar volume calculation
+    "plot_dataPoint":"o", #Matplotlib argument to change plot point appearence.
+    "plot_Filename":"Size-dependent-stats.png" #name of plot
+}
+```
+Some of the values are used by external functions and others by functions in this program. If it is desired to change the appearence of the plot points from blue circles to red pluses, change `"plot_dataPoint":"o"` to `"plot_dataPoint":"r+"`, as per the [matplotlib documentation](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html).
+
+If the settings file cannot be found hardcoded defaults will be used instead.
+
 ## Running Jobs With Config Files
 
 Json files can be used instead of or in conjunction with any of the above command-line arguments.
