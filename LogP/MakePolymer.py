@@ -305,7 +305,7 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False):
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500}):
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
@@ -330,7 +330,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
                 print(f"Done generating SMILES with n = {j} now: {smi}")
                 print("Converting to RDkit mol now.")
             #get opt and unopt molecules.
-            pol, pol_h = optPol(smi)
+            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
             POL_LIST.append(pol_h)
             Unopt_pols.append(pol)
             #save smiles
@@ -346,7 +346,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
         
-        pol, pol_h = optPol(full_smi) #both are mol objects
+        pol, pol_h = optPol(full_smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #both are mol objects
         return pol_h, full_smi, pol, m_per_n
 
 def drawPol(pol, drawName, *, mpn=1, image_size=250):
@@ -378,7 +378,7 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                 quit()
 
             if suppl is None:
-                sdf_name="tmp.sdf"
+                sdf_name = "tmp.sdf"
                 writer = Chem.SDWriter(sdf_name)
                 writer.write(pol_h)
                 suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
@@ -473,7 +473,7 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
 
     return avg_stat(mv_list)
 
-def doCalcs(pol_h, calcs):
+def doCalcs(pol_h, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
     #The type of variable /calcs/ is set
     #Calcs are only done if requested.
     #remove entries from set after each calculation and print the unrecognized ones at the end.
@@ -493,7 +493,7 @@ def doCalcs(pol_h, calcs):
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_h)
+        mv  =  MolVolume(pol_h, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
@@ -564,10 +564,10 @@ def main():
                         
             if vardict["plot"]:
                 POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
             else:
                 pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"])
+                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
@@ -591,13 +591,13 @@ def main():
             pol = UNOPT_POL_LIST #submit this list of mols for use in grid image.
         if vardict["draw"] is not None:
             drawName = f'{vardict["draw"].split(".")[0]}.png'
-            drawPol(pol, drawName, mpn=M_PER_N)
+            drawPol(pol, drawName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
         else:
             if vardict["verbose"]:
                 defaultName = default_dict["drawing_default"]
                 #produce image if increased verbosity is requested even if no name is set.
                 print(f"Saving image to {defaultName} by default.")
-                drawPol(pol, defaultName, mpn=M_PER_N)
+                drawPol(pol, defaultName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
 
         #CALCULATIONS
         if vardict["verbose"]:
@@ -605,13 +605,14 @@ def main():
         if vardict["calculation"] is not None:
             if not vardict["plot"]:
                 calcs = set(vardict["calculation"])
-                data = doCalcs(pol_h, calcs) #use set to remove duplicates
+                data = doCalcs(pol_h, calcs, defaults=default_dict) #use set to remove duplicates
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
                 dicts = [data]
                 print(data)
             else:
-                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, verbosity=vardict["verbose"], mpn=M_PER_N)
+                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
+                    verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"])
                 
             if vardict["export"] is not None:
                 if vardict["plot"]: #we don't need to print data twice if both -p and -e use verbosity=True

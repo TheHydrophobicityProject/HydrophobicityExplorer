@@ -3,7 +3,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from random import choices, shuffle
 from smiles import monomer_dict
-from MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol
+from MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -81,6 +81,7 @@ def makePolymerBody_ratio(formula_list, n):
 
 def main():
     args = getArgs()
+    defaults = getStaticSettings()
 
     #get proper file name.
     file_name = prepFilename(args.f, args.n)
@@ -107,7 +108,8 @@ def main():
     total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
     print("Finished adding end groups. Beginning optimization.")
 
-    pol, suppl = optPol(total_smiles, name=file_name) #this function will also save the file.
+    pol, suppl = optPol(total_smiles, name=file_name, 
+        nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
 
     print(f"Done. Saved to {file_name}")
 
