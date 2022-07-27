@@ -40,7 +40,7 @@ def getArgs():
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
                         help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and RG (radius of gyration).")
     parser.add_argument("-f","--file", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
-    parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol") #and .sdf")
+    parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol and .sdf")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
                         help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
     parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
@@ -277,8 +277,8 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
         writer.write(pol_h, confId=cid)
-    
-    suppl = Chem.SDMolSupplier(sdfFilename) #itterator that has all mols in the sdf file.
+      
+    suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
         os.remove(sdfFilename)
