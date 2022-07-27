@@ -276,12 +276,13 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         cid = conf.GetId() #The numbers may not be sequential.
         pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-        writer.write(pol_h, confId=cid)
+        writer.write(pol_h, confId=cid) #save the particular conf to the file.
+        writer.flush() #if this isn't included some (small) monomers break everything.
       
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
-        os.remove(sdfFilename)
+        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
 
     return pol, suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
