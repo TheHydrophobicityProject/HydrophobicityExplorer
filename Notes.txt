@@ -26,10 +26,8 @@ Installation instructions.
 what funcs are mmff bad for?
 
 smooth out graphs maybe by adding confs or numIters
-python3 MakePolymer.py -n 7 -b "CC(c1ccccc1)" -c XMHP -p -v -q gives vertical graph with n = 0 in all places
-python MakePolymer.py -n 7 -m Ethylene -p -v -c XMHP -q fails with OSError: File error: Invalid input file tmp.sdf even though the file exists.
-Replacing Styrene in above command makes it work. Vinylalcohol breaks but Butylene_Adip ok.
-Adding end group Methoxy to Vinylalcohol makes it work.
+python3 MakePolymer.py -n 7 -b "CC(c1ccccc1)" -c XMHP -p -v -q gives vertical graph with n = 0 in all places. Inserting a 1 before the smiles fixes it.
+There is poor implicit coeff detection in plotting function.
 
 How to benchmark?
 Rg ~ N^1/3 Bulk, no solvent
