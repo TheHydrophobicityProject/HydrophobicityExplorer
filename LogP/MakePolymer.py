@@ -108,7 +108,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
         #we need an accurate count for number of monomers since a grouping specified by -s can be AABBB.
         #In this example, 1 unit of n is really 5 monomers. We want proper notation in figures.
         explicit_coefs = [int(x) if len(str(x)) == 1 else 0 for x in deciphered_dict_keys] #all monomers are (hopefully) 2 atoms or more. Assume others are coefs.
-        sum_implicit_coefs = len(deciphered_dict_keys) - len(explicit_coefs) #number of implicit coefs of 1.
+        sum_implicit_coefs = len(deciphered_dict_keys) - sum(explicit_coefs) #number of implicit coefs of 1.
         monomers_per_n = sum(explicit_coefs) + sum_implicit_coefs #total monomer unit count per super-monomer.
 
         #start with empty repeat unit and concatonate stuff we find in the list.
