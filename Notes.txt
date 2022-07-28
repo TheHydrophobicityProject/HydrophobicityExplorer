@@ -19,7 +19,6 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-static parameters should be easily accessible (numIters, num confs, etc.) Read from config file
 add details about how to run the script.
 Installation instructions.
 
