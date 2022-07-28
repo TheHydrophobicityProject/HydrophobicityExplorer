@@ -252,10 +252,8 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     #opt steps
     pol_h = Chem.AddHs(pol)
     #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
-    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=nConfs, useRandomCoords=True, numThreads=threads) #get multiple conformers for better stats
-    # AllChem.EmbedMolecule(pol_h, useRandomCoords=True) 
-    # AllChem.MMFFOptimizeMolecule(pol_h, maxIters=2500) 
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=threads, maxIters=iters) #default 200 iterations.
+    ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=nConfs, useRandomCoords=True, numThreads=threads) #get multiple conformers for better stats 
+    touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=threads, maxIters=iters) #rdkit default 200 iterations.
     for i, tup in enumerate(touple_list):
         if tup[0] == 1:
             pol_h.RemoveConformer(i)
@@ -469,7 +467,7 @@ def RadGyration(pol_h):
     for mol in pol_h:
         rg_list.append(Chem.rdMolDescriptors.CalcRadiusOfGyration(mol))
     #Chem.Descriptors3D.RadiusOfGyration(pol_h)
-    #both seem to give identical results based on "SMILES to Rg.ipynb"
+    #both seem to give identical results
     return avg_stat(rg_list)
 
 def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
@@ -579,7 +577,7 @@ def main():
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
             pol_h, polSMILES, pol = write_or_read_pol(vardict["read"], read=True)
             M_PER_N = 1
-            #pol_h is the as-is (probably 3-D) structure of the molecule. pol is the 2D structure.
+            #pol_h is the iterator with all 3D conformers of the molecule. pol is the 2D structure.
 
         #saving the polymer to a file.
         if vardict["file"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
@@ -627,7 +625,8 @@ def main():
                     verbo = vardict["verbose"]        
                 exportToCSV(vardict["export"], data, dicts, verbosity=verbo)
 
-        print("\n") #separating runs visually if more than one.
+            if len(run_list) > 1:
+                print("\n") #separating runs visually if more than one.
 
 if __name__ == "__main__":
     main()
