@@ -345,14 +345,17 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
-                print("Converting to RDkit mol now.")
-            #get opt and unopt molecules.
-            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
-            POL_LIST.append(pol_h)
-            Unopt_pols.append(pol)
             #save smiles
             SMI_LIST.append(smi)
-        return POL_LIST, SMI_LIST, Unopt_pols, m_per_n
+
+        for j, smi in enumerate(reversed(SMI_LIST)): #optimize the longest polymer first to see if parameters need to be changed.
+            if verbosity:        
+                print(f"Converting n={n-j} to RDkit mol now.")
+            #get opt and unopt molecules.
+            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
+            POL_LIST.insert(0, pol_h) #insert at index 0 each time so list comes out in ascending size rank
+            Unopt_pols.insert(0, pol) #dito
+        return POL_LIST, SMI_LIST, Unopt_pols, m_per_n #return the non-reversed SMI_LIST
     else: #just one polymer.
         test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
