@@ -22,7 +22,7 @@ TODO
 Do opt for largest mol in plot job first to see if it converges. That way if it fails you don't waste time.
 
 add details about how to run the script.
-Installation instructions.
+Installation instructions. Including system.Xwinrc for image display on WSL
 
 what funcs are mmff bad for? --> carbonate is pretty bad on big monomers, but for small it is ok.
 
