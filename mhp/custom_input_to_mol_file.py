@@ -1,7 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from MakePolymer import optPol, getStaticSettings
+from mhp.MakePolymer import optPol, getStaticSettings
 
 def getArgs():
     parser = argparse.ArgumentParser()
