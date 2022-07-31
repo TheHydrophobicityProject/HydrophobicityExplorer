@@ -117,6 +117,26 @@ Nearly all of this output, including the plot popup and the polymer grid image, 
 An example plot of Styrene LogP/SA with n <= 10:
 <img src="images/plot_example.png">
 
+### Reducing Noise in Plots
+
+A plot generated with this tool may not always show a smooth curve, especially at higher n, where it is more difficult to optimize the polymer geometry. Calculations that depend on geometry like surface area or LogP/SA will be affected by poor geometry optimizations. This can be partially fixed by [changing the default settings](#changing-default-settings) to increase the number of conformations used for calculations or the maximum number of iterations a conformer is allowed to use before it is either accepted or discarded for not converging (i.e. the change in energy between optimization steps is still not yet small enough to be considered 'done'). Both of these in effect increase the population of conformers used to calculate an average of a requested property, which reduces noise on the graph.
+
+The default settings are meant to find a balance between run time and reasonable results. These parameters are better suited to some monomers than others, so tweaking the parameters may be necessary not only to reduce noise on the plot, but to get the run to complete at all. The following is an example of how changing the default settings may benefit the plots produced by this program:
+
+Styrene | MaxIters 1500 | numConfs 5
+<img src="images/Styrene_default.png">
+
+Styrene | MaxIters 2000 | numConfs 5
+<img src="images/Styrene_2000i_5c.png">
+
+Styrene | MaxIters 1500 | numConfs 10
+<img src="images/Styrene_1500i_10c.png">
+
+Styrene | MaxIters 2000 | numConfs 10
+<img src="images/Styrene_2000i_10c.png">
+
+In this case, increasing both parameters independently or together improved the quality of the graph. However, each increase in either parameter increased the run time.
+
 ## Changing Default Settings
 
 Some settings are not accessible with command-line arguments. They can be changed in the file `settings.json`. Comments are not allowed in json files so each of these options are explained here.
@@ -125,13 +145,13 @@ Some settings are not accessible with command-line arguments. They can be change
 {
     "opt_numConfs":5, #The number of conformations you would like to generate. Increasing this greatly increases run time.
     "opt_numThreads":0, #The number of threads you would like to use for the optimization and conf generation. 0 means maximum possible.
-    "opt_maxIters":1500, #The number of iterations used in optimization. Increase this if a job fails to optimize
+    "opt_maxIters":1500, #The number of iterations used in optimization. Increase this if a job fails to optimize.
     "drawing_subImgSize_edge":250, #The side length of a subimage when saved. 
     "drawing_default":"polymer.png", #The name of an image saved by default (verbosity turned on with no image name specified.)
-    "MV_gridSpacing":0.2, #Used for molar volume calculation
-    "MV_boxMargin" :2.0, #Used for molar volume calculation
+    "MV_gridSpacing":0.2, #Used for molar volume calculation.
+    "MV_boxMargin" :2.0, #Used for molar volume calculation.
     "plot_dataPoint":"o", #Matplotlib argument to change plot point appearence.
-    "plot_Filename":"Size-dependent-stats.png" #name of plot
+    "plot_Filename":"Size-dependent-stats.png" #name of plot.
 }
 ```
 Some of the values are used by external functions and others by functions in this program. If it is desired to change the appearence of the plot points from blue circles to red pluses, change `"plot_dataPoint":"o"` to `"plot_dataPoint":"r+"`, as per the [matplotlib documentation](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html).
