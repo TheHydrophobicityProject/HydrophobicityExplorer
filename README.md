@@ -10,11 +10,11 @@ Note that the following examples all use the `-q` flag. This suppresses the defa
 
 <img src="images/preview_example.png">
 
-Is the confirmation image that would appear when [this example](README.md#specifying-multiple-comonomers) is run without the `-q` flag.
+Is the confirmation image that would appear when [this example](#specifying-multiple-comonomers) is run without the `-q` flag.
 
-This confirmation process may be more important when using smiles inputs that do not come stock with this program for the first time. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
+This confirmation process may be more important when using smiles inputs that do not come stock with this program for the first time. Addtional details about adding your own smiles to the included dictionaries can be found [here](#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
 
-Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](README.md#specifying-multiple-comonomers) for simplicity.
+Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](#specifying-multiple-comonomers) for simplicity.
 
 ### Specifying Polymer Components
 
