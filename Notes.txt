@@ -19,10 +19,13 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
+
+
+
 add details about how to run the script.
 Installation instructions.
 
-what funcs are mmff bad for?
+what funcs are mmff bad for? --> carbonate is pretty bad on big monomers, but for small it is ok.
 
 smooth out graphs maybe by adding confs or numIters
 
