@@ -1,11 +1,14 @@
-*/*.png
-*/pol.*
-*/*.mol
-*/*.csv
+*.png
+*pol.*
+*.mol
+*.csv
 LogP/test_pol.py
 LogP/__pycache__
 build
-mhp.egg-info
-dist
-*/*.pyc
+# Compiled python modules.
 *.pyc
+# Setuptools distribution folder.
+/dist/
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+*sdf
