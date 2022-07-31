@@ -16,6 +16,8 @@ This confirmation process may be more important when using smiles inputs that do
 
 Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](#specifying-multiple-comonomers) for simplicity.
 
+This prompt will not be shown if both end groups are Hydrogen.
+
 ### Specifying Polymer Components
 
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.

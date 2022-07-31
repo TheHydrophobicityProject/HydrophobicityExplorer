@@ -99,7 +99,7 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
     return inator
 
 def get_building_blocks(i,t,m,*, verbosity = False):
-    init, term = inator_smi_lookup(i, t)
+    init, term = inator_smi_lookup(i, t) #converts end groups to mol objects if not right direction for text addition.
     
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
@@ -224,25 +224,32 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
 
     return smi
 
-def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
-    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity)
+def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):    
+    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
+
+    if init == "" and term == "":
+        endgroup_statement = ""
+        test_smi = repeat_unit
+    else:
+        endgroup_statement = "before any endgroups are added."
+
 
     polymer_SMILES = n * repeat_unit
     
-    if test: # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
+    if test and endgroup_statement != "": # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
         #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
-        test_smi = repeat_unit
-        test_smi = add_inator_smiles(test_smi, init, term, verbosity=verbosity)
+        test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
-    full_smiles = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
+    if endgroup_statement != "":
+        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
     if test:
-        return test_smi, full_smiles, m_per_n
+        return test_smi, polymer_SMILES, m_per_n
         #return test smiles too so it can be previewed. It is fast to make both before confirmation
         #but we do the confirmation before optimizing geometry.
     else:
-        return full_smiles, m_per_n
+        return polymer_SMILES, m_per_n
    
 def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
     #make Mol object:
@@ -313,10 +320,16 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
+    if i == "Hydrogen" and t == "Hydrogen":
+        endgroup_statement = ""
+        confirm = False
+    else:
+        endgroup_statement = "before any endgroups are added."
+
     if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
         #this allows us to confirm only once for plotting jobs
-        if confirm == True:
+        if confirm == True and endgroup_statement != "":
             proceed = False
         else:
             proceed = True
@@ -346,7 +359,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {full_smi}")
 
-        if confirm:
+        if confirm and len(endgroup_statement) > 0:
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
         
