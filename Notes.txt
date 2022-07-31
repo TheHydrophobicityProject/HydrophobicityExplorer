@@ -19,7 +19,7 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-
+Do opt for largest mol in plot job first to see if it converges. That way if it fails you don't waste time.
 
 
 add details about how to run the script.
