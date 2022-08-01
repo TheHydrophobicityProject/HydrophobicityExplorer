@@ -228,20 +228,19 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
     init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
 
     if init == "" and term == "":
-        endgroup_statement = ""
+        addEndgroups = False
         test_smi = repeat_unit
     else:
-        endgroup_statement = "before any endgroups are added."
-
+        addEndgroups = True
 
     polymer_SMILES = n * repeat_unit
     
-    if test and endgroup_statement != "": # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
+    if test and addEndgroups: # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
         #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
         test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
-    if endgroup_statement != "":
+    if addEndgroups:
         polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
     if test:
@@ -321,15 +320,15 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     SMI_LIST = []
     Unopt_pols = []
     if i == "Hydrogen" and t == "Hydrogen":
-        endgroup_statement = ""
+        addEndgroups = True
         confirm = False
     else:
-        endgroup_statement = "before any endgroups are added."
+        addEndgroups = False
 
     if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
         #this allows us to confirm only once for plotting jobs
-        if confirm == True and endgroup_statement != "":
+        if confirm == True and addEndgroups:
             proceed = False
         else:
             proceed = True
@@ -362,7 +361,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {full_smi}")
 
-        if confirm and len(endgroup_statement) > 0:
+        if confirm and addEndgroups:
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
         
