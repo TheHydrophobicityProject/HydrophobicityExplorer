@@ -47,6 +47,18 @@ requested calculations are None
 ```
 The `-b` flag defines the block of comonomers in a specific repeating pattern. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-b` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
 
+## Performing Calculations
+
+The `-c` flag is followed by abbreviations for calulations that are desired. Availible options are:
+
+LogP, SA (surface area), MV (Molecular Volume), MHP (LogP/SA; each of which will also be reported. Use XMHP to exclude those constituent calculations) and RG (radius of gyration).
+
+When RG is selected, an exponential regression is performed. Polymer RG should scale by n^(1/3). This gives a sense of how reasonable the optimization steps were.
+
+A run with Styrene to n=10 had the following regression:
+
+<img src="images/RG_regression.png">
+
 #### Modifying The SMILES Dictionary
 
 Monomers should be added to the `monomer_dict` in `smiles.py` with the tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written `CC(C)`. This allows easy construction of the polymer body by simply repeating this string `n` times.
@@ -61,7 +73,7 @@ You will notice with the second example the run time is noticable since there ar
 $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 {'SA': 911.5262248851872, 'LogP': 14.510599999999974, 'RG': 7.430526236202889, 'N': None, 'smi': 'CCCCOC(=O)C(COC)CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)c1ccccc1CO)C(=O)OCCCC)C(=O)OCCCC)C(=O)OCCCC'}
 ```
-The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
+The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
 ## Alternative Input Methods
 
