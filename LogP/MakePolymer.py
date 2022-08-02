@@ -492,27 +492,28 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
 
     return avg_stat(mv_list)
 
-def doCalcs(pol_h, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
+def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
+    #pol_iter is an iterable that has several confs within.
     #The type of variable /calcs/ is set
     #Calcs are only done if requested.
     #remove entries from set after each calculation and print the unrecognized ones at the end.
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
-        sasa = Sasa(pol_h)
+        sasa = Sasa(pol_iter)
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["SA"] = sasa
         calcs.discard("SA")
     if "LogP" in calcs or "MHP" in calcs or "XMHP" in calcs:
-        logP = LogP(pol_h)
+        logP = LogP(pol_iter)
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["LogP"] = logP
         calcs.discard("LogP")
     if "RG" in calcs:
-        rg = RadGyration(pol_h)
+        rg = RadGyration(pol_iter)
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_h, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
+        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
