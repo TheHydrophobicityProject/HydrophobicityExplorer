@@ -1,5 +1,6 @@
 from functools import cache
 from PIL import Image
+from scipy.optimize import curve_fit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import argparse, os, csv, json
@@ -492,6 +493,10 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
 
     return avg_stat(mv_list)
 
+def func_exp(x, a, b, c):
+    #c = 0
+    return a * (x**b) + c
+
 def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
     #pol_iter is an iterable that has several confs within.
     #The type of variable /calcs/ is set
@@ -540,7 +545,19 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
         calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
-        plt.plot(data["N"], data[calc_key], data_marker)
+        if calc_key == "RG":
+            #add regression.
+            try:
+                popt, _ = curve_fit(func_exp, data["N"], data[calc_key])
+                print(f"exponential regression parameters: {popt}")
+                regresion_curve = plt.plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                points = plt.plot(data["N"], data[calc_key], data_marker, label = "RG data")
+                plt.legend()
+            except:
+                print("Could not complete regression.")
+                plt.plot(data["N"], data[calc_key], data_marker)    
+        else:
+            plt.plot(data["N"], data[calc_key], data_marker)
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
         plt.ylabel(f'{calc_key} ({units[calc_key]})')
@@ -551,7 +568,18 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
         for key in data:
             #we can't plot N vs N or anything to do with smiles
             if key != "N" and key != "smi":
-                axis[series].scatter(data["N"], data[key])
+                if key == "RG":
+                    try:
+                        popt, _ = curve_fit(func_exp, data["N"], data[key])
+                        print(f"exponential regression parameters: {popt}")
+                        regresion_curve = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        plt.legend()
+                    except:
+                        print("Could not complete regression.")
+                        axis[series].scatter(data["N"], data[key])
+                else:
+                    axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
                 series += 1
     figname = fig_filename
