@@ -563,21 +563,26 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
         plt.ylabel(f'{calc_key} ({units[calc_key]})')
     else:
         #need to make multiple subplots if multiple calcs requested.
-        figure, axis = plt.subplots(ncols = ncols)
+        _, axis = plt.subplots(ncols = ncols)
         series = 0
         for key in data:
             #we can't plot N vs N or anything to do with smiles
             if key != "N" and key != "smi":
                 if key == "RG":
-                    try:
+                    try: #attempt regression
                         popt, _ = curve_fit(func_exp, data["N"], data[key])
-                        print(f"exponential regression parameters: {popt}")
-                        regresion_curve = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
-                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
-                        plt.legend()
-                    except:
+                    except: #plot data anyway if regression fails
                         print("Could not complete regression.")
                         axis[series].scatter(data["N"], data[key])
+                    else: #code executed when no error in try block.
+                        #report regression parameters
+                        print(f"exponential regression parameters: {popt}")
+                        #plot regression curve
+                        regresion_curve, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                        # plot points
+                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        #create legend for this subplot
+                        axis[series].legend()
                 else:
                     axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
