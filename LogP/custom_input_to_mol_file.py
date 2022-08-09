@@ -8,7 +8,7 @@ def getArgs():
     parser.add_argument("-s", "--smiles", type=str, help="Complete smiles string to be converted.")
     parser.add_argument("-m", "--smarts", type=str, help="Complete smarts string to be converted.")
     parser.add_argument("-i", "--inchi", type=str, help="Complete inchi string to be converted.")
-    parser.add_argument("-f", "--file", type=str, help="filename you would like to use. The format NAME_numberOfMonomers.sdf is required.")
+    parser.add_argument("-f", "--file", type=str, help="filename you would like to save to. The format NAME_numberOfMonomers.sdf is required.")
     args = parser.parse_args()
     return args
 
