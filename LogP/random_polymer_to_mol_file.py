@@ -16,6 +16,7 @@ def getArgs():
     parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically. Input will be forced to use .sdf format.")
     parser.add_argument("-p", "--protocol", type=str, default="ratio",
             help="The method of polymer body generation. The valid options are \"weight\" or \"ratio\" [default]. The coefficients that lead each monomer will be converted to a percentage of the total monomers and a polymer with a random ordering of monomers of that specific composition will be generated. If you specify \"weight\" the polymer composition will be random with weights favoring the monomers with higher coefficients. This could result in polymers with a different emperical formula than the coefficient would indicate.")
+    parser.add_argument("-a", "--array", default = False, action = "store_true", help="generate an array of polymers from n=1 to the n specified with the -n flag.")
     args = parser.parse_args()
     return args
 
@@ -80,38 +81,44 @@ def makePolymerBody_ratio(formula_list, n):
     return smiles
 
 def main():
+    #done in every instance.
     args = getArgs()
     defaults = getStaticSettings()
-
-    #get proper file name.
-    file_name = prepFilename(args.f, args.n)
-
     #first get inators sorted out:
     #get their smiles
     init, term = inator_smi_lookup(args.initiator, args.terminator)
     #make sure they are formatted the right way.
     init = validate_end_group(init, Init=True)
     term = validate_end_group(term, Term=True)
-
     #replace any dict keys with corresponding smiles.
     deciphered_dict_keys = [monomer_dict[x] if x in monomer_dict else x for x in args.m]
-
-    #now we need to generate polymer body
-    if args.protocol == "weight":
-        polymer_body_smiles = makePolymerBody_weighted(deciphered_dict_keys, args.n)
-    elif args.protocol == "ratio":
-        polymer_body_smiles = makePolymerBody_ratio(deciphered_dict_keys, args.n)
+    
+    #do these steps multiple times if array of files is requested.
+    if not args.array:
+        n_iter = [args.n]
     else:
-        argparse.ArgumentError("Unknown protocol selected. Use only \"ratio\" or \"weight\". \"ratio\" is the default if the -p flag is not used.")
+        n_iter = range(1,args.n+1)
 
-    #now we need to attatch the end groups:
-    total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
-    print("Finished adding end groups. Beginning optimization.")
+    for n in n_iter:
+        #get proper file name.
+        file_name = prepFilename(args.f, n)
 
-    pol, suppl = optPol(total_smiles, name=file_name, 
-        nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
+        #now we need to generate polymer body
+        if args.protocol == "weight":
+            polymer_body_smiles = makePolymerBody_weighted(deciphered_dict_keys, n)
+        elif args.protocol == "ratio":
+            polymer_body_smiles = makePolymerBody_ratio(deciphered_dict_keys, n)
+        else:
+            argparse.ArgumentError("Unknown protocol selected. Use only \"ratio\" or \"weight\". \"ratio\" is the default if the -p flag is not used.")
 
-    print(f"Done. Saved to {file_name}")
+        #now we need to attatch the end groups:
+        total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
+        print("Finished adding end groups. Beginning optimization.")
+
+        pol, suppl = optPol(total_smiles, name=file_name, 
+            nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
+
+        print(f"Done. Saved to {file_name}")
 
 if __name__ == "__main__":
     main()
