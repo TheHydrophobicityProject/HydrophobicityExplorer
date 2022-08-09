@@ -36,12 +36,12 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 ## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Methoxy -t Benzyl -v -q
+$ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
-polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding initiator smiles
-polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
-Polymer interpreted as: Methoxy 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
-This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
+polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
+polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
+Polymer interpreted as: Benzoyl 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
+This gives the following SMILES: c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
 Saving image to polymer.png by default.
 requested calculations are None
 ```
