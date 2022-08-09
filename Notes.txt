@@ -19,12 +19,9 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-random/custom input should be able to generate a n=1 - n=n array of files for plotting.
-
 plotting jobs need to be able to interpret groups of files (or all should be stored in one big file)
 Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
 determine number of monomers.
-
 
 add details about how to run the script.
 Installation instructions. Including system.Xwinrc for image display on WSL
