@@ -5,13 +5,13 @@ monomer_dict = {
     'beta-ala': 'NCCC(=O)',
     'L-cystiene': 'N[C@@H](CS)C(=O)',
     'glycine': 'NCC(=O)',
-    'L-isoleucine': 'N[C@@H](C(C)CC)C(O)=O',
+    'L-isoleucine': 'N[C@@H](C(C)CC)C(=O)',
     'L-leucine': 'N[C@@H](CC(C)C)C(=O),
     'L-phenylala': 'N[C@@H](CC1=CC=CC=C1)C(=O),
     'L-phenylgly': 'N[C@@H](C1=CC=CC=C1)C(=O)',
     'L-valine': 'N[C@@H](C(C)C)C(=O)',
     
-    #monomers for polyamides
+    #monomers for polyamides (use H for termination group)
     'Nylon6': 'CCCCCC(=O)N',
 
     #monomers and comonomers for polycarbonates
