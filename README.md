@@ -53,7 +53,7 @@ The `-c` flag is followed by abbreviations for calulations that are desired. Ava
 
 LogP, SA (surface area), MV (Molecular Volume), MHP (LogP/SA; each of which will also be reported. Use XMHP to exclude those constituent calculations) and RG (radius of gyration).
 
-When RG is selected, an exponential regression is performed. Polymer RG should scale by n^(1/3). This gives a sense of how reasonable the optimization steps were.
+When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF95 force field. This gives a sense of how reasonable the optimization steps were.
 
 A run with Styrene to n=10 had the following regression:
 
