@@ -6,8 +6,8 @@ monomer_dict = {
     'L-cystiene': 'N[C@@H](CS)C(=O)',
     'glycine': 'NCC(=O)',
     'L-isoleucine': 'N[C@@H](C(C)CC)C(=O)',
-    'L-leucine': 'N[C@@H](CC(C)C)C(=O),
-    'L-phenylala': 'N[C@@H](CC1=CC=CC=C1)C(=O),
+    'L-leucine': 'N[C@@H](CC(C)C)C(=O)',
+    'L-phenylala': 'N[C@@H](CC1=CC=CC=C1)C(=O)',
     'L-phenylgly': 'N[C@@H](C1=CC=CC=C1)C(=O)',
     'L-valine': 'N[C@@H](C(C)C)C(=O)',
     
