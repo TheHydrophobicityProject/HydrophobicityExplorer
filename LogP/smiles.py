@@ -69,7 +69,7 @@ monomer_dict = {
 init_dict = {
     'Benzyl': '*Cc1ccccc1',
     'Benzyl_alcohol': '*Cc1ccccc1O', 
-    'Benzoyl': 'c1ccc(cc1)C(=O)O',
+    'Benzoyl': 'c1ccc(cc1)C(=O)O*',
     'Butyl': 'CCCC',
     'Hydroxyl': 'O', 
     'Hydrogen': '',
