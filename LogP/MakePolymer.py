@@ -321,15 +321,15 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     SMI_LIST = []
     Unopt_pols = []
     if i == "Hydrogen" and t == "Hydrogen":
-        addEndgroups = True
+        addEndgroups = False
         confirm = False
     else:
-        addEndgroups = False
+        addEndgroups = True
 
     if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
         #this allows us to confirm only once for plotting jobs
-        if confirm == True and addEndgroups:
+        if confirm or addEndgroups:
             proceed = False
         else:
             proceed = True
