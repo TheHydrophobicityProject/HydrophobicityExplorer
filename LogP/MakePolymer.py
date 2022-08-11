@@ -287,7 +287,10 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
-        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
+        try:
+            os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
+        except:
+            print("failed to remove tmp file.")
 
     return pol, suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
