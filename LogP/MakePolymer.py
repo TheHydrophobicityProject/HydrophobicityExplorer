@@ -332,16 +332,16 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
         #this allows us to confirm only once for plotting jobs
-        if confirm or addEndgroups:
-            proceed = False
+        if confirm and addEndgroups:
+            confirmed = False
         else:
-            proceed = True
+            confirmed = True
 
         for j in N_array:
-            if j == 1 and confirm and not proceed:
+            if j == 1 and confirm and not confirmed:
                 test_smi, smi, m_per_n = createPolymerSMILES(i,j,r,t, verbosity=verbosity, test=True)
-                verbosity = False
-                proceed = confirmStructure(test_smi, proceed=proceed)
+                # verbosity = False
+                confirmed = confirmStructure(test_smi, proceed=confirmed)
             
             if j > 1 or not confirm: #do not test if j is large or if we ask not to test at all.
                 smi, m_per_n = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
