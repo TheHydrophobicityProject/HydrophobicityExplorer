@@ -21,6 +21,11 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmult
 TODO
 in anaconda prompt (windows) fails to remove temporary file, also no previews. (no error either)
 
+visualizations of polymers at different nitters
+logP/SA either around .015 or 0.024ish what params lead to each?
+Keep track of params and plot all together
+Jupyter notebook interface would make a lot more accessable.
+
 
 plotting jobs need to be able to interpret groups of files (or all should be stored in one big file)
 Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
