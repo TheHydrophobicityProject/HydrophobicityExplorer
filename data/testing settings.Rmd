@@ -1,0 +1,32 @@
+---
+title: "Settings Check"
+author: "sander"
+date: "2022-08-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+```
+
+
+```{r}
+data1 = read.csv("full_10confs_1500iters.csv")
+data2 = read.csv("full_10confs_2000iters.csv")
+data3 = read.csv("full_15confs_1500iters.csv")
+data4 = read.csv("full_15confs_2000iters.csv")
+data5 = read.csv("full_5confs_1500iters.csv")
+data6 = read.csv("full_5confs_2000iters.csv")
+```
+
+```{r}
+fulldata=full_join(data1,data2)%>%full_join(data3)%>%full_join(data4)%>%full_join(data5)%>%full_join(data6)
+```
+```{r}
+ggplot(data=fulldata,aes(N,LogP.SA, col=as.factor(confs)))+geom_point()
+```
+```{r}
+ggplot(data=fulldata,aes(N,LogP.SA, col=as.factor(iters)))+geom_point()
+```
+
