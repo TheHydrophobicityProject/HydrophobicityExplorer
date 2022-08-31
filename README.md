@@ -4,6 +4,8 @@ This project enables users to perform several calulations on a limitless scope o
 
 The script `MakePolymer.py` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `python3 MakePolymer.py -h`. A large, but non-comprehensive list of examples will be covered in the next section.
 
+See [here](#installation) for installation instructions.
+
 ## Usage and Examples
 
 Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. For example:
@@ -216,3 +218,24 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 >>> PIL.__version__
 '9.1.1'
 ```
+
+# Installation
+## Linux
+This project uses conda to manage dependencies. 
+Install conda using the [official guide.](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+
+In a terminal:
+
+1. Clone the repository\
+`git clone https://github.com/scohenjanes5/MHP.git`
+
+2. Set up the conda environment\
+`conda create -c conda-forge -n mhp rdkit scipy`
+
+    Allow conda to install the dependencies
+
+3. Activate the environment\
+`conda activate mhp`
+
+You can now run any of the scripts with\
+`python3 SCRIPT_NAME -arg1 -arg2 ...`
