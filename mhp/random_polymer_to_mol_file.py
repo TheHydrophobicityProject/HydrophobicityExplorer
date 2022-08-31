@@ -2,7 +2,7 @@ import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from random import choices, shuffle
-from smiles import monomer_dict
+from mhp.smiles import monomer_dict
 from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
 
 def getArgs():
