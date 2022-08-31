@@ -220,11 +220,22 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 ```
 
 # Installation
-## Linux
-This project uses conda to manage dependencies. 
-Install conda using the [official guide.](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
 
-In a terminal:
+## General Steps
+This project uses conda to manage dependencies. 
+
+First:\
+Install conda using the [official guide](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
+
+Then, if you are using Windows, follow the additional steps for that operating system. For other Linux or [windows subsystem for linux](https://docs.microsoft.com/en-us/windows/wsl/about), just open a terminal and skip to [the next section](#steps-for-all-users).
+
+## Extra Steps For Windows
+
+1. Install [git for Windows](https://git-scm.com/download/win)
+
+2. Press the Windows Key and search for and open "Anaconda Prompt"
+
+## Steps For All Users
 
 1. Clone the repository\
 `git clone https://github.com/scohenjanes5/MHP.git`
@@ -237,5 +248,7 @@ In a terminal:
 3. Activate the environment\
 `conda activate mhp`
 
-You can now run any of the scripts with\
-`python3 SCRIPT_NAME -arg1 -arg2 ...`
+You can now run any of the scripts shown above with\
+`python3 PATH/TO/SCRIPT -arg1 -arg2 ...`
+
+
