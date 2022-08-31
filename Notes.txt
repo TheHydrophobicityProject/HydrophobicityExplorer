@@ -19,8 +19,8 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-add details about how to run the script.
-Installation instructions.
+remove csv as dependency and use numpy or pandas instead
+https://towardsdatascience.com/numpy-to-csv-53df45d3948e
 
 what funcs are mmff bad for?
 
