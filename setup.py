@@ -15,4 +15,12 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.10',
     ],
+    entry_points={
+        'console_scripts': [
+            # command = package.module:function
+            'makePol = mhp.MakePolymer:main',
+            'customPol = mhp.custom_input_to_mol_file:main',
+            'randomPol = mhp.random_polymer_to_mol_file:main',
+        ],
+    },
 )
