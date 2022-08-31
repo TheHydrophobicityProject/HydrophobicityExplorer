@@ -262,7 +262,7 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=nConfs, useRandomCoords=True, numThreads=threads) #get multiple conformers for better stats 
     touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=threads, maxIters=iters) #rdkit default 200 iterations.
     for i, tup in enumerate(touple_list):
-        if tup[0] == 1:
+        if tup[0] == 1: #not converged
             pol_h.RemoveConformer(i)
             # print(f"removing conf {i}")
     if pol_h.GetNumConformers() == 0: #tell the user to change something if none of the confs are good.
@@ -270,7 +270,14 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
     if name is None:
-        sdfFilename = "tmp.sdf"
+        i = 0
+        while True: #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
+            if os.path.exists(f"tmp_{i}.sdf"):
+                # print("found")
+                i += 1
+            else:
+                sdfFilename = f"tmp_{i}.sdf"
+                break
     else:
         ext = name.split(".")[1]
         if ext != "sdf":
@@ -282,8 +289,9 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
         writer.write(pol_h, confId=cid) #save the particular conf to the file.
-        writer.flush() #if this isn't included some (small) monomers break everything.
-      
+    
+    writer.flush() #if this isn't included some (small) monomers break everything.
+    writer.close()  
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
