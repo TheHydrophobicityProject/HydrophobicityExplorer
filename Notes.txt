@@ -19,12 +19,7 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-remove csv as dependency and use numpy or pandas instead
-https://towardsdatascience.com/numpy-to-csv-53df45d3948e
-
 what funcs are mmff bad for?
-
-smooth out graphs maybe by adding confs or numIters
 
 How to benchmark?
 Rg ~ N^1/3 Bulk, no solvent
