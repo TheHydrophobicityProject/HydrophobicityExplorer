@@ -173,8 +173,6 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 '3.5.2'
 >>> argparse.__version__
 '1.1'
->>> csv.__version__
-'1.0'
 >>> json.__version__
 '2.0.9'
 >>> PIL.__version__
