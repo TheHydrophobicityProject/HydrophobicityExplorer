@@ -1,11 +1,11 @@
 from functools import cache
 from PIL import Image
+import argparse, os, json, pandas
 from scipy.optimize import curve_fit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
-import argparse, os, csv, json
 import matplotlib.pyplot as plt
-from smiles import monomer_dict, init_dict
+from mhp.smiles import monomer_dict, init_dict
 
 def getStaticSettings():
     if os.path.exists("settings.json"):
@@ -288,8 +288,7 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         cid = conf.GetId() #The numbers may not be sequential.
         pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-        writer.write(pol_h, confId=cid) #save the particular conf to the file.
-    
+        writer.write(pol_h, confId=cid) #save the particular conf to the file.  
     writer.flush() #if this isn't included some (small) monomers break everything.
     writer.close()  
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
@@ -299,7 +298,7 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
             os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
         except:
             print("failed to remove tmp file.")
-
+            
     return pol, suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
 def confirmStructure(smi, *, proceed=None):
@@ -504,6 +503,7 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
 
     return avg_stat(mv_list)
 
+
 def func_exp(x, a, b, c):
     #c = 0
     return a * (x**b) + c
@@ -601,22 +601,17 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
     figname = fig_filename
     plt.savefig(figname, bbox_inches = 'tight')
     print(f'Saved plot to {figname}')
+    df = pandas.DataFrame(data)
     if verbosity:
-        print(data)
+        print(df)
         plt.show()
-    return data, dicts
+    return df
 
-def exportToCSV(exptName, data, dicts_list, verbosity=False):
-    with open(exptName, "w", newline = "") as c:
-        #set column names as dict keys
-        cols = list(data.keys())
-        writer = csv.DictWriter(c, fieldnames = cols)
-        writer.writeheader()
-        #write the data.
-        writer.writerows(dicts_list)
+def exportToCSV(exptName, dataframe, verbosity=False):
+    pandas.DataFrame.to_csv(dataframe, exptName, index=False)
     print(f"Done exporting data to {exptName}.")
     if verbosity: #this is turned off by main() if plotting is also turned on since both functions can print data and that is only needed once.
-        print(data)
+        print(dataframe)
 
 def main():
     default_dict = getStaticSettings()
@@ -672,10 +667,11 @@ def main():
                 data = doCalcs(pol_h, calcs, defaults=default_dict) #use set to remove duplicates
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
-                dicts = [data]
-                print(data)
+                data = {k: [data[k]] for k in data} #values in dict need to be lists
+                dataframe = pandas.DataFrame(data)
+                print(dataframe)
             else:
-                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
+                dataframe = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
                     verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"])
                 
             if vardict["export"] is not None:
@@ -683,8 +679,8 @@ def main():
                     verbo = False
                 else:
                     verbo = vardict["verbose"]        
-                exportToCSV(vardict["export"], data, dicts, verbosity=verbo)
-
+                exportToCSV(vardict["export"], dataframe, verbosity=verbo)
+                
             if len(run_list) > 1:
                 print("\n") #separating runs visually if more than one.
 
