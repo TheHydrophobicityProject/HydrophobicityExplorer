@@ -19,12 +19,30 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
-what funcs are mmff bad for?
+visualizations of polymers at different nitters
+logP/SA either around .015 or 0.024ish what params lead to each?
+Keep track of params and plot all together
+Jupyter notebook interface would make a lot more accessable.
+
+plotting jobs need to be able to interpret groups of files (or all should be stored in one big file)
+Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
+determine number of monomers.
+
+add details about how to run the script.
+Installation instructions. Including system.Xwinrc for image display on WSL
+
+what funcs are mmff bad for? --> carbonate is pretty bad on big monomers, but for small it is ok.
+
+smooth out graphs maybe by adding confs or numIters --> This works in a lot of cases
+
+how to get rsquared?
 
 How to benchmark?
-Rg ~ N^1/3 Bulk, no solvent
+Rg ~ N^1/3 Bulk, no solvent --> some runs get this! Larger number of points help.
 Rg ~ N^1/2 bad solvent
 in a good solvent, Rg ~ N^3/5
+
+Other regressions possible, but we need general form of func (linear vs exponential vs ...) before we can add it.
 
 More details about packaging.
 

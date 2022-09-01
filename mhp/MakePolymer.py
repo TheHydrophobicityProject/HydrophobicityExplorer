@@ -1,8 +1,9 @@
 from functools import cache
 from PIL import Image
+import argparse, os, json, pandas
+from scipy.optimize import curve_fit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
-import argparse, os, json, pandas
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
 
@@ -99,7 +100,7 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
     return inator
 
 def get_building_blocks(i,t,m,*, verbosity = False):
-    init, term = inator_smi_lookup(i, t)
+    init, term = inator_smi_lookup(i, t) #converts end groups to mol objects if not right direction for text addition.
     
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
@@ -224,25 +225,31 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
 
     return smi
 
-def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
-    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity)
+def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):    
+    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
+
+    if init == "" and term == "":
+        addEndgroups = False
+        test_smi = repeat_unit
+    else:
+        addEndgroups = True
 
     polymer_SMILES = n * repeat_unit
     
-    if test: # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
+    if test and addEndgroups: # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
         #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
-        test_smi = repeat_unit
-        test_smi = add_inator_smiles(test_smi, init, term, verbosity=verbosity)
+        test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
-    full_smiles = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
+    if addEndgroups:
+        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
     if test:
-        return test_smi, full_smiles, m_per_n
+        return test_smi, polymer_SMILES, m_per_n
         #return test smiles too so it can be previewed. It is fast to make both before confirmation
         #but we do the confirmation before optimizing geometry.
     else:
-        return full_smiles, m_per_n
+        return polymer_SMILES, m_per_n
    
 def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
     #make Mol object:
@@ -255,7 +262,7 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     ids = AllChem.EmbedMultipleConfs(pol_h, numConfs=nConfs, useRandomCoords=True, numThreads=threads) #get multiple conformers for better stats 
     touple_list = AllChem.MMFFOptimizeMoleculeConfs(pol_h, numThreads=threads, maxIters=iters) #rdkit default 200 iterations.
     for i, tup in enumerate(touple_list):
-        if tup[0] == 1:
+        if tup[0] == 1: #not converged
             pol_h.RemoveConformer(i)
             # print(f"removing conf {i}")
     if pol_h.GetNumConformers() == 0: #tell the user to change something if none of the confs are good.
@@ -263,7 +270,14 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
     if name is None:
-        sdfFilename = "tmp.sdf"
+        i = 0
+        while True: #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
+            if os.path.exists(f"tmp_{i}.sdf"):
+                # print("found")
+                i += 1
+            else:
+                sdfFilename = f"tmp_{i}.sdf"
+                break
     else:
         ext = name.split(".")[1]
         if ext != "sdf":
@@ -274,14 +288,17 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         cid = conf.GetId() #The numbers may not be sequential.
         pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-        writer.write(pol_h, confId=cid) #save the particular conf to the file.
-        writer.flush() #if this isn't included some (small) monomers break everything.
-      
+        writer.write(pol_h, confId=cid) #save the particular conf to the file.  
+    writer.flush() #if this isn't included some (small) monomers break everything.
+    writer.close()  
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
-        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-
+        try:
+            os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
+        except:
+            print("failed to remove tmp file.")
+            
     return pol, suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
 def confirmStructure(smi, *, proceed=None):
@@ -313,40 +330,49 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     POL_LIST = []
     SMI_LIST = []
     Unopt_pols = []
+    if i == "Hydrogen" and t == "Hydrogen":
+        addEndgroups = False
+        confirm = False
+    else:
+        addEndgroups = True
+
     if plot: #make molecules from n=1 to n specified by user.
         N_array = range(1, n+1)
         #this allows us to confirm only once for plotting jobs
-        if confirm == True:
-            proceed = False
+        if confirm and addEndgroups:
+            confirmed = False
         else:
-            proceed = True
+            confirmed = True
 
         for j in N_array:
-            if j == 1 and confirm and not proceed:
+            if j == 1 and confirm and not confirmed:
                 test_smi, smi, m_per_n = createPolymerSMILES(i,j,r,t, verbosity=verbosity, test=True)
-                verbosity = False
-                proceed = confirmStructure(test_smi, proceed=proceed)
+                # verbosity = False
+                confirmed = confirmStructure(test_smi, proceed=confirmed)
             
             if j > 1 or not confirm: #do not test if j is large or if we ask not to test at all.
                 smi, m_per_n = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
             
             if verbosity:
                 print(f"Done generating SMILES with n = {j} now: {smi}")
-                print("Converting to RDkit mol now.")
-            #get opt and unopt molecules.
-            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
-            POL_LIST.append(pol_h)
-            Unopt_pols.append(pol)
             #save smiles
             SMI_LIST.append(smi)
-        return POL_LIST, SMI_LIST, Unopt_pols, m_per_n
+
+        for j, smi in enumerate(reversed(SMI_LIST)): #optimize the longest polymer first to see if parameters need to be changed.
+            if verbosity:        
+                print(f"Converting n={n-j} to RDkit mol now.")
+            #get opt and unopt molecules.
+            pol, pol_h = optPol(smi, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
+            POL_LIST.insert(0, pol_h) #insert at index 0 each time so list comes out in ascending size rank
+            Unopt_pols.insert(0, pol) #dito
+        return POL_LIST, SMI_LIST, Unopt_pols, m_per_n #return the non-reversed SMI_LIST
     else: #just one polymer.
         test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
             print(f"This gives the following SMILES: {full_smi}")
 
-        if confirm:
+        if confirm and addEndgroups:
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
         
@@ -477,27 +503,33 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
 
     return avg_stat(mv_list)
 
-def doCalcs(pol_h, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
+
+def func_exp(x, a, b, c):
+    #c = 0
+    return a * (x**b) + c
+
+def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
+    #pol_iter is an iterable that has several confs within.
     #The type of variable /calcs/ is set
     #Calcs are only done if requested.
     #remove entries from set after each calculation and print the unrecognized ones at the end.
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
-        sasa = Sasa(pol_h)
+        sasa = Sasa(pol_iter)
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["SA"] = sasa
         calcs.discard("SA")
     if "LogP" in calcs or "MHP" in calcs or "XMHP" in calcs:
-        logP = LogP(pol_h)
+        logP = LogP(pol_iter)
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["LogP"] = logP
         calcs.discard("LogP")
     if "RG" in calcs:
-        rg = RadGyration(pol_h)
+        rg = RadGyration(pol_iter)
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_h, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
+        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
@@ -524,18 +556,46 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
         calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
-        plt.plot(data["N"], data[calc_key], data_marker)
+        if calc_key == "RG":
+            #add regression.
+            try:
+                popt, _ = curve_fit(func_exp, data["N"], data[calc_key])
+                print(f"exponential regression parameters: {popt}")
+                regresion_curve = plt.plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                points = plt.plot(data["N"], data[calc_key], data_marker, label = "RG data")
+                plt.legend()
+            except:
+                print("Could not complete regression.")
+                plt.plot(data["N"], data[calc_key], data_marker)    
+        else:
+            plt.plot(data["N"], data[calc_key], data_marker)
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
         plt.ylabel(f'{calc_key} ({units[calc_key]})')
     else:
         #need to make multiple subplots if multiple calcs requested.
-        figure, axis = plt.subplots(ncols = ncols)
+        _, axis = plt.subplots(ncols = ncols)
         series = 0
         for key in data:
             #we can't plot N vs N or anything to do with smiles
             if key != "N" and key != "smi":
-                axis[series].scatter(data["N"], data[key])
+                if key == "RG":
+                    try: #attempt regression
+                        popt, _ = curve_fit(func_exp, data["N"], data[key])
+                    except: #plot data anyway if regression fails
+                        print("Could not complete regression.")
+                        axis[series].scatter(data["N"], data[key])
+                    else: #code executed when no error in try block.
+                        #report regression parameters
+                        print(f"exponential regression parameters: {popt}")
+                        #plot regression curve
+                        regresion_curve, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                        # plot points
+                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        #create legend for this subplot
+                        axis[series].legend()
+                else:
+                    axis[series].scatter(data["N"], data[key])
                 axis[series].set_title(f"{key} vs n")
                 series += 1
     figname = fig_filename
@@ -620,7 +680,7 @@ def main():
                 else:
                     verbo = vardict["verbose"]        
                 exportToCSV(vardict["export"], dataframe, verbosity=verbo)
-
+                
             if len(run_list) > 1:
                 print("\n") #separating runs visually if more than one.
 

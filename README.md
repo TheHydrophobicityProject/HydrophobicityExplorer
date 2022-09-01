@@ -4,17 +4,21 @@ This project enables users to perform several calulations on a limitless scope o
 
 The script `MakePolymer.py` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `python3 MakePolymer.py -h`. A large, but non-comprehensive list of examples will be covered in the next section.
 
+See [here](#installation) for installation instructions.
+
 ## Usage and Examples
 
 Note that the following examples all use the `-q` flag. This suppresses the default behavior, which asks the user for confirmation that the polymer they have specified has been interpreted correctly. For example:
 
 <img src="images/preview_example.png">
 
-Is the confirmation image that would appear when [this example](README.md#specifying-multiple-comonomers) is run without the `-q` flag.
+Is the confirmation image that would appear when [this example](#specifying-multiple-comonomers) is run without the `-q` flag.
 
-This confirmation process may be more important when using smiles inputs that do not come stock with this program for the first time. Addtional details about adding your own smiles to the included dictionaries can be found [here](README.md#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
+This confirmation process may be more important when using smiles inputs that do not come stock with this program for the first time. Addtional details about adding your own smiles to the included dictionaries can be found [here](#modifying-the-smiles-dictionary). This is the default behavior to protect users from optimizing the geometry for incorrect polymers, which can be a time-consuming process for large values of `n`, but this can be dissabled for use in scripting or batch jobs.
 
-Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](README.md#specifying-multiple-comonomers) for simplicity.
+Regardless of the provided value of `n`, the preview will only show one monomer or [block of comonomers](#specifying-multiple-comonomers) for simplicity.
+
+This prompt will not be shown if both end groups are Hydrogen.
 
 ### Specifying Polymer Components
 
@@ -34,16 +38,28 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 ## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Methoxy -t Benzyl -v -q
+$ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
-polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding initiator smiles
-polymer smiles is COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
-Polymer interpreted as: Methoxy 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
-This gives the following SMILES: COCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
+polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
+polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
+Polymer interpreted as: Benzoyl 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
+This gives the following SMILES: c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
 Saving image to polymer.png by default.
 requested calculations are None
 ```
 The `-b` flag defines the block of comonomers in a specific repeating pattern. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-b` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
+
+## Performing Calculations
+
+The `-c` flag is followed by abbreviations for calulations that are desired. Availible options are:
+
+LogP, SA (surface area), MV (Molecular Volume), MHP (LogP/SA; each of which will also be reported. Use XMHP to exclude those constituent calculations) and RG (radius of gyration).
+
+When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF95 force field. This gives a sense of how reasonable the optimization steps were.
+
+A run with Styrene to n=10 had the following regression:
+
+<img src="images/RG_regression.png">
 
 #### Modifying The SMILES Dictionary
 
@@ -59,7 +75,7 @@ You will notice with the second example the run time is noticable since there ar
 $ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
 {'SA': 911.5262248851872, 'LogP': 14.510599999999974, 'RG': 7.430526236202889, 'N': None, 'smi': 'CCCCOC(=O)C(COC)CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)c1ccccc1CO)C(=O)OCCCC)C(=O)OCCCC)C(=O)OCCCC'}
 ```
-The above example also shows how calculations are specified. Each calculation has a short string associated with it that can be use with the `-c` flag so only the desired calculations are performed. These can be found by using the `-h` flag. The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
+The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
 
 ## Alternative Input Methods
 
@@ -117,6 +133,28 @@ Nearly all of this output, including the plot popup and the polymer grid image, 
 An example plot of Styrene LogP/SA with n <= 10:
 <img src="images/plot_example.png">
 
+This plot has a lot of noise at higher n. It is possible to [mitigate this](#reducing-noise-in-plots).
+
+### Reducing Noise in Plots
+
+A plot generated with this tool may not always show a smooth curve, especially at higher n, where it is more difficult to optimize the polymer geometry. Calculations that depend on geometry like surface area or LogP/SA will be affected by poor geometry optimizations. This can be partially fixed by [changing the default settings](#changing-default-settings) to increase the number of conformations used for calculations or the maximum number of iterations a conformer is allowed to use before it is either accepted or discarded for not converging (i.e. the change in energy between optimization steps is still not yet small enough to be considered 'done'). Both of these in effect increase the population of conformers used to calculate an average of a requested property, which reduces noise on the graph.
+
+The default settings are meant to find a balance between run time and reasonable results. These parameters are better suited to some monomers than others, so tweaking the parameters may be necessary not only to reduce noise on the plot, but to get the run to complete at all. The following is an example of how changing the default settings may benefit the plots produced by this program:
+
+Styrene | MaxIters 1500 | numConfs 5
+<img src="images/Styrene_default.png">
+
+Styrene | MaxIters 2000 | numConfs 5
+<img src="images/Styrene_2000i_5c.png">
+
+Styrene | MaxIters 1500 | numConfs 10
+<img src="images/Styrene_1500i_10c.png">
+
+Styrene | MaxIters 2000 | numConfs 10
+<img src="images/Styrene_2000i_10c.png">
+
+In this case, increasing both parameters independently or together improved the quality of the graph. However, each increase in either parameter increased the run time.
+
 ## Changing Default Settings
 
 Some settings are not accessible with command-line arguments. They can be changed in the file `settings.json`. Comments are not allowed in json files so each of these options are explained here.
@@ -125,13 +163,13 @@ Some settings are not accessible with command-line arguments. They can be change
 {
     "opt_numConfs":5, #The number of conformations you would like to generate. Increasing this greatly increases run time.
     "opt_numThreads":0, #The number of threads you would like to use for the optimization and conf generation. 0 means maximum possible.
-    "opt_maxIters":1500, #The number of iterations used in optimization. Increase this if a job fails to optimize
+    "opt_maxIters":1500, #The number of iterations used in optimization. Increase this if a job fails to optimize.
     "drawing_subImgSize_edge":250, #The side length of a subimage when saved. 
     "drawing_default":"polymer.png", #The name of an image saved by default (verbosity turned on with no image name specified.)
-    "MV_gridSpacing":0.2, #Used for molar volume calculation
-    "MV_boxMargin" :2.0, #Used for molar volume calculation
+    "MV_gridSpacing":0.2, #Used for molar volume calculation.
+    "MV_boxMargin" :2.0, #Used for molar volume calculation.
     "plot_dataPoint":"o", #Matplotlib argument to change plot point appearence.
-    "plot_Filename":"Size-dependent-stats.png" #name of plot
+    "plot_Filename":"Size-dependent-stats.png" #name of plot.
 }
 ```
 Some of the values are used by external functions and others by functions in this program. If it is desired to change the appearence of the plot points from blue circles to red pluses, change `"plot_dataPoint":"o"` to `"plot_dataPoint":"r+"`, as per the [matplotlib documentation](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html).
@@ -178,3 +216,37 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 >>> PIL.__version__
 '9.1.1'
 ```
+
+# Installation
+
+## General Steps
+This project uses conda to manage dependencies. 
+
+First:\
+Install conda using the [official guide](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
+
+Then, if you are using Windows, follow the additional steps for that operating system. For other Linux or [windows subsystem for linux](https://docs.microsoft.com/en-us/windows/wsl/about), just open a terminal and skip to [the next section](#steps-for-all-users).
+
+### Extra Steps For Windows
+
+1. Install [git for Windows](https://git-scm.com/download/win)
+
+2. Press the Windows Key and search for and open "Anaconda Prompt"
+
+### Steps For All Users
+
+1. Clone the repository\
+`git clone https://github.com/scohenjanes5/MHP.git`
+
+2. Set up the conda environment\
+`conda create -c conda-forge -n mhp rdkit scipy`
+
+    Allow conda to install the dependencies
+
+3. Activate the environment\
+`conda activate mhp`
+
+You can now run any of the scripts shown above with\
+`python3 PATH/TO/SCRIPT -arg1 -arg2 ...`
+
+

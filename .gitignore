@@ -13,4 +13,3 @@ build
 /*.egg-info
 *sdf
 *.R*
-*.pyc
