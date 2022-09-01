@@ -2,7 +2,7 @@ from functools import cache
 from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
-import argparse, os, csv, json
+import argparse, os, json, pandas
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
 
@@ -541,22 +541,17 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
     figname = fig_filename
     plt.savefig(figname, bbox_inches = 'tight')
     print(f'Saved plot to {figname}')
+    df = pandas.DataFrame(data)
     if verbosity:
-        print(data)
+        print(df)
         plt.show()
-    return data, dicts
+    return df
 
-def exportToCSV(exptName, data, dicts_list, verbosity=False):
-    with open(exptName, "w", newline = "") as c:
-        #set column names as dict keys
-        cols = list(data.keys())
-        writer = csv.DictWriter(c, fieldnames = cols)
-        writer.writeheader()
-        #write the data.
-        writer.writerows(dicts_list)
+def exportToCSV(exptName, dataframe, verbosity=False):
+    pandas.DataFrame.to_csv(dataframe, exptName, index=False)
     print(f"Done exporting data to {exptName}.")
     if verbosity: #this is turned off by main() if plotting is also turned on since both functions can print data and that is only needed once.
-        print(data)
+        print(dataframe)
 
 def main():
     default_dict = getStaticSettings()
@@ -612,10 +607,11 @@ def main():
                 data = doCalcs(pol_h, calcs, defaults=default_dict) #use set to remove duplicates
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
-                dicts = [data]
-                print(data)
+                data = {k: [data[k]] for k in data} #values in dict need to be lists
+                dataframe = pandas.DataFrame(data)
+                print(dataframe)
             else:
-                data, dicts = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
+                dataframe = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
                     verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"])
                 
             if vardict["export"] is not None:
@@ -623,7 +619,7 @@ def main():
                     verbo = False
                 else:
                     verbo = vardict["verbose"]        
-                exportToCSV(vardict["export"], data, dicts, verbosity=verbo)
+                exportToCSV(vardict["export"], dataframe, verbosity=verbo)
 
             if len(run_list) > 1:
                 print("\n") #separating runs visually if more than one.
