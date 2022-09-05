@@ -1,0 +1,11 @@
+﻿{% set data = load_setup_py_data() %}
+
+package:
+  name: {{ data.get('name') }}
+  version: {{ data.get('version') }}
+about:
+  summary: {{ data.get('description') }}
+source:
+  path: ..
+build:
+  script: python3 setup.py install
