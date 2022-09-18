@@ -56,13 +56,13 @@ def getArgs():
         run_list = [vardict] #args assumed to be in list later due to above.
     return run_list
 
-def getRepeatUnit(single, super):
-    #Two cases: one monomer or supermonomer.
+def getRepeatUnit(single, co):
+    #Two cases: one monomer or comonomers.
     #If both are specified something is wrong.
-    if single is not None and super is not None:
-        raise TypeError("Cannot specify both single and super monomers")
-    #This gives a list of components of a super-monomer or just the string used for single monomer in dict
-    repeat_unit = list(filter(None, [single, super]))[0]
+    if single is not None and co is not None:
+        raise TypeError("Cannot specify both single and comonomers")
+    #This gives a list of components of a comonomer block or just the string used for single monomer in dict
+    repeat_unit = list(filter(None, [single, co]))[0]
     return repeat_unit
 
 @cache #avoid multiple lookups if multiple runs with same inputs
