@@ -589,9 +589,9 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
                         #report regression parameters
                         print(f"exponential regression parameters: {popt}")
                         #plot regression curve
-                        regresion_curve, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                        _, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
                         # plot points
-                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        _ = axis[series].scatter(data["N"], data[key], label = "RG data")
                         #create legend for this subplot
                         axis[series].legend()
                 else:
