@@ -529,7 +529,7 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
+        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=defaults["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
