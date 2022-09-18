@@ -65,6 +65,9 @@ def getRepeatUnit(single, co):
     repeat_unit = list(filter(None, [single, co]))[0]
     return repeat_unit
 
+def parse_monomer_dict_keys(compound_list, compound_dict):
+    return [compound_dict[x] if x in compound_dict else x for x in compound_list]
+
 @cache #avoid multiple lookups if multiple runs with same inputs
 def monomer_smi_lookup(m):
     repeat_unit = monomer_dict[m]
@@ -74,7 +77,7 @@ def monomer_smi_lookup(m):
 def inator_smi_lookup(i,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
-    smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
+    smiles_inators = parse_monomer_dict_keys(given_inators, init_dict)
     init = smiles_inators [0]
     term = smiles_inators[1]
     return init, term
@@ -104,7 +107,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
     
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
-        deciphered_dict_keys = [monomer_dict[x] if x in monomer_dict else x for x in m]
+        deciphered_dict_keys = parse_monomer_dict_keys(m, monomer_dict)
         
         #we need an accurate count for number of monomers since a grouping specified by -s can be AABBB.
         #In this example, 1 unit of n is really 5 monomers. We want proper notation in figures.
