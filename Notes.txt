@@ -28,12 +28,10 @@ plotting jobs need to be able to interpret groups of files (or all should be sto
 Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
 determine number of monomers.
 
-Error with molar Volume calcs.
-random pol should be able to do calcs in the script
 multiple random pols and avg stats
 change thread number with number of monomers?
 unit tests: https://docs.pytest.org/en/stable/
-Python3.6 or greater for fstrings
+Python 3.6 or greater for fstrings
 check for major Rdkit versions (greater than the version on debian)
 conda env export --no-builds
 
