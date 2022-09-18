@@ -6,6 +6,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
+import mhp.random_polymer_to_mol_file as randPol
 
 def getStaticSettings():
     if os.path.exists("settings.json"):
@@ -47,6 +48,8 @@ def getArgs():
     parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
     parser.add_argument("-j", "--json", type = str, help = "The path to a compatible .json file with any of the above arguments.")
     parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
+    parser.add_argument("-a", "--random", default = False, action = "store_true",
+            help="Requires the use of the -b flag. Interprets coefficients as desired relative amounts of each comonomer. The ratio provided will be scaled to fit the desired number of monomers. The ordering will be randomized.")
     args = parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
@@ -623,13 +626,38 @@ def main():
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
-                        
-            if vardict["plot"]:
-                POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+            if not vardict["random"]:
+                if vardict["plot"]:
+                    POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
+                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+                else:
+                    pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
+                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
             else:
-                pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+                if type(repeat_unit) != list:
+                    raise TypeError("comonomers must be specified with -b if -a is used.")
+                M_PER_N = 1
+                init, term = inator_smi_lookup(vardict["initiator"], vardict["terminator"])
+                init = validate_end_group(init, Init=True)
+                term = validate_end_group(term, Term=True)
+                deciphered_dict_keys = parse_monomer_dict_keys(repeat_unit, monomer_dict)
+                if vardict["plot"]:
+                    n_iter = reversed(range(1, vardict["n"]+1))
+                    POL_LIST = []
+                    SMI_LIST = []
+                    UNOPT_POL_LIST = []
+                else:
+                    n_iter = [vardict["n"]]
+
+                for n in n_iter:
+                    polymer_body_smiles = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
+                    polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
+                    pol, pol_h = optPol(polSMILES, nConfs=default_dict["opt_numConfs"], threads=default_dict["opt_numThreads"], iters=default_dict["opt_maxIters"])
+                    if vardict["plot"]:
+                        SMI_LIST.append(polSMILES)
+                        POL_LIST.insert(0, pol_h)
+                        UNOPT_POL_LIST.insert(0, pol)
+
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
