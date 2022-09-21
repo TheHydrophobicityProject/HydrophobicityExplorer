@@ -29,7 +29,7 @@ Maybe use ID and _name values to sort out conformer numbers and n=? issue since 
 determine number of monomers.
 
 multiple random pols and avg stats
-change thread number with number of monomers?
+change thread number with number of monomers? --> number of threads doesn't seem to make a difference for <= 15 styrene
 unit tests: https://docs.pytest.org/en/stable/
 Python 3.6 or greater for fstrings
 check for major Rdkit versions (greater than the version on debian)
