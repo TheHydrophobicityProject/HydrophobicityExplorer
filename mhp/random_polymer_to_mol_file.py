@@ -2,8 +2,9 @@ import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from random import choices, shuffle
-from mhp.smiles import monomer_dict
-from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
+#These following imports are only done if we run this as main.
+# from mhp.smiles import monomer_dict 
+# from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -47,21 +48,17 @@ def mergeList(lst):
     print(f'body smiles is:\n{smiles}')
     return smiles
 
-
 def makePolymerBody_weighted(weighted_monomer_list, n):
     monomer_weights, expanded_list = getCoeffs(weighted_monomer_list)
-
     #now that we have an explicit list, we can pick at random from the list n times and make the polymer body.
     body_list = choices(expanded_list, weights=monomer_weights, k=n)
-
     #now merge list into smiles.
     smiles = mergeList(body_list)
 
     return smiles
 
-def makePolymerBody_ratio(formula_list, n):
-    coeffs, monomers = getCoeffs(formula_list)
-    print(monomers)
+def makePolymerBody_ratio(formula_list, n, verbo=False):
+    coeffs, monomers = getCoeffs(formula_list)        
     sum_coeffs = sum(coeffs)
     body_list = []
     for i, coeff in enumerate(coeffs):
@@ -76,8 +73,10 @@ def makePolymerBody_ratio(formula_list, n):
     #Now we have a list of monomers in the correct relative ammounts.
     #we just need to randomize the order.
     shuffle(body_list)
-    print(body_list)
     smiles = mergeList(body_list)
+    if verbo:
+        print(f"{n = }")
+        # print(f"smiles with random momomer ordering {smiles}")
     return smiles
 
 def main():
@@ -91,7 +90,7 @@ def main():
     init = validate_end_group(init, Init=True)
     term = validate_end_group(term, Term=True)
     #replace any dict keys with corresponding smiles.
-    deciphered_dict_keys = [monomer_dict[x] if x in monomer_dict else x for x in args.m]
+    deciphered_dict_keys = parse_monomer_dict_keys(args.m, monomer_dict)
     
     #do these steps multiple times if array of files is requested.
     if not args.array:
@@ -102,7 +101,6 @@ def main():
     for n in n_iter:
         #get proper file name.
         file_name = prepFilename(args.f, n)
-
         #now we need to generate polymer body
         if args.protocol == "weight":
             polymer_body_smiles = makePolymerBody_weighted(deciphered_dict_keys, n)
@@ -114,7 +112,6 @@ def main():
         #now we need to attatch the end groups:
         total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
         print("Finished adding end groups. Beginning optimization.")
-
         pol, suppl = optPol(total_smiles, name=file_name, 
             nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
 
@@ -122,3 +119,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    from mhp.smiles import monomer_dict
+    from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
+

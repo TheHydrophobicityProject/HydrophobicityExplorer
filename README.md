@@ -135,7 +135,7 @@ An example plot of Styrene LogP/SA with n <= 10:
 
 This plot has a lot of noise at higher n. It is possible to [mitigate this](#reducing-noise-in-plots).
 
-### Reducing Noise in Plots
+### Improving Data Quality in Plots
 
 A plot generated with this tool may not always show a smooth curve, especially at higher n, where it is more difficult to optimize the polymer geometry. Calculations that depend on geometry like surface area or LogP/SA will be affected by poor geometry optimizations. This can be partially fixed by [changing the default settings](#changing-default-settings) to increase the number of conformations used for calculations or the maximum number of iterations a conformer is allowed to use before it is either accepted or discarded for not converging (i.e. the change in energy between optimization steps is still not yet small enough to be considered 'done'). Both of these in effect increase the population of conformers used to calculate an average of a requested property, which reduces noise on the graph.
 
@@ -209,10 +209,6 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 '2020.03.2'
 >>> matplotlib.__version__
 '3.5.2'
->>> argparse.__version__
-'1.1'
->>> json.__version__
-'2.0.9'
 >>> PIL.__version__
 '9.1.1'
 ```
@@ -239,7 +235,7 @@ Then, if you are using Windows, follow the additional steps for that operating s
 `git clone https://github.com/scohenjanes5/MHP.git`
 
 2. Set up the conda environment\
-`conda create -c conda-forge -n mhp rdkit scipy`
+`conda create -c conda-forge -n mhp rdkit scipy matplotlib`
 
     Allow conda to install the dependencies
 
@@ -248,5 +244,4 @@ Then, if you are using Windows, follow the additional steps for that operating s
 
 You can now run any of the scripts shown above with\
 `python3 PATH/TO/SCRIPT -arg1 -arg2 ...`
-
 

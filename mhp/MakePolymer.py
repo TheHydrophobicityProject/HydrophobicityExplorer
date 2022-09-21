@@ -6,6 +6,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
+import mhp.random_polymer_to_mol_file as randPol
 
 def getStaticSettings():
     if os.path.exists("settings.json"):
@@ -47,6 +48,8 @@ def getArgs():
     parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
     parser.add_argument("-j", "--json", type = str, help = "The path to a compatible .json file with any of the above arguments.")
     parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
+    parser.add_argument("-a", "--random", default = False, action = "store_true",
+            help="Requires the use of the -b flag. Interprets coefficients as desired relative amounts of each comonomer. The ratio provided will be scaled to fit the desired number of monomers. The ordering will be randomized.")
     args = parser.parse_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
@@ -56,14 +59,17 @@ def getArgs():
         run_list = [vardict] #args assumed to be in list later due to above.
     return run_list
 
-def getRepeatUnit(single, super):
-    #Two cases: one monomer or supermonomer.
+def getRepeatUnit(single, co):
+    #Two cases: one monomer or comonomers.
     #If both are specified something is wrong.
-    if single is not None and super is not None:
-        raise TypeError("Cannot specify both single and super monomers")
-    #This gives a list of components of a super-monomer or just the string used for single monomer in dict
-    repeat_unit = list(filter(None, [single, super]))[0]
+    if single is not None and co is not None:
+        raise TypeError("Cannot specify both single and comonomers")
+    #This gives a list of components of a comonomer block or just the string used for single monomer in dict
+    repeat_unit = list(filter(None, [single, co]))[0]
     return repeat_unit
+
+def parse_monomer_dict_keys(compound_list, compound_dict):
+    return [compound_dict[x] if x in compound_dict else x for x in compound_list]
 
 @cache #avoid multiple lookups if multiple runs with same inputs
 def monomer_smi_lookup(m):
@@ -74,7 +80,7 @@ def monomer_smi_lookup(m):
 def inator_smi_lookup(i,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
-    smiles_inators = [init_dict[x] if x in init_dict else x for x in given_inators]
+    smiles_inators = parse_monomer_dict_keys(given_inators, init_dict)
     init = smiles_inators [0]
     term = smiles_inators[1]
     return init, term
@@ -104,7 +110,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
     
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
-        deciphered_dict_keys = [monomer_dict[x] if x in monomer_dict else x for x in m]
+        deciphered_dict_keys = parse_monomer_dict_keys(m, monomer_dict)
         
         #we need an accurate count for number of monomers since a grouping specified by -s can be AABBB.
         #In this example, 1 unit of n is really 5 monomers. We want proper notation in figures.
@@ -529,7 +535,7 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
         data["RG"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
-        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=["MV_gridSpacing"])
+        mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=defaults["MV_gridSpacing"])
         data["MV"] = mv
         calcs.discard("MV")
     if "MHP" in calcs or "XMHP" in calcs:
@@ -589,9 +595,9 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
                         #report regression parameters
                         print(f"exponential regression parameters: {popt}")
                         #plot regression curve
-                        regresion_curve, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
+                        _, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
                         # plot points
-                        points = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        _ = axis[series].scatter(data["N"], data[key], label = "RG data")
                         #create legend for this subplot
                         axis[series].legend()
                 else:
@@ -620,13 +626,38 @@ def main():
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
-                        
-            if vardict["plot"]:
-                POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+            if not vardict["random"]:
+                if vardict["plot"]:
+                    POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
+                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+                else:
+                    pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
+                        repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
             else:
-                pol_h, polSMILES, pol, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
-                    repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
+                if type(repeat_unit) != list:
+                    raise TypeError("comonomers must be specified with -b if -a is used.")
+                M_PER_N = 1
+                init, term = inator_smi_lookup(vardict["initiator"], vardict["terminator"])
+                init = validate_end_group(init, Init=True)
+                term = validate_end_group(term, Term=True)
+                deciphered_dict_keys = parse_monomer_dict_keys(repeat_unit, monomer_dict)
+                if vardict["plot"]:
+                    n_iter = reversed(range(1, vardict["n"]+1))
+                    POL_LIST = []
+                    SMI_LIST = []
+                    UNOPT_POL_LIST = []
+                else:
+                    n_iter = [vardict["n"]]
+
+                for n in n_iter:
+                    polymer_body_smiles = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
+                    polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
+                    pol, pol_h = optPol(polSMILES, nConfs=default_dict["opt_numConfs"], threads=default_dict["opt_numThreads"], iters=default_dict["opt_maxIters"])
+                    if vardict["plot"]:
+                        SMI_LIST.append(polSMILES)
+                        POL_LIST.insert(0, pol_h)
+                        UNOPT_POL_LIST.insert(0, pol)
+
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
