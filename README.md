@@ -209,10 +209,6 @@ This project has been tested with `Python 3.10.4` and the following dependencies
 '2020.03.2'
 >>> matplotlib.__version__
 '3.5.2'
->>> argparse.__version__
-'1.1'
->>> json.__version__
-'2.0.9'
 >>> PIL.__version__
 '9.1.1'
 ```
@@ -239,7 +235,7 @@ Then, if you are using Windows, follow the additional steps for that operating s
 `git clone https://github.com/scohenjanes5/MHP.git`
 
 2. Set up the conda environment\
-`conda create -c conda-forge -n mhp rdkit scipy`
+`conda create -c conda-forge -n mhp rdkit scipy matplotlib`
 
     Allow conda to install the dependencies
 
@@ -248,5 +244,4 @@ Then, if you are using Windows, follow the additional steps for that operating s
 
 You can now run any of the scripts shown above with\
 `python3 PATH/TO/SCRIPT -arg1 -arg2 ...`
-
 
