@@ -2,7 +2,7 @@
 
 This project enables users to perform several calulations on a limitless scope of polymers as long as the primary structure is known.
 
-The script `MakePolymer.py` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `python3 MakePolymer.py -h`. A large, but non-comprehensive list of examples will be covered in the next section.
+The command-line tool `makePol` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `makePol -h`. A large, but non-comprehensive list of examples will be covered in the next section.
 
 See [here](#installation) for installation instructions.
 
@@ -25,8 +25,7 @@ This prompt will not be shown if both end groups are Hydrogen.
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
 
 ```bash
-$ python3 MakePolymer.py -n 3 -m Styrene -v -q   # -n specifies the number of monomers
-polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
+$ makePol -n 3 -m Styrene -v   # -n specifies the number of monomers
 Polymer interpreted as: Hydrogen 3 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 Saving image to polymer.png by default.
@@ -38,7 +37,7 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 ## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
-$ python3 MakePolymer.py -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
+$ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
@@ -72,7 +71,7 @@ Initiator and terminator groups should be added to `init_dict` and the atom to w
 You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.sdf`, `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
 
 ```bash
-$ python3 MakePolymer.py -r pol.mol -c SA RG LogP -q
+$ makePol -r pol.mol -c SA RG LogP -q
 {'SA': 911.5262248851872, 'LogP': 14.510599999999974, 'RG': 7.430526236202889, 'N': None, 'smi': 'CCCCOC(=O)C(COC)CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)c1ccccc1CO)C(=O)OCCCC)C(=O)OCCCC)C(=O)OCCCC'}
 ```
 The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
@@ -80,29 +79,29 @@ The data dictionary shows `'N' : None` because the smiles is not analyzed in any
 ## Alternative Input Methods
 
 ### Custom Input
-If the methods contained within this program are inadequet for the type of molecule desired, the accessory script `custom_input_to_mol_file.py` may be useful. It can read Smiles, Smarts or Inchi strings and produce a .mol file that can be read for calculations with the master script.
+If the methods contained within this program are inadequet for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script.
 ```bash
-$ python3 custom_input_to_mol_file.py -h
+$ customPol -h
 ```
 ### Random Composition
-The accessory script `random_polymer_to_mol_file.py` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order.
+The accessory script `-a` option of `makePol` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order. Use the `-b` flag to specify the ratio of the comonomers.
 
-For example, the command `python3 random_polymer_to_mol_file.py -n 20 -m 2 Styrene Vinylalcohol -f rand.sdf` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol and save it to `rand_20.sdf` (The number of monomers is added to the filename automatically), which can be read by `MakePolymer.py`.
+For example, the command `makePol -n 20 -b 2 Styrene Vinylalcohol -a -c MV` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol (rounded if necessry).
 
 ### Saving Polymer to File
 
 The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
 
 ```bash
-$ python3 MakePolymer.py -n 4 -m Styrene -c MHP -v -f pol.mol -q
-polymer smiles is CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1) before any end groups
+$ makePol -n 4 -m Styrene -c MHP -v -f pol.mol
 Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 Saving image to polymer.png by default.
 requested calculations are ['MHP']
-{'SA': 605.1670849486483, 'LogP': 8.770700000000003, 'MHP': 0.014493022205172056, 'N': 4, 'smi': 'CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)'}
+           SA    LogP   LogP/SA  N                                               smi
+0  370.004894  8.7707  0.023704  4  CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 ```
 In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-f` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
 
@@ -114,17 +113,17 @@ The data can be exported to a `.csv` file with the `-e` flag.
 
 ```bash
 #XMHP requests that the MHP data be eXclusively returned instead of including the LogP and SA values as well.
-$ python3 MakePolymer.py -n 2 -m Styrene -c XMHP -p -e data.csv -v -q
-polymer smiles is CC(c1ccccc1) before any end groups
+$ makePol -n 2 -m Styrene -c XMHP -p -e data.csv -v
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
-Converting to mol now.
-polymer smiles is CC(c1ccccc1)CC(c1ccccc1) before any end groups
 Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
-Converting to mol now.
+Converting n=2 to RDkit mol now.
+Converting n=1 to RDkit mol now.
 Saving image to polymer.png by default.
 requested calculations are ['XMHP']
 Saved plot to Size-dependent-stats.png
-{'MHP': [0.012376251236427096, 0.013573507027943717], 'N': [1, 2], 'smi': ['CC(c1ccccc1)', 'CC(c1ccccc1)CC(c1ccccc1)']}
+    LogP/SA  N                       smi
+0  0.022390  1              CC(c1ccccc1)
+1  0.023327  2  CC(c1ccccc1)CC(c1ccccc1)
 #popup of plot appears.
 Done exporting data to .csv file.
 ```
@@ -200,34 +199,27 @@ Examples of valid json files are provided, but the most important aspect is the 
 
 The list of dictionaries created by importing the paramaters from the json file is filled in with the default values for parameters like `"plot"` or `"export"`, then each dictonary of inputs is run in succession. The provided command-line arguments are overwritten by the corresponding argument in the json file.
 
-## Dependencies
-
-This project has been tested with `Python 3.10.4` and the following dependencies:
-
-```python3
->>> rdkit.__version__
-'2020.03.2'
->>> matplotlib.__version__
-'3.5.2'
->>> PIL.__version__
-'9.1.1'
-```
-
 # Installation
 
 ## General Steps
-This project uses conda to manage dependencies. 
+This project uses conda to manage dependencies. You can install this package through conda or using git.
 
 First:\
 Install conda using the [official guide](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-Then, if you are using Windows, follow the additional steps for that operating system. For other Linux or [windows subsystem for linux](https://docs.microsoft.com/en-us/windows/wsl/about), just open a terminal and skip to [the next section](#steps-for-all-users).
+Then, if you are using Windows, follow the additional steps for that operating system. For other Linux or [windows subsystem for linux](https://docs.microsoft.com/en-us/windows/wsl/about), just open a terminal. Windows users should press the Windows Key, then search for and open `Anaconda Prompt`.
 
-### Extra Steps For Windows
+## Install with conda
+1. Create the environment and install the dependencies. You may replace the argument after -n with any environment name you wish.\
+`conda create -c conda-forge -c scohenjanes -n mhp-env mhp`
 
-1. Install [git for Windows](https://git-scm.com/download/win)
+2. Activate the environment\
+`conda activate mhp-env`
 
-2. Press the Windows Key and search for and open "Anaconda Prompt"
+## Install with Git
+### Extra Step For Windows
+
+0. Install [git for Windows](https://git-scm.com/download/win)
 
 ### Steps For All Users
 
@@ -235,13 +227,13 @@ Then, if you are using Windows, follow the additional steps for that operating s
 `git clone https://github.com/scohenjanes5/MHP.git`
 
 2. Set up the conda environment\
-`conda create -c conda-forge -n mhp rdkit scipy matplotlib`
+`conda create -c conda-forge -n mhp-env rdkit scipy`
 
     Allow conda to install the dependencies
 
 3. Activate the environment\
-`conda activate mhp`
+`conda activate mhp-env`
 
-You can now run any of the scripts shown above with\
-`python3 PATH/TO/SCRIPT -arg1 -arg2 ...`
+4. Install the package locally\
+`python3 PATH/TO/INSTALL/setup.py install`
 
