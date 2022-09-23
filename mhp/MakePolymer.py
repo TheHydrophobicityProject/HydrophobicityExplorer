@@ -422,8 +422,8 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
 
             #convert to smiles so it can be visualized
             polSMILES = Chem.MolToSmiles(pol_h)
-            pol = Chem.MolFromSmiles(polSMILES)
             #but visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
+            pol = Chem.MolFromSmiles(polSMILES)
             return suppl, polSMILES, pol #These are used for calcs, smiles part of csv and 2D visualization.
         else:
             raise FileNotFoundError(name)
@@ -508,7 +508,6 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
         mv_list.append(Chem.AllChem.ComputeMolVolume(mol, gridSpacing=grid_spacing, boxMargin=box_margin))
 
     return avg_stat(mv_list)
-
 
 def func_exp(x, a, b, c):
     #c = 0
