@@ -422,14 +422,16 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
 
             #convert to smiles so it can be visualized
             polSMILES = Chem.MolToSmiles(pol_h)
-            pol = Chem.MolFromSmiles(polSMILES)
+            if verbosity:
+                print(f"polymer smiles is: {polSMILES}")
             #but visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
+            pol = Chem.MolFromSmiles(polSMILES)
             return suppl, polSMILES, pol #These are used for calcs, smiles part of csv and 2D visualization.
         else:
             raise FileNotFoundError(name)
     else: #i.e. write file.
         if verbosity:
-            print(f'attempting to save molecule to {name}')
+            print(f'writing molecule to {name}')
 
         #what are we dealing with?
         if type(mol) == type(Chem.SDMolSupplier()):
@@ -508,7 +510,6 @@ def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
         mv_list.append(Chem.AllChem.ComputeMolVolume(mol, gridSpacing=grid_spacing, boxMargin=box_margin))
 
     return avg_stat(mv_list)
-
 
 def func_exp(x, a, b, c):
     #c = 0
@@ -661,7 +662,9 @@ def main():
         else: #get mol from file
             if vardict["plot"]:
                 raise TypeError("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
-            pol_h, polSMILES, pol = write_or_read_pol(vardict["read"], read=True)
+            elif vardict["n"] == None:
+                raise Exception("You need to specify the number of monomers in polymers read from a file.")
+            pol_h, polSMILES, pol = write_or_read_pol(vardict["read"], read=True, verbosity=vardict["verbose"])
             M_PER_N = 1
             #pol_h is the iterator with all 3D conformers of the molecule. pol is the 2D structure.
 
@@ -674,7 +677,7 @@ def main():
                     name = f"{base}_{i + 1}.{ext}"
                     write_or_read_pol(name, mol=mol)
             else:
-                write_or_read_pol(vardict["file"], mol=pol_h)
+                write_or_read_pol(vardict["file"], mol=pol_h, verbosity=vardict["verbose"])
 
         #drawing a picture of the polymer.
         if vardict["plot"]:

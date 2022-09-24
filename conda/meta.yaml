@@ -1,0 +1,26 @@
+﻿{% set data = load_setup_py_data() %}
+
+package:
+  name: "mhp"
+  version: {{ data.get('version') }}
+
+source:
+  path: ..
+
+requirements:
+  build:
+    - setuptools
+    - pandas
+    - python
+    - scipy
+    - matplotlib-base
+
+  run:
+    - pandas
+    - python
+    - scipy
+    - matplotlib-base
+
+build:
+  script: python3 setup.py install
+  noarch: generic
