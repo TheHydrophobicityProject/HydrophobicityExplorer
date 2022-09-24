@@ -82,7 +82,7 @@ Note that `-n` is required since the smiles is not analyzed to determine the num
 ### Custom Input
 If the methods contained within this program are inadequet for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
 
-Use the following to show instructions for this script.
+Use the following to show instructions for this script:\
 `customPol -h`
 
 ### Random Composition
