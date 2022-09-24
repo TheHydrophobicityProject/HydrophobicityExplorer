@@ -71,10 +71,11 @@ Initiator and terminator groups should be added to `init_dict` and the atom to w
 You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.sdf`, `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
 
 ```bash
-$ makePol -r pol.mol -c SA RG LogP -q
-{'SA': 911.5262248851872, 'LogP': 14.510599999999974, 'RG': 7.430526236202889, 'N': None, 'smi': 'CCCCOC(=O)C(COC)CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)CC(CC(C)CC(C)c1ccccc1CO)C(=O)OCCCC)C(=O)OCCCC)C(=O)OCCCC'}
+$ makePol -n 5 -r pol.mol -c SA RG LogP
+           SA    LogP        RG  N                                                smi
+0  370.961866  8.7707  4.076059  5  C[C@H](C[C@H](C[C@H](CCc1ccccc1)c1ccccc1)c1ccc...
 ```
-The data dictionary shows `'N' : None` because the smiles is not analyzed in any way in this configuration. However, this dictionary entry can be filled if the `-n` flag is used.
+Note that `-n` is required since the smiles is not analyzed to determine the number of monomers.
 
 ## Alternative Input Methods
 
@@ -82,9 +83,8 @@ The data dictionary shows `'N' : None` because the smiles is not analyzed in any
 If the methods contained within this program are inadequet for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script.
-```bash
-$ customPol -h
-```
+`customPol -h`
+
 ### Random Composition
 The accessory script `-a` option of `makePol` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order. Use the `-b` flag to specify the ratio of the comonomers.
 
@@ -236,4 +236,3 @@ Then, if you are using Windows, follow the additional steps for that operating s
 
 4. Install the package locally\
 `python3 PATH/TO/INSTALL/setup.py install`
-
