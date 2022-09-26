@@ -19,6 +19,10 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html#rdkit.Chem
 https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html?highlight=embedmultipleconfs#rdkit.Chem.rdDistGeom.EmbedMultipleConfs
 
 TODO
+Need to make entry points work on windows (maybe rebuild?)
+settings function entry point to access settings.json.
+
+
 visualizations of polymers at different nitters
 logP/SA either around .015 or 0.024ish what params lead to each?
 Keep track of params and plot all together
