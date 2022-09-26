@@ -620,9 +620,10 @@ def exportToCSV(exptName, dataframe, verbosity=False):
     if verbosity: #this is turned off by main() if plotting is also turned on since both functions can print data and that is only needed once.
         print(dataframe)
 
-def main():
+def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
+    print(run_list)
 
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
