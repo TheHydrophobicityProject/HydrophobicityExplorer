@@ -10,10 +10,7 @@ source:
 requirements:
   build:
     - setuptools
-    - pandas
     - python
-    - scipy
-    - matplotlib-base
 
   run:
     - pandas
@@ -23,4 +20,10 @@ requirements:
 
 build:
   script: python3 setup.py install
-  noarch: generic
+  noarch: python
+
+test:
+  imports:
+    - rdkit
+    - scipy
+    - mhp
