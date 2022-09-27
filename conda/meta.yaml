@@ -17,6 +17,7 @@ requirements:
     - python
     - scipy
     - matplotlib-base
+    - rdkit
 
 build:
   script: python3 setup.py install
