@@ -12,3 +12,4 @@ build
 *sdf
 *.R*
 conda-out/*
+cndabld.sh
