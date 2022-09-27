@@ -30,6 +30,7 @@ test:
   imports:
     - rdkit
     - scipy
+    - mhp
   commands:
     - makePol -h
     - customPol -h
