@@ -13,8 +13,8 @@ requirements:
     - python
 
   run:
-    - pandas
     - python
+    - pandas
     - scipy
     - matplotlib-base
     - rdkit
