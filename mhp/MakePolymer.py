@@ -31,7 +31,7 @@ def getJsonArgs(jsonFile, dict):
 
 def getArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", type = int, help = "The number of monomer or comonomer blocks.")
+    parser.add_argument("-n", type = int, default = 0, help = "The number of monomer or comonomer blocks.")
     parser.add_argument("-i", "--initiator", type = str, default = "Hydrogen", help = "Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-t", "--terminator", type = str, default = "Hydrogen", help = "Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-m","--single_monomer", type = str, help = "Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
