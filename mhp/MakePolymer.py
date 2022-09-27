@@ -41,7 +41,7 @@ def getArgs():
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
                         help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and RG (radius of gyration).")
-    parser.add_argument("-f","--file", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
+    parser.add_argument("-s","--save", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol and .sdf")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
                         help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
@@ -673,15 +673,15 @@ def main(**kwargs):
             #pol_h is the iterator with all 3D conformers of the molecule. pol is the 2D structure.
 
         #saving the polymer to a file.
-        if vardict["file"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
+        if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
             if vardict["plot"]:
-                base = vardict["file"].split(".")[0]
-                ext = vardict["file"].split(".")[1]
+                base = vardict["save"].split(".")[0]
+                ext = vardict["save"].split(".")[1]
                 for i, mol in enumerate(POL_LIST):
                     name = f"{base}_{i + 1}.{ext}"
                     write_or_read_pol(name, mol=mol)
             else:
-                write_or_read_pol(vardict["file"], mol=pol_h, verbosity=vardict["verbose"])
+                write_or_read_pol(vardict["save"], mol=pol_h, verbosity=vardict["verbose"])
 
         #drawing a picture of the polymer.
         if vardict["plot"]:
