@@ -2,11 +2,8 @@ from functools import cache
 from PIL import Image
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
-from rdkit import Chem
-from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
-import mhp.random_polymer_to_mol_file as randPol
 
 def getStaticSettings():
     if os.path.exists("settings.json"):
@@ -720,4 +717,7 @@ def main(**kwargs):
                 print("\n") #separating runs visually if more than one.
 
 if __name__ == "__main__":
+    from rdkit import Chem
+    from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
+    import mhp.random_polymer_to_mol_file as randPol
     main()
