@@ -13,6 +13,7 @@ def getStaticSettings():
             settings_dict = json.load(S)
             return settings_dict
     else:
+        print("WARNING: Failed to find default settings file. Loading hardcoded defaults")
         return {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
                 "drawing_subImgSize_edge":250, "drawing_default":"polymer.png", "MV_gridSpacing":0.2,
                 "MV_boxMargin" :2.0, "plot_dataPoint":"o", "plot_Filename":"Size-dependent-stats.png"}
@@ -409,7 +410,7 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                     pol_h = pol
                     break #we break the loop since only one conf is needed to visualize
             else:
-                print(f"unsuported extention: {ext} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
+                print(f"unsuported extention: {ext} in {name} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
                 quit()
 
             if suppl is None:
@@ -622,8 +623,7 @@ def exportToCSV(exptName, dataframe, verbosity=False):
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
-    print(run_list)
-
+    
     for vardict in run_list:
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
