@@ -25,8 +25,6 @@ def crossover(calc,*,data_dict=None,data_csv=None):
     Y=df[[calc]]
 
     #calculate lin reg for each 
-
-
-
+    
 #crossover("MHP", data_csv="data.csv")
 crossover("MHP", data_dict=dict)
