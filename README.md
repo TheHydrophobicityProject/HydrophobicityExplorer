@@ -68,7 +68,7 @@ Initiator and terminator groups should be added to `init_dict` and the atom to w
 
 ### Reading a Polymer From A File
 
-You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.sdf`, `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-f` flag. See the following section for details.
+You will notice with the second example the run time is noticable since there are several conformations being compared to make the final mol object in rdkit. Additionally, this process is not perfectly reproducible. If desired, one can load a premade `.sdf`, `.mol` or `.pdb` file instead of spelling out the polymer with the `-m` or `-b` flag. Polymers spelled out with the previously demonstrated methods can be converted to files as well with the `-s` flag. See the following section for details.
 
 ```bash
 $ makePol -n 5 -r pol.mol -c SA RG LogP
@@ -92,10 +92,10 @@ For example, the command `makePol -n 20 -b 2 Styrene Vinylalcohol -a -c MV` will
 
 ### Saving Polymer to File
 
-The name or path of the file can be specified with the `-f` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
+The name or path of the file can be specified with the `-s` flag. Valid extentions are `.mol`, `.pdb` and `.xyz`. Be aware that `.xyz` files cannot be read back into this program.
 
 ```bash
-$ makePol -n 4 -m Styrene -c MHP -v -f pol.mol
+$ makePol -n 4 -m Styrene -c MHP -v -s pol.mol
 Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
 This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 Saving image to polymer.png by default.
@@ -103,7 +103,7 @@ requested calculations are ['MHP']
            SA    LogP   LogP/SA  N                                               smi
 0  370.004894  8.7707  0.023704  4  CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 ```
-In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-f` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
+In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-s` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
 
 ## Plotting Size-Dependent Calculations
 

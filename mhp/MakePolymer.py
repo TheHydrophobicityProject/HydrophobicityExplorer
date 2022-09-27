@@ -2,11 +2,10 @@ from functools import cache
 from PIL import Image
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
-from rdkit import Chem
-from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 import matplotlib.pyplot as plt
 from mhp.smiles import monomer_dict, init_dict
-import mhp.random_polymer_to_mol_file as randPol
+from rdkit import Chem
+from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 
 def getStaticSettings():
     if os.path.exists("settings.json"):
@@ -14,6 +13,7 @@ def getStaticSettings():
             settings_dict = json.load(S)
             return settings_dict
     else:
+        print("WARNING: Failed to find default settings file. Loading hardcoded defaults")
         return {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
                 "drawing_subImgSize_edge":250, "drawing_default":"polymer.png", "MV_gridSpacing":0.2,
                 "MV_boxMargin" :2.0, "plot_dataPoint":"o", "plot_Filename":"Size-dependent-stats.png"}
@@ -31,7 +31,7 @@ def getJsonArgs(jsonFile, dict):
 
 def getArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", type = int, help = "The number of monomer or comonomer blocks.")
+    parser.add_argument("-n", type = int, default = 0, help = "The number of monomer or comonomer blocks.")
     parser.add_argument("-i", "--initiator", type = str, default = "Hydrogen", help = "Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-t", "--terminator", type = str, default = "Hydrogen", help = "Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-m","--single_monomer", type = str, help = "Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
@@ -41,7 +41,7 @@ def getArgs():
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
                         help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and RG (radius of gyration).")
-    parser.add_argument("-f","--file", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
+    parser.add_argument("-s","--save", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol and .sdf")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
                         help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
@@ -50,7 +50,7 @@ def getArgs():
     parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
     parser.add_argument("-a", "--random", default = False, action = "store_true",
             help="Requires the use of the -b flag. Interprets coefficients as desired relative amounts of each comonomer. The ratio provided will be scaled to fit the desired number of monomers. The ordering will be randomized.")
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
     if args.json is not None:
@@ -410,7 +410,7 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                     pol_h = pol
                     break #we break the loop since only one conf is needed to visualize
             else:
-                print(f"unsuported extention: {ext} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
+                print(f"unsuported extention: {ext} in {name} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
                 quit()
 
             if suppl is None:
@@ -620,11 +620,15 @@ def exportToCSV(exptName, dataframe, verbosity=False):
     if verbosity: #this is turned off by main() if plotting is also turned on since both functions can print data and that is only needed once.
         print(dataframe)
 
-def main():
+def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
-
+    
     for vardict in run_list:
+        for key in kwargs: 
+            vardict[key]=kwargs[key] #assign all keyword arguments to proper place in var dictionary
+        # print(vardict)
+
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
             if not vardict["random"]:
@@ -669,15 +673,15 @@ def main():
             #pol_h is the iterator with all 3D conformers of the molecule. pol is the 2D structure.
 
         #saving the polymer to a file.
-        if vardict["file"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
+        if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
             if vardict["plot"]:
-                base = vardict["file"].split(".")[0]
-                ext = vardict["file"].split(".")[1]
+                base = vardict["save"].split(".")[0]
+                ext = vardict["save"].split(".")[1]
                 for i, mol in enumerate(POL_LIST):
                     name = f"{base}_{i + 1}.{ext}"
                     write_or_read_pol(name, mol=mol)
             else:
-                write_or_read_pol(vardict["file"], mol=pol_h, verbosity=vardict["verbose"])
+                write_or_read_pol(vardict["save"], mol=pol_h, verbosity=vardict["verbose"])
 
         #drawing a picture of the polymer.
         if vardict["plot"]:
@@ -719,4 +723,5 @@ def main():
                 print("\n") #separating runs visually if more than one.
 
 if __name__ == "__main__":
+    import mhp.random_polymer_to_mol_file as randPol
     main()

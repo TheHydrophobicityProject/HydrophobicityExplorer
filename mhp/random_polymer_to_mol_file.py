@@ -1,7 +1,7 @@
+from random import choices, shuffle
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from random import choices, shuffle
 #These following imports are only done if we run this as main.
 # from mhp.smiles import monomer_dict 
 # from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
@@ -118,7 +118,7 @@ def main():
         print(f"Done. Saved to {file_name}")
 
 if __name__ == "__main__":
-    main()
     from mhp.smiles import monomer_dict
     from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
+    main()
 
