@@ -625,6 +625,10 @@ def main(**kwargs):
     run_list = getArgs()
     
     for vardict in run_list:
+        for key in kwargs: 
+            vardict[key]=kwargs[key] #assign all keyword arguments to proper place in var dictionary
+        # print(vardict)
+
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
             if not vardict["random"]:
