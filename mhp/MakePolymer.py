@@ -8,15 +8,14 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 
 def getStaticSettings():
-    if os.path.exists("settings.json"):
-        with open("settings.json", "r") as S: #this is where many defaults are set so they can easily be changed.
-            settings_dict = json.load(S)
-            return settings_dict
+    if os.path.exists("mhpSettings.json"):
+        from mhp.settings import readJson
+        print("NOTICE: found mhpSettings.json. This takes presedence over the built-in settings.")
+        settings_dict = readJson("mhpSettings.json")
     else:
-        print("WARNING: Failed to find default settings file. Loading hardcoded defaults")
-        return {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
-                "drawing_subImgSize_edge":250, "drawing_default":"polymer.png", "MV_gridSpacing":0.2,
-                "MV_boxMargin" :2.0, "plot_dataPoint":"o", "plot_Filename":"Size-dependent-stats.png"}
+        from mhp.settings import default_dict as settings_dict
+        
+    return settings_dict
 
 def getJsonArgs(jsonFile, dict):
     with open(jsonFile, 'r') as J: #open json file
