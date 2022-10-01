@@ -65,7 +65,7 @@ def makeNB(name):
 def main():
     name = "mhp.ipynb"
     if os.path.exists(name):
-        inp = input(f"{name} exists. Should it be overwritten? [Y/n]")
+        inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
         if inp.lower() == "y" or inp == "":
             makeNB(name)
         else:
