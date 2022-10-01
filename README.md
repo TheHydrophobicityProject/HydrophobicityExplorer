@@ -156,7 +156,7 @@ In this case, increasing both parameters independently or together improved the 
 
 ## Changing Default Settings
 
-Some settings are not accessible with command-line arguments. Defaults are hardcoded but can be overwritten when a file called `mhpSettings.json` is present in the working directory. The settings uses are explained below. All settings must be present in the file unless. A fresh settings file can be generated with the `mhpSettings -w` commnd line tool.
+Some settings are not accessible with command-line arguments. Defaults are hardcoded but can be overwritten when a file called `mhpSettings.json` is present in the working directory. The settings uses are explained below. All settings must be present in the file unless. A fresh settings file can be generated with the `mhpSettings -w` command line tool. `mhpSettings -s` shows the settings all mhp tools will use, whether default or custom.
 
 ```python
 {
