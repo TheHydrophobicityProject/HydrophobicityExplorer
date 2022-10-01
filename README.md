@@ -2,7 +2,7 @@
 
 This project enables users to perform several calulations on a limitless scope of polymers as long as the primary structure is known.
 
-The command-line tool `makePol` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `makePol -h`. A large, but non-comprehensive list of examples will be covered in the next section.
+The command-line tool `makePol` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `makePol -h`. A large, but non-comprehensive list of examples will be covered in the next section. The utility is also available through a jupyter notebook. An example can be generated with the command `mhpNB`.
 
 See [here](#installation) for installation instructions.
 
@@ -156,7 +156,7 @@ In this case, increasing both parameters independently or together improved the 
 
 ## Changing Default Settings
 
-Some settings are not accessible with command-line arguments. They can be changed in the file `settings.json`. Comments are not allowed in json files so each of these options are explained here.
+Some settings are not accessible with command-line arguments. Defaults are hardcoded but can be overwritten when a file called `mhpSettings.json` is present in the working directory. The settings uses are explained below. All settings must be present in the file unless. A fresh settings file can be generated with the `mhpSettings -w` commnd line tool.
 
 ```python
 {
