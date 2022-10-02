@@ -658,8 +658,7 @@ def main(**kwargs):
                     n_iter = [vardict["n"]]
 
                 for n in n_iter:
-                    if __name__ == "__main__":
-                        import mhp.random_polymer_to_mol_file as randPol
+                    import mhp.random_polymer_to_mol_file as randPol
                     polymer_body_smiles = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
                     polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
                     pol, pol_h = optPol(polSMILES, nConfs=default_dict["opt_numConfs"], threads=default_dict["opt_numThreads"], iters=default_dict["opt_maxIters"])
