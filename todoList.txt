@@ -1,0 +1,6 @@
+1. install mhp
+2. use command line utility to model 3 units of styrene and calculate Molar Volume
+3. generate Jupyter NB and make a polymer with copolymer blocks
+4. run a job to plot the size dependence of RG/SA for any polymer up to 12 units
+5. Use custom settings to use 2000 for maximum number of itterations in optimization and 7 conformers for any plotting job
+6. add custom smiles to the set of smiles the program will read from.
