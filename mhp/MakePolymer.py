@@ -6,11 +6,6 @@ import matplotlib.pyplot as plt
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from mhp.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
-if __name__ == "__main__":
-    #merge user-created smiles with built-in dicts
-    init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
-
-# print(monomer_dict)
 
 def getStaticSettings():
     if os.path.exists("mhpSettings.json"):
@@ -77,14 +72,14 @@ def parse_smiles_dict_keys(compound_list, compound_dict):
 
 @cache #avoid multiple lookups if multiple runs with same inputs
 def monomer_smi_lookup(m):
-    repeat_unit = monomer_dict[m]
+    repeat_unit = mono[m]
     return repeat_unit
 
 @cache #avoid multiple lookups if multiple runs with same inputs
 def inator_smi_lookup(i,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
-    smiles_inators = parse_smiles_dict_keys(given_inators, init_dict)
+    smiles_inators = parse_smiles_dict_keys(given_inators, ini)
     init = smiles_inators [0]
     term = smiles_inators[1]
     return init, term
@@ -114,7 +109,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
     
     if type(m) == list:
         #replace any dict keys with corresponding smiles.
-        deciphered_dict_keys = parse_smiles_dict_keys(m, monomer_dict)
+        deciphered_dict_keys = parse_smiles_dict_keys(m, mono)
         
         #we need an accurate count for number of monomers since a grouping specified by -s can be AABBB.
         #In this example, 1 unit of n is really 5 monomers. We want proper notation in figures.
@@ -628,6 +623,10 @@ def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
     
+    #merge user-created smiles with built-in dicts and make accessible to all funcs
+    global ini, mono
+    ini, mono = checkAndMergeSMILESDicts(init_dict, monomer_dict)
+    
     for vardict in run_list:
         for key in kwargs: 
             vardict[key]=kwargs[key] #assign all keyword arguments to proper place in var dictionary
@@ -649,7 +648,7 @@ def main(**kwargs):
                 init, term = inator_smi_lookup(vardict["initiator"], vardict["terminator"])
                 init = validate_end_group(init, Init=True)
                 term = validate_end_group(term, Term=True)
-                deciphered_dict_keys = parse_smiles_dict_keys(repeat_unit, monomer_dict)
+                deciphered_dict_keys = parse_smiles_dict_keys(repeat_unit, mono)
                 if vardict["plot"]:
                     n_iter = reversed(range(1, vardict["n"]+1))
                     POL_LIST = []
