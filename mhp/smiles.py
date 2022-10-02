@@ -58,16 +58,16 @@ init_dict = {
     'Vinyl': 'C=C'
 }
 
-# template = {
-#     "end_groups" : { "KEY0" : "SYMMETRICSMILES", "KEY1" : "*ASYMMETRIC SMILES" },
-#     "monomers" : { "KEY" : "HEAD_SMILES_TAIL" }
-# }
+template = {
+    "end_groups" : { "KEY0" : "SYMMETRICSMILES", "KEY1" : "*ASYMMETRIC SMILES" },
+    "monomers" : { "KEY" : "HEAD_SMILES_TAIL" }
+}
 
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--end_group', default = False, action = "store_true", help = "Prints all end group key-value pairs.")
     parser.add_argument('-m', '--monomer', default = False, action = "store_true", help = "Prints all monomer key-value pairs.")
-    # parser.add_argument('-w', '--write', default = False, action = "store_true", help = "Writes a json file that can be filled with user-specified smiles.")
+    parser.add_argument('-w', '--write', default = False, action = "store_true", help = "Writes a json file that can be filled with user-specified smiles.")
     args = parser.parse_args()
     return args
 
@@ -111,19 +111,19 @@ def main():
         showDict(init_dict)
     if args.monomer:
         showDict(monomer_dict)
-    # if args.write:
-    #     from mhp.settings import writeJson
-    #     name = "smiles.json"
-    #     if os.path.exists(name):
-    #         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
-    #         if inp.lower() == "y" or inp == "":
-    #             writeJson(template, name)
-    #             print("created smiles.json")
-    #         else:
-    #             print("Please rename the existing notebook so it is not overwritten.")
-    #     else:
-    #         writeJson(template, name)
-            # print("created smiles.json")
+    if args.write:
+        from mhp.settings import writeJson
+        name = "smiles.json"
+        if os.path.exists(name):
+            inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
+            if inp.lower() == "y" or inp == "":
+                writeJson(template, name)
+                print("created smiles.json")
+            else:
+                print("Please rename the existing notebook so it is not overwritten.")
+        else:
+            writeJson(template, name)
+            print("created smiles.json")
 
 if __name__ == "__main__":
     main()
