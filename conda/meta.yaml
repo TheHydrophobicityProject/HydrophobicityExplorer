@@ -22,12 +22,13 @@ requirements:
 build:
   script: python3 setup.py install
   noarch: python
-  number: 2
+  number: 1
   entry_points:
     - makePol = mhp.MakePolymer:main
     - customPol = mhp.custom_input_to_mol_file:main
     - mhpSettings = mhp.settings:main
     - mhpNB = mhp.nb:main
+    - mhpLib = mhp.smiles:main
 
 test:
   imports:
@@ -38,6 +39,7 @@ test:
     - makePol -h
     - customPol -h
     - mhpSettings -h
+    - mhpLib -h
 
 # requirements:
 #   build:
