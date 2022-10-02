@@ -62,9 +62,12 @@ A run with Styrene to n=10 had the following regression:
 
 #### Modifying The SMILES Dictionary
 
-Monomers should be added to the `monomer_dict` in `smiles.py` with the tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written `CC(C)`. This allows easy construction of the polymer body by simply repeating this string `n` times.
+Use the command line tool `mhpLib -w` to generate `smiles.json` which can be filled with custom key-value pairs. Examples that are ignored will be included, but the format of the SMILES should be as follows: 
+   * The tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written `CC(C)`. This allows easy construction of the polymer body by simply repeating this string `n` times.
 
-Initiator and terminator groups should be added to `init_dict` and the atom to which the rest of the polymer should attatch must be denoted with `*`. The use of `*` is inspired by polymergenome.org. Additionally, the SMILES must be written such that the `*` is the first or last character in the string. If the end-group is palindromic no asterisk is necessary. The existing dictionary has examples of each of these conditions.
+   * For non-palindromic end groups the atom to which the rest of the polymer should attatch must be denoted with `*`. The use of `*` is inspired by polymergenome.org. Additionally, the SMILES must be written such that the `*` is the first or last character in the string.
+
+The use of the `-e` or `-m` flag with `mhpLib` will show all the endgroups or monomers recognizable to the program, including those user-specified ones in `smiles.json`.
 
 ### Reading a Polymer From A File
 
