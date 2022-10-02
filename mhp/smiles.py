@@ -79,7 +79,7 @@ def _addUserSmiles(user_dict, endgroup_dict=None, mnmr_dict=None):
                 endgroup_dict[key] = user_eg_dict[key]
         return endgroup_dict
     if mnmr_dict is not None:
-        user_monomer_dict = user_dict
+        user_monomer_dict = user_dict["monomers"]
         for key in user_monomer_dict:
             if "KEY" not in key:
                 mnmr_dict[key] = user_monomer_dict[key]
