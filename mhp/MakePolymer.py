@@ -3,9 +3,14 @@ from PIL import Image
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
-from mhp.smiles import monomer_dict, init_dict
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
+from mhp.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
+if __name__ == "__main__":
+    #merge user-created smiles with built-in dicts
+    init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
+
+# print(monomer_dict)
 
 def getStaticSettings():
     if os.path.exists("mhpSettings.json"):
@@ -622,10 +627,6 @@ def exportToCSV(exptName, dataframe, verbosity=False):
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
-
-    #merge user-created smiles with built-in dicts
-    from mhp.smiles import checkAndMergeSMILESDicts
-    init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
     
     for vardict in run_list:
         for key in kwargs: 
