@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="mhp",
-    version="0.1.3",
+    version="0.1.3.1",
     url="https://github.com/scohenjanes5/MHP",
     author="Sander Cohen-Janes",
     author_email="scohenjanes@brandeis.edu",
@@ -21,7 +21,8 @@ setuptools.setup(
             'makePol = mhp.MakePolymer:main',
             'customPol = mhp.custom_input_to_mol_file:main',
             'mhpSettings = mhp.settings:main',
-            'mhpNB = mhp.nb:main'
+            'mhpNB = mhp.nb:main',
+            'mhpLib = mhp.smiles:main'
             # 'randomPol = mhp.random_polymer_to_mol_file:main',
         ],
     },
