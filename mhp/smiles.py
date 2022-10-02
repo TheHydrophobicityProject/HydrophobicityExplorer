@@ -109,7 +109,6 @@ def checkAndMergeSMILESDicts(egs, mnmrs):
 def main():
     args = getArgs()
     if args.end_group or args.monomer:
-        # print("we should check")
         egs, mnmrs = checkAndMergeSMILESDicts(init_dict, monomer_dict)
     if args.end_group:
         showDict(egs)
