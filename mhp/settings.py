@@ -23,16 +23,17 @@ def writeJson(dict, path):
 
 def main():
     args = getArgs()
+    settingsFile = "mhpSettings.json"
     if args.show or args.write:
         if args.show:
-            if os.path.exists("mhpSettings.json"):
+            if os.path.exists(settingsFile):
                 print("All mhp packages will use these user-defined settings in mhpSettings.json")
-                user_settings = readJson("mhpSettings.json")
+                user_settings = readJson(settingsFile)
                 print(user_settings)
             else:
                 print(default_dict)
         if args.write:
-            writeJson(default_dict, "mhpSettings.json")
+            writeJson(default_dict, settingsFile)
     
 
 if __name__ == "__main__":
