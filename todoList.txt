@@ -4,3 +4,4 @@
 4. run a job to plot the size dependence of RG/SA for any polymer up to 12 units
 5. Use custom settings to use 2000 for maximum number of itterations in optimization and 7 conformers for any plotting job
 6. add custom smiles to the set of smiles the program will read from.
+7. Export the data from a run plotting the molar volume of a polymer using a user-defined smiles string to 15 monomers. Also save the .sdf structures and images
