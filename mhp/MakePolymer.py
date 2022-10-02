@@ -49,7 +49,7 @@ def getArgs():
     parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
     parser.add_argument("-a", "--random", default = False, action = "store_true",
             help="Requires the use of the -b flag. Interprets coefficients as desired relative amounts of each comonomer. The ratio provided will be scaled to fit the desired number of monomers. The ordering will be randomized.")
-    args, unknown = parser.parse_known_args()
+    args, _ = parser.parse_known_args() #second result is for unknown arguments
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
     if args.json is not None:
