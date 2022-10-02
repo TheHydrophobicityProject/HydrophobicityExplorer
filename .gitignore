@@ -13,3 +13,4 @@ build
 *.R*
 conda-out/*
 cndabld.sh
+smiles.json
