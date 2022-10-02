@@ -22,7 +22,7 @@ requirements:
 build:
   script: python3 setup.py install
   noarch: python
-  number: 5
+  number: 6
   entry_points:
     - makePol = mhp.MakePolymer:main
     - customPol = mhp.custom_input_to_mol_file:main
@@ -39,7 +39,10 @@ test:
     - makePol -h
     - customPol -h
     - mhpSettings -h
+    - mhpSettings -s
     - mhpLib -h
+    - mhpLib -e
+    - mhpLib -m
 
 # requirements:
 #   build:
