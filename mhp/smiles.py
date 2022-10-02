@@ -71,19 +71,19 @@ def getArgs():
     args = parser.parse_args()
     return args
 
-# def _addUserSmiles(user_dict, endgroup_dict=None, mnmr_dict=None):
-#     if endgroup_dict is not None:
-#         user_eg_dict = user_dict["end_groups"]
-#         for key in user_eg_dict:
-#             if "KEY" not in key:
-#                 endgroup_dict[key] = user_eg_dict[key]
-#         return endgroup_dict
-#     if mnmr_dict is not None:
-#         user_monomer_dict = user_dict
-#         for key in user_monomer_dict:
-#             if "KEY" not in key:
-#                 mnmr_dict[key] = user_monomer_dict[key]
-#         return mnmr_dict
+def _addUserSmiles(user_dict, endgroup_dict=None, mnmr_dict=None):
+    if endgroup_dict is not None:
+        user_eg_dict = user_dict["end_groups"]
+        for key in user_eg_dict:
+            if "KEY" not in key:
+                endgroup_dict[key] = user_eg_dict[key]
+        return endgroup_dict
+    if mnmr_dict is not None:
+        user_monomer_dict = user_dict
+        for key in user_monomer_dict:
+            if "KEY" not in key:
+                mnmr_dict[key] = user_monomer_dict[key]
+        return mnmr_dict
     
 def showDict(raw_dict):
     dictionary = {"KEYS":[], "SMILES":[]}
@@ -95,22 +95,26 @@ def showDict(raw_dict):
     # print(df.to_string(index=False))
     print("\n")
 
-# def checkAndMergeSMILESDicts(egs, mnmrs):
-#     if os.path.exists("smiles.json"):
-#         from mhp.settings import readJson
-#         user_dict = readJson("smiles.json")
-#         init_dict = _addUserSmiles(user_dict, endgroup_dict = egs)
-#         monomer_dict = _addUserSmiles(user_dict, monomer_dict = mnmrs)
-#         return init_dict, monomer_dict
+def checkAndMergeSMILESDicts(egs, mnmrs):
+    if os.path.exists("smiles.json"):
+        print("User-made key-value pairs will be shown as well.\n")
+        from mhp.settings import readJson
+        user_dict = readJson("smiles.json")
+        init_dict = egs
+        monomer_dict = mnmrs
+        init_dict = _addUserSmiles(user_dict, endgroup_dict = egs)
+        monomer_dict = _addUserSmiles(user_dict, mnmr_dict = mnmrs)
+        return init_dict, monomer_dict
 
 def main():
     args = getArgs()
-    # if args.end_group or args.monomer:
-    #     init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
+    if args.end_group or args.monomer:
+        # print("we should check")
+        egs, mnmrs = checkAndMergeSMILESDicts(init_dict, monomer_dict)
     if args.end_group:
-        showDict(init_dict)
+        showDict(egs)
     if args.monomer:
-        showDict(monomer_dict)
+        showDict(mnmrs)
     if args.write:
         from mhp.settings import writeJson
         name = "smiles.json"
