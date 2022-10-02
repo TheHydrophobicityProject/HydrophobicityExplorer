@@ -1,3 +1,5 @@
+import argparse, pandas, os
+
 monomer_dict = {
 
     #amino acids (use OH for termination group) 
@@ -55,3 +57,73 @@ init_dict = {
     'Methyl': 'C', 
     'Vinyl': 'C=C'
 }
+
+# template = {
+#     "end_groups" : { "KEY0" : "SYMMETRICSMILES", "KEY1" : "*ASYMMETRIC SMILES" },
+#     "monomers" : { "KEY" : "HEAD_SMILES_TAIL" }
+# }
+
+def getArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--end_group', default = False, action = "store_true", help = "Prints all end group key-value pairs.")
+    parser.add_argument('-m', '--monomer', default = False, action = "store_true", help = "Prints all monomer key-value pairs.")
+    # parser.add_argument('-w', '--write', default = False, action = "store_true", help = "Writes a json file that can be filled with user-specified smiles.")
+    args = parser.parse_args()
+    return args
+
+# def _addUserSmiles(user_dict, endgroup_dict=None, mnmr_dict=None):
+#     if endgroup_dict is not None:
+#         user_eg_dict = user_dict["end_groups"]
+#         for key in user_eg_dict:
+#             if "KEY" not in key:
+#                 endgroup_dict[key] = user_eg_dict[key]
+#         return endgroup_dict
+#     if mnmr_dict is not None:
+#         user_monomer_dict = user_dict
+#         for key in user_monomer_dict:
+#             if "KEY" not in key:
+#                 mnmr_dict[key] = user_monomer_dict[key]
+#         return mnmr_dict
+    
+def showDict(raw_dict):
+    dictionary = {"KEYS":[], "SMILES":[]}
+    for key in raw_dict:
+        dictionary['KEYS'].append(key)
+        dictionary['SMILES'].append(raw_dict[key])
+    df = pandas.DataFrame(dictionary)
+    print(df)
+    # print(df.to_string(index=False))
+    print("\n")
+
+# def checkAndMergeSMILESDicts(egs, mnmrs):
+#     if os.path.exists("smiles.json"):
+#         from mhp.settings import readJson
+#         user_dict = readJson("smiles.json")
+#         init_dict = _addUserSmiles(user_dict, endgroup_dict = egs)
+#         monomer_dict = _addUserSmiles(user_dict, monomer_dict = mnmrs)
+#         return init_dict, monomer_dict
+
+def main():
+    args = getArgs()
+    # if args.end_group or args.monomer:
+    #     init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
+    if args.end_group:
+        showDict(init_dict)
+    if args.monomer:
+        showDict(monomer_dict)
+    # if args.write:
+    #     from mhp.settings import writeJson
+    #     name = "smiles.json"
+    #     if os.path.exists(name):
+    #         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
+    #         if inp.lower() == "y" or inp == "":
+    #             writeJson(template, name)
+    #             print("created smiles.json")
+    #         else:
+    #             print("Please rename the existing notebook so it is not overwritten.")
+    #     else:
+    #         writeJson(template, name)
+            # print("created smiles.json")
+
+if __name__ == "__main__":
+    main()
