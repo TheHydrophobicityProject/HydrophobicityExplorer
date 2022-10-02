@@ -14,7 +14,7 @@ def getStaticSettings():
         settings_dict = readJson("mhpSettings.json")
     else:
         from mhp.settings import default_dict as settings_dict
-        
+
     return settings_dict
 
 def getJsonArgs(jsonFile, dict):
