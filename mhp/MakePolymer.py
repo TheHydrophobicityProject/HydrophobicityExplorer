@@ -622,6 +622,10 @@ def exportToCSV(exptName, dataframe, verbosity=False):
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
+
+    #merge user-created smiles with built-in dicts
+    from mhp.smiles import checkAndMergeSMILESDicts
+    init_dict, monomer_dict = checkAndMergeSMILESDicts(init_dict, monomer_dict)
     
     for vardict in run_list:
         for key in kwargs: 
