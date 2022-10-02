@@ -104,7 +104,7 @@ def checkAndMergeSMILESDicts(egs, mnmrs):
         monomer_dict = mnmrs
         init_dict = _addUserSmiles(user_dict, endgroup_dict = egs)
         monomer_dict = _addUserSmiles(user_dict, mnmr_dict = mnmrs)
-        return init_dict, monomer_dict
+    return init_dict, monomer_dict
 
 def main():
     args = getArgs()
