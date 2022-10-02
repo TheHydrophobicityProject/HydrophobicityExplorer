@@ -629,7 +629,7 @@ def main(**kwargs):
     
     for vardict in run_list:
         for key in kwargs: 
-            vardict[key]=kwargs[key] #assign all keyword arguments to proper place in var dictionary
+            vardict[key] = kwargs[key] #assign all keyword arguments to proper place in var dictionary
         # print(vardict)
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
