@@ -55,7 +55,21 @@ notebook = {
     "MakePolymer.main(n=3, single_monomer=\"Styrene\", calculation=[\"XMHP\", \"RG\"], verbose=True)"
    ]
   }
- ]
+ ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3.10.6 ('mhp-env')",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python",
+            "version": "3.10.6"
+        },
+        "orig_nbformat": 4
+    },
+    "nbformat": 4,
+    "nbformat_minor": 2
 }
 
 def makeNB(name):
