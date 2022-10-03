@@ -14,3 +14,4 @@ build
 conda-out/*
 cndabld.sh
 smiles.json
+mhp.ipynb
