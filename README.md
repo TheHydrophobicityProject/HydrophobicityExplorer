@@ -54,7 +54,7 @@ The `-c` flag is followed by abbreviations for calulations that are desired. Ava
 
 LogP, SA (surface area), MV (Molecular Volume), MHP (LogP/SA; each of which will also be reported. Use XMHP to exclude those constituent calculations) and RG (radius of gyration).
 
-When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF95 force field. This gives a sense of how reasonable the optimization steps were.
+When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF94 force field. This gives a sense of how reasonable the optimization steps were.
 
 A run with Styrene to n=10 had the following regression:
 
@@ -83,7 +83,7 @@ Note that `-n` is required since the smiles is not analyzed to determine the num
 ## Alternative Input Methods
 
 ### Custom Input
-If the methods contained within this program are inadequet for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
+If the methods contained within this program are inadequate for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script:\
 `customPol -h`
