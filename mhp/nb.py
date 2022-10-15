@@ -17,9 +17,9 @@ notebook = {
    "metadata": {},
    "source": [
     "Available Keyword Arguments. More details on the github page.\\\n",
-    "{'n': 0, 'initiator': 'Hydrogen', 'terminator': 'Hydrogen', 'single_monomer': 'None', 'comonomer_block': None, 'draw': None, 'verbose': False, 'calculation': None, 'save': None, 'read': None, 'plot': False, 'export': None, 'json': None, 'quiet': False, 'random': False}\\\n",
+    "{'n': 0, 'initiator': 'Hydrogen', 'terminator': 'Hydrogen', 'single_monomer': 'None', 'comonomer_sequence': None, 'draw': None, 'verbose': False, 'calculation': None, 'save': None, 'read': None, 'plot': False, 'export': None, 'json': None, 'quiet': False, 'random': False}\\\n",
     "\n",
-    "Only one of single_monomer or comonomer_block can be specified at a time\\\n",
+    "Only one of single_monomer or comonomer_sequence can be specified at a time\\\n",
     "initiator, terminator and single_monomer can be dict keys from smiles.py or smiles that are formatted correctly (see github page)\\\n",
     "draw is the filename to which a picture of the polymer can be saved\\\n",
     "verbose increases text output\\\n",
@@ -29,7 +29,7 @@ notebook = {
     "export is the name/path to a .csv file to which to export the data\\\n",
     "json is the name/path to a .json file which has parameters for several runs\\\n",
     "quiet suppesses the prompts to check proper connectivity of end groups\\\n",
-    "random allows comonomer_block to be interpreted as a desired ratio of comonomers randomly ordered rather than a repeating block.\\"
+    "random allows comonomer_sequence to be interpreted as a desired ratio of comonomers randomly ordered rather than a repeating block.\\"
    ]
   },
   {

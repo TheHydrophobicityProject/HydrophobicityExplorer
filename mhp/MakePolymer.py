@@ -30,11 +30,11 @@ def getJsonArgs(jsonFile, dict):
 
 def getArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", type = int, default = 0, help = "The number of monomer or comonomer blocks.")
+    parser.add_argument("-n", type = int, default = 0, help = "The number of monomer or comonomer sequences to repeat.")
     parser.add_argument("-i", "--initiator", type = str, default = "Hydrogen", help = "Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-t", "--terminator", type = str, default = "Hydrogen", help = "Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
     parser.add_argument("-m","--single_monomer", type = str, help = "Monomer key from the included monomer dict. See the -s flag for specifying a monomer that is not included.")
-    parser.add_argument("-b", "--comonomer_block", type = str, nargs = '*',
+    parser.add_argument("-b", "--comonomer_sequence", type = str, nargs = '*',
                         help = "A series of space-separated monomer SMILES arranged in their repeating sequence. You can add an int preceeding any monomer to represent multiple copies of that monomer. e.g. 2 A B means AAB is the repeating super-monomer. Use quotes surrounding SMILES with problematic characters like = or ()")
     parser.add_argument("-d", "--draw", type = str, help = "Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
@@ -633,7 +633,7 @@ def main(**kwargs):
         # print(vardict)
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
-            repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_block"])
+            repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
             if not vardict["random"]:
                 if vardict["plot"]:
                     POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],

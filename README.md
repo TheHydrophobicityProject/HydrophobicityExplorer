@@ -46,7 +46,7 @@ This gives the following SMILES: c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(
 Saving image to polymer.png by default.
 requested calculations are None
 ```
-The `-b` flag defines the block of comonomers in a specific repeating pattern. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-b` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
+The `-b` flag defines sequence of comonomers in a specific repeating pattern. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-b` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
 
 ## Performing Calculations
 

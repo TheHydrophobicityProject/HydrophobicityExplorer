@@ -3,7 +3,7 @@
     [
         {
             "n": 4,
-            "comonomer_block": [
+            "comonomer_sequence": [
                 2,
                 "CC(C(=O)OCCCC)",
                 "CC(C)"
