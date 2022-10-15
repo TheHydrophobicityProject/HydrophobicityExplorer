@@ -2,9 +2,8 @@ from random import choices, shuffle
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-#These following imports are only done if we run this as main.
-# from mhp.smiles import monomer_dict 
-# from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings
+from functools import reduce
+from math import gcd
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -61,14 +60,21 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     coeffs, monomers = getCoeffs(formula_list)        
     sum_coeffs = sum(coeffs)
     body_list = []
+    real_coeffs = []
     for i, coeff in enumerate(coeffs):
         real_coeff = round(coeff / sum_coeffs * n) #we can't have float coeffs. Even though we are rounding everything should even out unless two monomers' coeffs initially end in .5
         body_list += [item for item in [monomers[i]] for j in range(real_coeff)] #we repeat the monomer an appropriate number of times
+        real_coeffs.append(real_coeff)
 
     #if n happens to be != to length of list, maybe allow user to modify by popping a random monomer from list or chosing a type of monomer to remove (and we remove a random one of that type.)
     #This isn't super important right now since they have a smiles they can also modify if they want exactly the right number.
     if n != len(body_list):
-        print(f"Due to rounding the length of the polymer is {len(body_list)} and the n specified was {n}.")
+        print(f"WARNING: Due to rounding the length of the polymer is {len(body_list)} and the n specified was {n}.")
+    if len(body_list) == 0:
+        return None, "0"
+
+    den=reduce(gcd, real_coeffs)
+    ratio=":".join(str(int(i/den)) for i in real_coeffs)
 
     #Now we have a list of monomers in the correct relative ammounts.
     #we just need to randomize the order.
@@ -76,8 +82,9 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     smiles = mergeList(body_list)
     if verbo:
         print(f"{n = }")
+        print(f"Ratio of monomers used is {ratio}")
         # print(f"smiles with random momomer ordering {smiles}")
-    return smiles
+    return smiles, ratio
 
 def main():
     #done in every instance.
@@ -105,7 +112,7 @@ def main():
         if args.protocol == "weight":
             polymer_body_smiles = makePolymerBody_weighted(deciphered_dict_keys, n)
         elif args.protocol == "ratio":
-            polymer_body_smiles = makePolymerBody_ratio(deciphered_dict_keys, n)
+            polymer_body_smiles, ratio = makePolymerBody_ratio(deciphered_dict_keys, n)
         else:
             argparse.ArgumentError("Unknown protocol selected. Use only \"ratio\" or \"weight\". \"ratio\" is the default if the -p flag is not used.")
 
@@ -116,6 +123,8 @@ def main():
             nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
 
         print(f"Done. Saved to {file_name}")
+        if args.protocol == "ratio":
+            print(f"Ratio of monomers used is {ratio}")
 
 if __name__ == "__main__":
     from mhp.smiles import monomer_dict

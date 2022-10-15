@@ -547,7 +547,7 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
         print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or Rg")
     return data
 
-def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, data_marker='o', fig_filename="Size-dependent-stats.png"):
+def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, data_marker='o', fig_filename="Size-dependent-stats.png", ratios=None):
     units = { "LogP/SA":"Angstroms^-2", "LogP":"", "Rg":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
     dicts = []
     for i, pol in enumerate(pol_list):
@@ -558,7 +558,9 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
         dicts.append(pol_data)
     data = {k: [d[k] for d in dicts] for k in dicts[0]}
     
-    ncols = len(data) - 2
+    ncols = len(data) - 2 #we don't plot N, smiles. We only add the ratios after this check so ncols is unchanged b/c we don't plot ratios.
+    if type(ratios) == list:
+        data["Monomer Ratio"] = ratios
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
         calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
@@ -584,7 +586,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
         series = 0
         for key in data:
             #we can't plot N vs N or anything to do with smiles
-            if key != "N" and key != "smi":
+            if key != "N" and key != "smi" and key != "Monomer Ratio":
                 if key == "Rg":
                     try: #attempt regression
                         popt, _ = curve_fit(func_exp, data["N"], data[key])
@@ -635,6 +637,7 @@ def main(**kwargs):
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
             if not vardict["random"]:
+                monomerRatios=None
                 if vardict["plot"]:
                     POL_LIST, SMI_LIST, UNOPT_POL_LIST, M_PER_N = make_One_or_More_Polymers(vardict["initiator"], vardict["n"],
                         repeat_unit, vardict["terminator"], verbosity=vardict["verbose"], plot=vardict["plot"], confirm = not vardict["quiet"], defaults=default_dict)
@@ -649,6 +652,7 @@ def main(**kwargs):
                 init = validate_end_group(init, Init=True)
                 term = validate_end_group(term, Term=True)
                 deciphered_dict_keys = parse_smiles_dict_keys(repeat_unit, mono)
+                monomerRatios=[]
                 if vardict["plot"]:
                     n_iter = reversed(range(1, vardict["n"]+1))
                     POL_LIST = []
@@ -656,14 +660,17 @@ def main(**kwargs):
                     UNOPT_POL_LIST = []
                 else:
                     n_iter = [vardict["n"]]
-
+                
                 for n in n_iter:
                     import mhp.random_polymer_to_mol_file as randPol
-                    polymer_body_smiles = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
+                    polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
+                    if polymer_body_smiles is None:
+                        break
                     polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
                     pol, pol_h = optPol(polSMILES, nConfs=default_dict["opt_numConfs"], threads=default_dict["opt_numThreads"], iters=default_dict["opt_maxIters"])
+                    monomerRatios.insert(0, ratio)
                     if vardict["plot"]:
-                        SMI_LIST.append(polSMILES)
+                        SMI_LIST.insert(0, polSMILES)
                         POL_LIST.insert(0, pol_h)
                         UNOPT_POL_LIST.insert(0, pol)
 
@@ -710,11 +717,13 @@ def main(**kwargs):
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
                 data = {k: [data[k]] for k in data} #values in dict need to be lists
+                if vardict["random"]:
+                    data["Monomer Ratio"] = monomerRatios #already in list form 
                 dataframe = pandas.DataFrame(data)
                 print(dataframe)
             else:
                 dataframe = makePlot(POL_LIST, vardict["calculation"], SMI_LIST, 
-                    verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"])
+                    verbosity=vardict["verbose"], mpn=M_PER_N, data_marker=default_dict["plot_dataPoint"], fig_filename=default_dict["plot_Filename"], ratios=monomerRatios)
                 
             if vardict["export"] is not None:
                 if vardict["plot"]: #we don't need to print data twice if both -p and -e use verbosity=True
