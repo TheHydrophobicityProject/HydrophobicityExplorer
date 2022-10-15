@@ -39,7 +39,7 @@ def getArgs():
     parser.add_argument("-d", "--draw", type = str, help = "Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
-                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and RG (radius of gyration).")
+                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and Rg (radius of gyration).")
     parser.add_argument("-s","--save", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol and .sdf")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
@@ -525,14 +525,14 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["SA"] = sasa
         calcs.discard("SA")
-    if "LogP" in calcs or "MHP" in calcs or "XMHP" in calcs:
+    if "LOGP" in calcs or "MHP" in calcs or "XMHP" in calcs:
         logP = LogP(pol_iter)
         if not "XMHP" in calcs: #if XMHP is included user eXcluisively wants MHP, so we don't return this data.
             data["LogP"] = logP
-        calcs.discard("LogP")
+        calcs.discard("LOGP")
     if "RG" in calcs:
         rg = RadGyration(pol_iter)
-        data["RG"] = rg
+        data["Rg"] = rg
         calcs.discard("RG")
     if "MV" in calcs:
         mv  =  MolVolume(pol_iter, box_margin=defaults["MV_boxMargin"], grid_spacing=defaults["MV_gridSpacing"])
@@ -544,14 +544,14 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
         calcs.discard("MHP")
         calcs.discard("XMHP")
     if len(calcs) > 0:
-        print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or RG")
+        print(f"Unrecognized calculation(s): {calcs}. Use SA, LogP, MV, MHP, XMHP or Rg")
     return data
 
 def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, data_marker='o', fig_filename="Size-dependent-stats.png"):
-    units = { "LogP/SA":"Angstroms^-2", "LogP":"", "RG":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
+    units = { "LogP/SA":"Angstroms^-2", "LogP":"", "Rg":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
     dicts = []
     for i, pol in enumerate(pol_list):
-        calcs = set(calculations)
+        calcs = set([calc.upper() for calc in calculations])
         pol_data = doCalcs(pol, calcs)
         pol_data["N"] = (i + 1) * mpn
         pol_data["smi"] = smiles_list[i]
@@ -562,13 +562,13 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
 
     if ncols == 1: #matplotlib got angry at me for trying to make a plot with only one subplot. Use plt.plot to avoid this.
         calc_key = [k if k != "XMHP" or k != "MHP" else "LogP/SA" for k in data.keys()][0] #use given calc as key unless XMHP, then use MHP.
-        if calc_key == "RG":
+        if calc_key == "Rg":
             #add regression.
             try:
                 popt, _ = curve_fit(func_exp, data["N"], data[calc_key])
                 print(f"exponential regression parameters: {popt}")
                 regresion_curve = plt.plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
-                points = plt.plot(data["N"], data[calc_key], data_marker, label = "RG data")
+                points = plt.plot(data["N"], data[calc_key], data_marker, label = "Rg Data")
                 plt.legend()
             except:
                 print("Could not complete regression.")
@@ -585,7 +585,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
         for key in data:
             #we can't plot N vs N or anything to do with smiles
             if key != "N" and key != "smi":
-                if key == "RG":
+                if key == "Rg":
                     try: #attempt regression
                         popt, _ = curve_fit(func_exp, data["N"], data[key])
                     except: #plot data anyway if regression fails
@@ -597,7 +597,7 @@ def makePlot(pol_list, calculations, smiles_list, *, verbosity=False, mpn=1, dat
                         #plot regression curve
                         _, = axis[series].plot(data["N"], func_exp(data["N"], *popt), color='xkcd:teal', label = "fit: {:.3f}*x^{:.3f}+{:.3f}".format(*popt))
                         # plot points
-                        _ = axis[series].scatter(data["N"], data[key], label = "RG data")
+                        _ = axis[series].scatter(data["N"], data[key], label = "Rg Data")
                         #create legend for this subplot
                         axis[series].legend()
                 else:
@@ -705,7 +705,7 @@ def main(**kwargs):
             print(f'requested calculations are {vardict["calculation"]}')
         if vardict["calculation"] is not None:
             if not vardict["plot"]:
-                calcs = set(vardict["calculation"])
+                calcs = set([calc.upper() for calc in vardict["calculation"]])
                 data = doCalcs(pol_h, calcs, defaults=default_dict) #use set to remove duplicates
                 data["N"] = vardict["n"] * M_PER_N
                 data["smi"] = polSMILES
