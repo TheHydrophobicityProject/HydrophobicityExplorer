@@ -34,7 +34,6 @@ def main():
                 print(default_dict)
         if args.write:
             writeJson(default_dict, settingsFile)
-    
 
 if __name__ == "__main__":
     main()
