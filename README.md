@@ -46,7 +46,7 @@ This gives the following SMILES: c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(
 Saving image to polymer.png by default.
 requested calculations are None
 ```
-The `-b` flag defines sequence of comonomers in a specific repeating pattern. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The `-b` flag can also be used to define monomers not in the dictionary with SMILES, but it also accepts dictonary keys. When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The number of monomers per n will be used for plots and image labels.
+The `-b` flag defines a sequence of comonomers in a specific repeating pattern. Comonomers can be specified using the monomer dictionary or with a SMILES string in quotation marks (i.e. "CC(C)"). When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The number of monomers per n will be used for plots and image labels.
 
 ## Performing Calculations
 
@@ -54,7 +54,7 @@ The `-c` flag is followed by abbreviations for calulations that are desired. Ava
 
 LogP, SA (surface area), MV (Molecular Volume), MHP (LogP/SA; each of which will also be reported. Use XMHP to exclude those constituent calculations) and RG (radius of gyration).
 
-When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF95 force field. This gives a sense of how reasonable the optimization steps were.
+When RG is selected, an exponential regression is performed. Polymer RG scales by n^(1/3) with the MMFF94 force field. This gives a sense of how reasonable the optimization steps were.
 
 A run with Styrene to n=10 had the following regression:
 
@@ -83,7 +83,7 @@ Note that `-n` is required since the smiles is not analyzed to determine the num
 ## Alternative Input Methods
 
 ### Custom Input
-If the methods contained within this program are inadequet for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
+If the methods contained within this program are inadequate for the type of molecule desired, the accessory command line tool `customPol` may be useful. It can read Smiles, Smarts or Inchi strings and produce a `.mol` file that can be read for calculations with the master script.
 
 Use the following to show instructions for this script:\
 `customPol -h`
