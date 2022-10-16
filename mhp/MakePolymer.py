@@ -700,12 +700,11 @@ def main(**kwargs):
         if vardict["draw"] is not None:
             drawName = f'{vardict["draw"].split(".")[0]}.png'
             drawPol(pol, drawName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
-        else:
-            if vardict["verbose"]:
-                defaultName = default_dict["drawing_default"]
-                #produce image if increased verbosity is requested even if no name is set.
-                print(f"Saving image to {defaultName} by default.")
-                drawPol(pol, defaultName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
+        elif vardict["verbose"]:
+            defaultName = default_dict["drawing_default"]
+            #produce image if increased verbosity is requested even if no name is set.
+            print(f"Saving image to {defaultName} by default.")
+            drawPol(pol, defaultName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
 
         #CALCULATIONS
         if vardict["verbose"]:
