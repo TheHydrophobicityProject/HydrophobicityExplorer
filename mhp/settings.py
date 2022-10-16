@@ -7,7 +7,7 @@ default_dict = {"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500,
 def readJson(filepath):
     with open(filepath, "r") as S: #this is where many defaults are set so they can easily be changed.
         settings_dict = json.load(S)
-        return settings_dict
+    return settings_dict
 
 def getArgs():
     parser = argparse.ArgumentParser()
