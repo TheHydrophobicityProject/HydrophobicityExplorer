@@ -362,6 +362,9 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             #save smiles
             SMI_LIST.append(smi)
 
+        if verbosity:
+            print("\n")
+
         for j, smi in enumerate(reversed(SMI_LIST)): #optimize the longest polymer first to see if parameters need to be changed.
             if verbosity:        
                 print(f"Converting n={n-j} to RDkit mol now.")
