@@ -275,13 +275,9 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
     if name is None:
         i = 0
-        while True: #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
-            if os.path.exists(f"tmp_{i}.sdf"):
-                # print("found")
-                i += 1
-            else:
-                sdfFilename = f"tmp_{i}.sdf"
-                break
+        while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
+            i += 1            
+        sdfFilename = f"tmp_{i}.sdf"
     else:
         ext = name.split(".")[1]
         if ext != "sdf":
