@@ -98,7 +98,7 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
             print("initiator smiles in wrong direction. Converting to mol object.")
         inator = Chem.MolFromSmiles(inator)
     elif inator != inator[::-1] and "*" not in inator:
-        raise ValueError("end group smiles is not palendromic and has no attatchment point specified.")
+        raise ValueError("end group smiles is not palendromic yet has no attatchment point specified.")
     else:
         inator = inator.replace("*", "") #remove asterisk if not using rdkit method
 
@@ -150,11 +150,11 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
         head.SetProp("atomNote", "head")
         inators.append(add_initiator[1])
         if add_terminator[0]:
-            tail = pol.GetAtomWithIdx(conn_atoms[1])
+            tail = pol.GetAtomWithIdx(conn_atoms[1]) #note index
             tail.SetProp("atomNote", "tail")
             inators.append(add_terminator[1])
     elif add_terminator[0]:
-        tail = pol.GetAtomWithIdx(conn_atoms[0])
+        tail = pol.GetAtomWithIdx(conn_atoms[0]) #note index
         tail.SetProp("atomNote", "tail")
         inators.append(add_terminator[1])
     else:
@@ -269,7 +269,6 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
     for i, tup in enumerate(touple_list):
         if tup[0] == 1: #not converged
             pol_h.RemoveConformer(i)
-            # print(f"removing conf {i}")
     if pol_h.GetNumConformers() == 0: #tell the user to change something if none of the confs are good.
         raise Exception("Optimization failed to converge. Rereun with higher maxIters.")
     
@@ -295,7 +294,7 @@ def optPol(smiles, *, name=None, nConfs=5, threads=0, iters=1500): #name is prov
         # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
         writer.write(pol_h, confId=cid) #save the particular conf to the file.  
     writer.flush() #if this isn't included some (small) monomers break everything.
-    writer.close()  
+    writer.close()
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
     if name is None:
@@ -395,7 +394,6 @@ def drawPol(pol, drawName, *, mpn=1, image_size=250):
 def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
     ext = name.split(".")[1]
     if read:
-        pol_h = None
         suppl = None
         if os.path.exists(name):
             #is the file type valid?
@@ -423,9 +421,9 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
             polSMILES = Chem.MolToSmiles(pol_h)
             if verbosity:
                 print(f"polymer smiles is: {polSMILES}")
-            #but visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
+            #visualization needs to come from unoptimized polymer. (could also do RemoveAllConformers() but we still need smiles anyway.)
             pol = Chem.MolFromSmiles(polSMILES)
-            return suppl, polSMILES, pol #These are used for calcs, smiles part of csv and 2D visualization.
+            return suppl, polSMILES, pol #These are used for calcs, smiles part of csv and 2D visualization, respectively.
         else:
             raise FileNotFoundError(name)
     else: #i.e. write file.
@@ -465,13 +463,12 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
             Chem.MolToPDBFile(first_conf, name, confId = cid)
         elif ext == "mol":
             Chem.MolToMolFile(first_conf, name, confId = cid)
-        
         else:
             print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
             quit()
 
         if verbosity:
-            print(f'Success')
+            print(f'Success writing molecule to {name}')
 
 def avg_stat(list_of_stats):
     return sum(list_of_stats) / len(list_of_stats)
@@ -632,7 +629,6 @@ def main(**kwargs):
     for vardict in run_list:
         for key in kwargs: 
             vardict[key] = kwargs[key] #assign all keyword arguments to proper place in var dictionary
-        # print(vardict)
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
@@ -697,6 +693,7 @@ def main(**kwargs):
         #drawing a picture of the polymer.
         if vardict["plot"]:
             pol = UNOPT_POL_LIST #submit this list of mols for use in grid image.
+        
         if vardict["draw"] is not None:
             drawName = f'{vardict["draw"].split(".")[0]}.png'
             drawPol(pol, drawName, mpn=M_PER_N, image_size=default_dict["drawing_subImgSize_edge"])
