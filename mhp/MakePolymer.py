@@ -732,8 +732,8 @@ def main(**kwargs):
                     verbo = vardict["verbose"]        
                 exportToCSV(vardict["export"], dataframe, verbosity=verbo)
                 
-            if len(run_list) > 1:
-                print("\n") #separating runs visually if more than one.
+        if len(run_list) > 1:
+            print("\n") #separating runs visually if more than one.
 
 if __name__ == "__main__":
     main()
