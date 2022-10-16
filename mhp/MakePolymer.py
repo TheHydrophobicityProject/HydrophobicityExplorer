@@ -418,6 +418,8 @@ def write_or_read_pol(name, *, verbosity=False, read=False, mol=None):
                 writer = Chem.SDWriter(sdf_name)
                 writer.write(pol_h)
                 suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
+                writer.flush() #if this isn't included some (small) monomers break everything.
+                writer.close()  
                 os.remove(sdf_name)
 
             #convert to smiles so it can be visualized
