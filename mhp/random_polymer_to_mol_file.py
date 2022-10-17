@@ -83,7 +83,6 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     if verbo:
         print(f"{n = }")
         print(f"Ratio of monomers used is {ratio}")
-        # print(f"smiles with random momomer ordering {smiles}")
     return smiles, ratio
 
 def main():
