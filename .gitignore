@@ -12,7 +12,6 @@ build
 *sdf
 *.R*
 conda-out/*
-cndabld.sh
 smiles.json
 mhp.ipynb
 testing/ratios.py
