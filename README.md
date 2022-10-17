@@ -91,7 +91,7 @@ Use the following to show instructions for this script:\
 ### Random Composition
 The accessory script `-a` option of `makePol` can be used to interpret a ratio of monomers and develop a polymer that satisfy the user's desired monomer ratio. The monomers will be in a random order. Use the `-b` flag to specify the ratio of the comonomers.
 
-For example, the command `makePol -n 20 -b 2 Styrene Vinylalcohol -a -c MV` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol (rounded if necessry).
+For example, the command `makePol -n 20 -b 2 Styrene Vinylalcohol -a -c MV` will generate a randomly ordered 20 unit-long polymer with a 2:1 ratio of Styrene to Vinylalcohol (rounded if necessry, but the actual ratios used will be shown).
 
 ### Saving Polymer to File
 
