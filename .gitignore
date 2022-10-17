@@ -15,3 +15,4 @@ conda-out/*
 smiles.json
 mhp.ipynb
 testing/ratios.py
+data/
