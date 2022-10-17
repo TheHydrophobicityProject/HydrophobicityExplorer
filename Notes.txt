@@ -13,3 +13,4 @@ multiple random pols and avg stats
 
 sometimes when random polymers are made their length is wrong. it is very difficult to pass that information one
 We should make a polymer class that holds mol/SDsuppl object, smiles, 2D molecule, length, ratio of monomers if needed. Also any calculations done.
+Specify python version >=3.6 in build meta.yaml
