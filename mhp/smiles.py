@@ -46,7 +46,8 @@ monomer_dict = {
     'Methylmethacrylate': 'CC(C(=O)OC)(C)',
     'Propylene': 'CC(C)',
     'Styrene': 'CC(c1ccccc1)',
-    'Vinylalcohol': 'CC(O)'
+    'Vinylalcohol': 'CC(O)',
+    'Vinylchloride': 'CC(Cl)'
 }
 
 #initiator dictionary
