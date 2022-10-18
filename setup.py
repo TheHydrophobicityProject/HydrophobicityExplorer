@@ -23,7 +23,6 @@ setuptools.setup(
             'mhpSettings = mhp.settings:main',
             'mhpNB = mhp.nb:main',
             'mhpLib = mhp.smiles:main'
-            # 'randomPol = mhp.random_polymer_to_mol_file:main',
         ],
     },
 )
