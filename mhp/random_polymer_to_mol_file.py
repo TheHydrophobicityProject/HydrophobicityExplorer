@@ -61,9 +61,19 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     sum_coeffs = sum(coeffs)
     body_list = []
     real_coeffs = []
+    roundup = True
     for i, coeff in enumerate(coeffs):
-        real_coeff = round(coeff / sum_coeffs * n) #we can't have float coeffs. Even though we are rounding everything should even out unless two monomers' coeffs initially end in .5
-        body_list += [item for item in [monomers[i]] for j in range(real_coeff)] #we repeat the monomer an appropriate number of times
+        unrounded_coeff = coeff / sum_coeffs * n
+        if unrounded_coeff % 0.5 == 0: #because round() makes 0.5 0, we need to make the case where 2 monomers have 0.5 split one to go up and the other down.
+            if roundup: #the first one we see is rounded up
+                unrounded_coeff += 0.1
+                roundup = False
+            else: #the second one is rounded down and the flag is reset
+                roundup = True
+                unrounded_coeff -= 0.1
+        #now we round and hopefully the length should always be correct
+        real_coeff = round(unrounded_coeff) #we can't have float coeffs. Even though we are rounding everything should even out unless two monomers' coeffs initially end in .5
+        body_list += [item for item in [monomers[i]] for _ in range(real_coeff)] #we repeat the monomer an appropriate number of times
         real_coeffs.append(real_coeff)
 
     #if n happens to be != to length of list, maybe allow user to modify by popping a random monomer from list or chosing a type of monomer to remove (and we remove a random one of that type.)
@@ -73,8 +83,8 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     if len(body_list) == 0:
         return None, "0"
 
-    den=reduce(gcd, real_coeffs)
-    ratio=":".join(str(int(i/den)) for i in real_coeffs)
+    den = reduce(gcd, real_coeffs)
+    ratio = ":".join(str(int(i/den)) for i in real_coeffs)
 
     #Now we have a list of monomers in the correct relative ammounts.
     #we just need to randomize the order.
