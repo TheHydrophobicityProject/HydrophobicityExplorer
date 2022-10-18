@@ -44,7 +44,7 @@ def getCoeffs(Coefs_and_monomers):
 
 def mergeList(lst):
     smiles = "".join(lst)
-    print(f'body smiles is:\n{smiles}')
+    print(f"body smiles is:\n{smiles}")
     return smiles
 
 def makePolymerBody_weighted(weighted_monomer_list, n):
