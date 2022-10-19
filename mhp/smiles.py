@@ -33,6 +33,7 @@ monomer_dict = {
     'Propylene_oxide': 'CC(C)O',
 
     #Vinyl monomers written to depict primary addition of alkene (i.e. substituent is on second carbon of alkene)
+    'Acrylamide': 'CC(C(=O)N)',
     'Butylacrylate': 'CC(C(=O)OCCCC)',
     'Dimethylacrylamide': 'CC(C(=O)N(C)(C))',
     'Dimethylaminoethylacrylate': 'CC(C(=O)OCC(N(C)(C)))',
