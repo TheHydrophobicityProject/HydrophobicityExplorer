@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="mhp",
-    version="0.1.3.2",
+    version="0.1.3.3",
     url="https://github.com/scohenjanes5/MHP",
     author="Sander Cohen-Janes",
     author_email="scohenjanes@brandeis.edu",
