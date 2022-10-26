@@ -8,6 +8,15 @@ from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from mhp.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
 
 class Polymer:
+    """
+    Holds information related to a rdkit molecule. This includes 
+    n: int, number of monomers
+    smiles: str, smiles string
+    mpn: int, the number of monomers in a comonomer sequence
+    flat: mol, 2D structure. Used for pictures
+    suppl: SDMolsuppl, the itterator with the conformers
+    ratio: str, the ratio of monomers in a polymer with random monomer ordering using a target ratio
+    """
     def __init__(self, n, smiles, mpn=1, ratio=None, suppl=None):
         self.n = n
         self.mpn = mpn
@@ -20,6 +29,9 @@ class Polymer:
         return Chem.MolFromSmiles(self.smiles)
 
 def getStaticSettings():
+    """
+    Reads the settings file if it exists in CWD. Otherwise uses the default settings.
+    """
     if os.path.exists("mhpSettings.json"):
         from mhp.settings import readJson
         print("NOTICE: found mhpSettings.json. This takes presedence over the built-in settings.")
@@ -30,6 +42,9 @@ def getStaticSettings():
     return settings_dict
 
 def getJsonArgs(jsonFile, dict):
+    """
+    Reads run parameters from a file. Allows multiple jobs to be run sequentially with one command.
+    """
     with open(jsonFile, 'r') as J: #open json file
         runs_dict = json.load(J) #read it
         for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
@@ -41,6 +56,7 @@ def getJsonArgs(jsonFile, dict):
     return run_list
 
 def getArgs():
+    #get commandline arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", type = int, default = 0, help = "The number of monomer or comonomer sequences to repeat.")
     parser.add_argument("-i", "--initiator", type = str, default = "Hydrogen", help = "Initiator Key from initiator dict or SMILES. Defaults to Hydrogen.")
@@ -80,6 +96,7 @@ def getRepeatUnit(single, co):
     return repeat_unit
 
 def parse_smiles_dict_keys(compound_list, compound_dict):
+    #give us the smiles from the dict if a dict key is found. Otherwise assume it is a smiles.
     return [compound_dict[x] if x in compound_dict else x for x in compound_list]
 
 @cache #avoid multiple lookups if multiple runs with same inputs
@@ -97,6 +114,7 @@ def inator_smi_lookup(i,t):
     return init, term
 
 def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
+    #checks to see if end groups are symmetrical or if they have a "*" at the correct end
     if not Init and not Term:
         raise ValueError("Need to specify wether end group is terminator or initiator.")
     
@@ -214,6 +232,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     return smi
 
 def add_inator_smiles(smi, init, term, *, verbosity=False):
+    #add end groups to the main polymer smiles
     if verbosity:
         print(f"polymer smiles is {smi} before any end groups")
 
@@ -243,6 +262,7 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
     return smi
 
 def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):    
+    #given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
     init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
 
     if init == "" and term == "":
@@ -269,6 +289,7 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
         return polymer_SMILES, m_per_n
    
 def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
+    #optimizes the Polymer and uses only the conformers that converged
     #check mol
     Chem.SanitizeMol(FLAT)
     #opt steps
@@ -306,12 +327,13 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
     if name is None:
         try:
             os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-        except:
+        except: #this fails on Windows, but not Linux
             print("failed to remove tmp file.")
             
     return suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
 def confirmStructure(smi, *, proceed=None):
+    #shows the user an image of the repeat unit with attached end groups
     #save image to temporary file
     drawPol(Chem.MolFromSmiles(smi), "tmp_confirm.png")
     img = Image.open("tmp_confirm.png")
@@ -337,6 +359,7 @@ def confirmStructure(smi, *, proceed=None):
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
 def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500}):
+    # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
         addEndgroups = False
@@ -388,7 +411,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         return POL
 
 def drawPol(pol, drawName, image_size=250):
-    if type(pol) == list: #save a grid image instead
+    #draws the 2d version of the polymer to an image
+    if type(pol) == list: #save a grid image instead using the polymers in the list
         img = Chem.Draw.MolsToGridImage([POL.flat for POL in pol], legends = [f"n = {(i + 1) * pol[i].mpn}" for i in range(len(pol))], subImgSize=(image_size, image_size))
         #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
         img.save(drawName)
@@ -398,6 +422,7 @@ def drawPol(pol, drawName, image_size=250):
     print(f"Saved polymer image to {drawName}")
 
 def write_or_read_pol(name, n=None, verbosity=False, read=False, suppl=None):
+    #reads or writes a polymer file
     ext = name.split(".")[1]
     if read:
         if n is None:
@@ -549,6 +574,7 @@ def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0
     return data
 
 def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filename="Size-dependent-stats.png"):
+    #creates a plot from the calcs of several polymers
     units = { "LogP/SA":"Angstroms^-2", "LogP":"", "Rg":"Angstroms", "SA":"Angstroms^2", "MV":"Molar Volume" }
     dicts = []
     for POL in pol_list:
@@ -562,7 +588,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
         else:
             exclude = 2
         dicts.append(pol_data)
-    data = {k: [d[k] for d in dicts] for k in dicts[0]}
+    data = {k: [d[k] for d in dicts] for k in dicts[0]} #merge dictionaries of data from all polymers into one sensible format.
     
     ncols = len(data) - exclude #we don't plot N, smiles nor ratios (if present).
 
@@ -657,6 +683,7 @@ def main(**kwargs):
                 else:
                     n_iter = [vardict["n"]]
                 
+                #this is in reverse order since larger polymers are more likely to fail. Let this happen at the start of the run so user knows to change settings.
                 for n in n_iter:
                     import mhp.random_polymer_to_mol_file as randPol
                     polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
