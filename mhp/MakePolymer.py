@@ -101,17 +101,14 @@ def parse_smiles_dict_keys(compound_list, compound_dict):
 
 @cache #avoid multiple lookups if multiple runs with same inputs
 def monomer_smi_lookup(m):
-    repeat_unit = mono[m]
-    return repeat_unit
+    return mono[m]
 
 @cache #avoid multiple lookups if multiple runs with same inputs
 def inator_smi_lookup(i,t):
     given_inators = [i,t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
     smiles_inators = parse_smiles_dict_keys(given_inators, ini)
-    init = smiles_inators [0]
-    term = smiles_inators[1]
-    return init, term
+    return smiles_inators [0], smiles_inators[1] #init, terminator
 
 def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
     #checks to see if end groups are symmetrical or if they have a "*" at the correct end
@@ -225,7 +222,7 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     numDummies = len(dummies)
 
     #remove the dummy atoms (need to do one at a time because index changes each time).
-    for i in range(numDummies):
+    for _ in range(numDummies):
         mergedrw.RemoveAtom([a.GetIdx() for a in mergedrw.GetAtoms() if a.GetAtomicNum() == 0][0])
 
     smi = Chem.MolToSmiles(mergedrw)
@@ -645,7 +642,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
         plt.show()
     return df
 
-def exportToCSV(exptName, dataframe, verbosity=False):
+def exportToCSV(exptName, dataframe):
     pandas.DataFrame.to_csv(dataframe, exptName, index=False)
     print(f"Done exporting data to {exptName}.")
 
