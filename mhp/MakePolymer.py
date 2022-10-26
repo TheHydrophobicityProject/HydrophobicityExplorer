@@ -258,7 +258,7 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
 
     return smi
 
-def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):    
+def createPolymerObj(i,n,r,t,*, verbosity = False, test = False):
     #given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
     init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
 
@@ -278,12 +278,14 @@ def createPolymerSMILES(i,n,r,t,*, verbosity = False, test = False):
     if addEndgroups:
         polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
 
+    POL = Polymer(n, polymer_SMILES, mpn=m_per_n)
+
     if test:
-        return test_smi, polymer_SMILES, m_per_n
         #return test smiles too so it can be previewed. It is fast to make both before confirmation
         #but we do the confirmation before optimizing geometry.
+        return test_smi, POL
     else:
-        return polymer_SMILES, m_per_n
+        return POL
    
 def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
     #optimizes the Polymer and uses only the conformers that converged
@@ -374,16 +376,16 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
         for j in N_array:
             if j == 1 and confirm and not confirmed:
-                test_smi, smi, m_per_n = createPolymerSMILES(i,j,r,t, verbosity=verbosity, test=True)
+                test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
                 confirmed = confirmStructure(test_smi, proceed=confirmed)
             
             if j > 1 or not confirm: #do not test if j is large or if we ask not to test at all.
-                smi, m_per_n = createPolymerSMILES(i, j, r, t, verbosity=verbosity)
+                POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
             
             if verbosity:
-                print(f"Done generating SMILES with n = {j} now: {smi}")
-            #save Polymer object
-            POL_LIST.append(Polymer(j, smi, mpn=m_per_n))
+                print(f"Done generating SMILES with n = {j} now: {POL.smiles}")
+            #keep Polymer object
+            POL_LIST.append(POL)
 
         if verbosity:
             print("\n")
@@ -395,15 +397,15 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             POL.suppl = optPol(POL.flat, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"])
         return POL_LIST
     else: #just one polymer.
-        test_smi, full_smi, m_per_n = createPolymerSMILES(i, n, r, t, verbosity=verbosity, test=True)
+        test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
         if verbosity:
             print(f'Polymer interpreted as: {i} {n} * {r} {t}')
-            print(f"This gives the following SMILES: {full_smi}")
+            print(f"This gives the following SMILES: {POL.smiles}")
 
         if confirm and addEndgroups:
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
-        POL = Polymer(n, full_smi, mpn=m_per_n)
+
         POL.suppl = optPol(POL.flat, nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #both are mol objects
         return POL
 
