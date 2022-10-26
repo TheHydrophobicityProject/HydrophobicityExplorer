@@ -603,9 +603,8 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
                 plt.legend()
             except:
                 print("Could not complete regression.")
-                plt.plot(data["N"], data[calc_key], data_marker)    
-        else:
-            plt.plot(data["N"], data[calc_key], data_marker)
+
+        plt.plot(data["N"], data[calc_key], data_marker)
         plt.title(f'{calc_key} vs n')
         plt.xlabel('n') 
         plt.ylabel(f'{calc_key} ({units[calc_key]})')
