@@ -5,7 +5,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
-from mhp.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
+from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
 
 class Polymer:
     """
@@ -32,12 +32,12 @@ def getStaticSettings():
     """
     Reads the settings file if it exists in CWD. Otherwise uses the default settings.
     """
-    if os.path.exists("mhpSettings.json"):
-        from mhp.settings import readJson
-        print("NOTICE: found mhpSettings.json. This takes presedence over the built-in settings.")
-        settings_dict = readJson("mhpSettings.json")
+    if os.path.exists("hydrophobicity_explorerSettings.json"):
+        from hydrophobicity_explorer.settings import readJson
+        print("NOTICE: found hydrophobicity_explorerSettings.json. This takes presedence over the built-in settings.")
+        settings_dict = readJson("hydrophobicity_explorerSettings.json")
     else:
-        from mhp.settings import default_dict as settings_dict
+        from hydrophobicity_explorer.settings import default_dict as settings_dict
 
     return settings_dict
 
@@ -683,7 +683,7 @@ def main(**kwargs):
                 
                 #this is in reverse order since larger polymers are more likely to fail. Let this happen at the start of the run so user knows to change settings.
                 for n in n_iter:
-                    import mhp.random_polymer_to_mol_file as randPol
+                    import hydrophobicity_explorer.random_polymer_to_mol_file as randPol
                     polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
                     if polymer_body_smiles is None:
                         break

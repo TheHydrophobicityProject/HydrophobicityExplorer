@@ -23,10 +23,10 @@ def writeJson(dict, path):
 
 def main():
     args = getArgs()
-    settingsFile = "mhpSettings.json"
+    settingsFile = "HXSettings.json"
     if args.show:
         if os.path.exists(settingsFile):
-            print("All mhp packages will use these user-defined settings in mhpSettings.json")
+            print("All hydrophobicity_explorer packages will use these user-defined settings in HXSettings.json")
             user_settings = readJson(settingsFile)
             print(user_settings)
         else:

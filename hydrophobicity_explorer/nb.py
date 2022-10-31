@@ -1,4 +1,4 @@
-from mhp.settings import writeJson
+from hydrophobicity_explorer.settings import writeJson
 import os
 notebook = {
  "cells": [
@@ -8,8 +8,8 @@ notebook = {
    "metadata": {},
    "outputs": [],
    "source": [
-    "from mhp import MakePolymer\n",
-    "import mhp.random_polymer_to_mol_file as randPol"
+    "from hydrophobicity_explorer.MakePolymer import main as makePol\n",
+    "import hydrophobicity_explorer.random_polymer_to_mol_file as randPol"
    ]
   },
   {
@@ -52,13 +52,13 @@ notebook = {
     }
    ],
    "source": [
-    "MakePolymer.main(n=3, single_monomer=\"Styrene\", calculation=[\"XMHP\", \"RG\"], verbose=True)"
+    "makePol(n=3, single_monomer=\"Styrene\", calculation=[\"XMHP\", \"RG\"], verbose=True)"
    ]
   }
  ],
     "metadata": {
         "kernelspec": {
-            "display_name": "Python 3.10.6 ('mhp-env')",
+            "display_name": "Python 3.10.6 ('HX-env')",
             "language": "python",
             "name": "python3"
         },
@@ -77,7 +77,7 @@ def makeNB(name):
     print(f"Done creating {name}")
 
 def main():
-    name = "mhp.ipynb"
+    name = "hydrophobicity_explorer.ipynb"
     if os.path.exists(name):
         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
         if inp.lower() == "y" or inp == "":

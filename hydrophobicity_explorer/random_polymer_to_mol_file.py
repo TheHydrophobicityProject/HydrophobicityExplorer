@@ -136,7 +136,7 @@ def main():
             print(f"Ratio of monomers used is {ratio}")
 
 if __name__ == "__main__":
-    from mhp.smiles import monomer_dict
-    from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
+    from hydrophobicity_explorer.smiles import monomer_dict
+    from hydrophobicity_explorer.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
     main()
 

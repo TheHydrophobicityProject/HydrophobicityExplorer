@@ -1,7 +1,7 @@
 ﻿{% set data = load_setup_py_data() %}
 
 package:
-  name: "mhp"
+  name: "hydrophobicity_explorer"
   version: {{ data.get('version') }}
 
 source:
@@ -24,28 +24,28 @@ build:
   noarch: python
   number: 0
   entry_points:
-    - makePol = mhp.MakePolymer:main
-    - customPol = mhp.custom_input_to_mol_file:main
-    - mhpSettings = mhp.settings:main
-    - mhpNB = mhp.nb:main
-    - mhpLib = mhp.smiles:main
+    - makePol = hydrophobicity_explorer.MakePolymer:main
+    - customPol = hydrophobicity_explorer.custom_input_to_mol_file:main
+    - HXSettings = hydrophobicity_explorer.settings:main
+    - HXNB = hydrophobicity_explorer.nb:main
+    - HXLib = hydrophobicity_explorer.smiles:main
 
 test:
   imports:
     - rdkit
     - scipy
-    - mhp
+    - hydrophobicity_explorer
     - pandas
     - matplotlib
 
   commands:
     - makePol -h
     - customPol -h
-    - mhpSettings -h
-    - mhpSettings -s
-    - mhpLib -h
-    - mhpLib -e
-    - mhpLib -m
+    - HXSettings -h
+    - HXSettings -s
+    - HXLib -h
+    - HXLib -e
+    - HXLib -m
 
 # requirements:
 #   build:
