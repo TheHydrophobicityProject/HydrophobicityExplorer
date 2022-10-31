@@ -37,7 +37,7 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 ## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
-$ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
+$ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -vq
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
@@ -116,7 +116,7 @@ The data can be exported to a `.csv` file with the `-e` flag.
 
 ```bash
 #XMHP requests that the MHP data be eXclusively returned instead of including the LogP and SA values as well.
-$ makePol -n 2 -m Styrene -c XMHP -p -e data.csv -v
+$ makePol -n 2 -m Styrene -c XMHP -e data.csv -vp
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
 Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
 Converting n=2 to RDkit mol now.
