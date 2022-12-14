@@ -299,8 +299,8 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
     for i, tup in enumerate(touple_list):
         if tup[0] == 1: #not converged
             pol_h.RemoveConformer(i)
-    if pol_h.GetNumConformers() == 0: #tell the user to change something if none of the confs are good.
-        raise Exception("Optimization failed to converge. Rereun with higher maxIters.")
+    if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
+        raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
     if name is None:
