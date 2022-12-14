@@ -39,6 +39,7 @@ monomer_dict = {
     'Dimethylaminoethylacrylate': 'CC(C(=O)OCC(N(C)(C)))',
     'Ethylene': 'CC',
     'Ethylacrylate': 'CC(C(=O)OCC)',
+    'Ethylhexylacrylate': 'CC(C(=O)OCC(CC)CCCC)',
     '1-Hexene': 'CC(CCCC)',
     'Hydroxybutylacrylate': 'CC(C(=O)OCCCCO)',
     'Hydroxyethylacrylate': 'CC(C(=O)OCCO)',
