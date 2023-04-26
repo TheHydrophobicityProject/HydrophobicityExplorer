@@ -30,6 +30,7 @@ monomer_dict = {
 
     #monomers for polyethers
     'Ethylene_oxide': 'CCO',
+    'EO': 'CCO',
     'Propylene_oxide': 'CC(C)O',
 
     #Vinyl monomers written to depict primary addition of alkene (i.e. substituent is on second carbon of alkene)
