@@ -5,6 +5,7 @@ from rdkit.Chem import AllChem
 from functools import reduce
 from math import gcd
 
+
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", type=int, help="Total number of monomers desired in final product.")
@@ -20,10 +21,12 @@ def getArgs():
     args = parser.parse_args()
     return args
 
+
 def prepFilename(filename, n):
-    split = filename.split(".") #split off file extention in case provided.
+    split = filename.split(".")  #split off file extention in case provided.
     name = f"{split[0]}_{n}.sdf"
     return name
+
 
 def getCoeffs(Coefs_and_monomers):
     #first, let us expand the provided coefs to actually give a weighted list.
@@ -33,19 +36,21 @@ def getCoeffs(Coefs_and_monomers):
     repeat_coef = 1
     for element in Coefs_and_monomers:
         try:
-            repeat_coef = int(element) #is this a string of an integer?
+            repeat_coef = int(element)  #is this a string of an integer?
         except:
             #if not string of integer, it should be considered a smiles (there will be griping from rdkit if not.)
             coeffs_list.append(repeat_coef)
             monomer_list.append(element)
-            repeat_coef = 1 #reset coef.
+            repeat_coef = 1  #reset coef.
 
     return coeffs_list, monomer_list
+
 
 def mergeList(lst):
     smiles = "".join(lst)
     print(f"body smiles is:\n{smiles}")
     return smiles
+
 
 def makePolymerBody_weighted(weighted_monomer_list, n):
     monomer_weights, expanded_list = getCoeffs(weighted_monomer_list)
@@ -56,19 +61,20 @@ def makePolymerBody_weighted(weighted_monomer_list, n):
 
     return smiles
 
+
 def makePolymerBody_ratio(formula_list, n, verbo=False):
-    coeffs, monomers = getCoeffs(formula_list)        
+    coeffs, monomers = getCoeffs(formula_list)
     sum_coeffs = sum(coeffs)
     body_list = []
     real_coeffs = []
     roundup = True
     for i, coeff in enumerate(coeffs):
         unrounded_coeff = coeff / sum_coeffs * n
-        if unrounded_coeff % 0.5 == 0: #because round() makes 0.5 0, we need to make the case where 2 monomers have 0.5 split one to go up and the other down.
-            if roundup: #the first one we see is rounded up
+        if unrounded_coeff % 0.5 == 0:  #because round() makes 0.5 0, we need to make the case where 2 monomers have 0.5 split one to go up and the other down.
+            if roundup:  #the first one we see is rounded up
                 unrounded_coeff += 0.1
                 roundup = False
-            else: #the second one is rounded down and the flag is reset
+            else:  #the second one is rounded down and the flag is reset
                 roundup = True
                 unrounded_coeff -= 0.1
         #now we round and hopefully the length should always be correct
@@ -84,7 +90,7 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
         return None, "0"
 
     den = reduce(gcd, real_coeffs)
-    ratio = ":".join(str(int(i/den)) for i in real_coeffs)
+    ratio = ":".join(str(int(i / den)) for i in real_coeffs)
 
     #Now we have a list of monomers in the correct relative ammounts.
     #we just need to randomize the order.
@@ -94,6 +100,7 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
         print(f"{n = }")
         print(f"Ratio of monomers used is {ratio}")
     return smiles, ratio
+
 
 def main():
     #done in every instance.
@@ -107,36 +114,42 @@ def main():
     term = validate_end_group(term, Term=True)
     #replace any dict keys with corresponding smiles.
     deciphered_dict_keys = parse_monomer_dict_keys(args.m, monomer_dict)
-    
+
     #do these steps multiple times if array of files is requested.
     if not args.array:
         n_iter = [args.n]
     else:
-        n_iter = range(1,args.n+1)
+        n_iter = range(1, args.n + 1)
 
     for n in n_iter:
         #get proper file name.
         file_name = prepFilename(args.f, n)
         #now we need to generate polymer body
         if args.protocol == "weight":
-            polymer_body_smiles = makePolymerBody_weighted(deciphered_dict_keys, n)
+            polymer_body_smiles = makePolymerBody_weighted(
+                deciphered_dict_keys, n)
         elif args.protocol == "ratio":
-            polymer_body_smiles, ratio = makePolymerBody_ratio(deciphered_dict_keys, n)
+            polymer_body_smiles, ratio = makePolymerBody_ratio(
+                deciphered_dict_keys, n)
         else:
             argparse.ArgumentError("Unknown protocol selected. Use only \"ratio\" or \"weight\". \"ratio\" is the default if the -p flag is not used.")
 
         #now we need to attatch the end groups:
         total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
         print("Finished adding end groups. Beginning optimization.")
-        pol, suppl = optPol(total_smiles, name=file_name, 
-            nConfs=defaults["opt_numConfs"], threads=defaults["opt_numThreads"], iters=defaults["opt_maxIters"]) #this function will also save the file.
+        pol, suppl = optPol(total_smiles,
+                            name=file_name,
+                            nConfs=defaults["opt_numConfs"],
+                            threads=defaults["opt_numThreads"],
+                            iters=defaults["opt_maxIters"]
+                            )  #this function will also save the file.
 
         print(f"Done. Saved to {file_name}")
         if args.protocol == "ratio":
             print(f"Ratio of monomers used is {ratio}")
 
+
 if __name__ == "__main__":
     from mhp.smiles import monomer_dict
     from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
     main()
-
