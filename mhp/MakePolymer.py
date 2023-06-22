@@ -335,7 +335,7 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
         writer.write(pol_h, confId=cid) #save the particular conf to the file.  
     writer.flush() #if this isn't included some (small) monomers break everything.
     writer.close()
-    suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
+    suppl = Chem.SDMolSupplier(sdfFilename, removeHs=False) #iterator that has all mols in the sdf file.
     
     try:
         os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
@@ -455,7 +455,7 @@ def read_pol(name, n=None, verbosity=False, suppl=None):
         elif ext == "mol":
             pol_h = Chem.MolFromMolFile(name)
         elif ext == "sdf":
-            suppl = Chem.SDMolSupplier(name)
+            suppl = Chem.SDMolSupplier(name, removeHs=False)
             for pol in suppl:  #grab one conf so we can visualize
                 pol_h = pol
                 break  #we break the loop since only one conf is needed to visualize
@@ -467,7 +467,7 @@ def read_pol(name, n=None, verbosity=False, suppl=None):
             sdf_name = "tmp.sdf"
             writer = Chem.SDWriter(sdf_name)
             writer.write(pol_h)
-            suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
+            suppl = Chem.SDMolSupplier(sdf_name, removeHs=False) #iterator that has all mols in the sdf file.
             writer.flush() #if this isn't included some (small) monomers break everything.
             writer.close()  
             os.remove(sdf_name)
@@ -495,7 +495,7 @@ def write_pol(name, verbosity=False, suppl=None):
             cid = -1
             break  #we will only be writing the first conf in the iterable for non-sdf files.
     else:
-        raise TypeError("suppl must be an SDMollSupplier")
+        raise TypeError("suppl must be an SDMolSupplier")
 
     #is the file type valid?
     if ext == "sdf":
