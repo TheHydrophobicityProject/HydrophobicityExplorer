@@ -476,7 +476,7 @@ def read_pol(name, n=None, verbosity=False, suppl=None):
         polSMILES = Chem.MolToSmiles(pol_h)
         if verbosity:
             print(f"polymer smiles is: {polSMILES}")
-        POL = Polymer(n, polSMILES, mpn=1, suppl=suppl)
+        POL = Polymer(n, polSMILES, suppl=suppl)
         return POL
     else:
         raise FileNotFoundError(name)
