@@ -302,7 +302,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
+def optPol(FLAT, nConfs=5, threads=0, iters=1500):
     #optimizes the Polymer and uses only the conformers that converged
     #check mol
     Chem.SanitizeMol(FLAT)
