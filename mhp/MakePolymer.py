@@ -447,7 +447,7 @@ def read_pol(name, n=None, verbosity=False, suppl=None):
     ext = name.split(".")[1]
     if n is None:
         raise ValueError("Need to have an n value supplied")
-    suppl = None
+    
     if os.path.exists(name):
         #is the file type valid?
         if ext == "pdb":
