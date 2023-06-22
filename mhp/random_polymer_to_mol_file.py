@@ -14,18 +14,12 @@ def getArgs():
             help="Space-separated list of monomer keys from smiles.py or a custom smiles string for a monomer unit. The head of the monomer must be to the left and the attachment points must be at the ends of the string. Integer coefficients can be used to influence composition of the polymer. The exact method used depends on the use of the -p flag.")
     parser.add_argument("-t", "--terminator", type=str, default="Hydrogen", help="Terminator key taken from initiator dict or SMILES. Defaults to Hydrogen.")
 
-    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically. Input will be forced to use .sdf format.")
+    parser.add_argument("-f", type=str, help="Filename prefix you would like to use. The number of monomers will be added automatically. Formats of PDB, XYZ and Mol are acceptable.")
     parser.add_argument("-p", "--protocol", type=str, default="ratio",
             help="The method of polymer body generation. The valid options are \"weight\" or \"ratio\" [default]. The coefficients that lead each monomer will be converted to a percentage of the total monomers and a polymer with a random ordering of monomers of that specific composition will be generated. If you specify \"weight\" the polymer composition will be random with weights favoring the monomers with higher coefficients. This could result in polymers with a different emperical formula than the coefficient would indicate.")
     parser.add_argument("-a", "--array", default = False, action = "store_true", help="generate an array of polymers from n=1 to the n specified with the -n flag.")
     args = parser.parse_args()
     return args
-
-
-def prepFilename(filename, n):
-    split = filename.split(".")  #split off file extention in case provided.
-    name = f"{split[0]}_{n}.sdf"
-    return name
 
 
 def getCoeffs(Coefs_and_monomers):
@@ -122,8 +116,12 @@ def main():
         n_iter = range(1, args.n + 1)
 
     for n in n_iter:
+
         #get proper file name.
-        file_name = prepFilename(args.f, n)
+        filename=args.f
+        split = filename.split(".")
+        file_name = f"{split[0]}_{n}.{split[1]}"
+        
         #now we need to generate polymer body
         if args.protocol == "weight":
             polymer_body_smiles = makePolymerBody_weighted(
@@ -137,19 +135,24 @@ def main():
         #now we need to attatch the end groups:
         total_smiles = add_inator_smiles(polymer_body_smiles, init, term)
         print("Finished adding end groups. Beginning optimization.")
-        pol, suppl = optPol(total_smiles,
-                            name=file_name,
+        if args.array:
+            POL = Polymer(n = args.n, smiles=total_smiles)
+        else:
+            POL = Polymer(n = n, smiles=total_smiles)
+        
+        POL.suppl = optPol(total_smiles,
                             nConfs=defaults["opt_numConfs"],
                             threads=defaults["opt_numThreads"],
                             iters=defaults["opt_maxIters"]
                             )  #this function will also save the file.
-
+        
+        write_pol(name=file_name, verbosity=True, suppl=POL.suppl)
         print(f"Done. Saved to {file_name}")
+
         if args.protocol == "ratio":
             print(f"Ratio of monomers used is {ratio}")
 
-
 if __name__ == "__main__":
     from mhp.smiles import monomer_dict
-    from mhp.MakePolymer import validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys
+    from mhp.MakePolymer import write_pol, validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys, Polymer
     main()

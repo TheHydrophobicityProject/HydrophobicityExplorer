@@ -302,7 +302,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
+def optPol(FLAT, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
     #optimizes the Polymer and uses only the conformers that converged
     #check mol
     Chem.SanitizeMol(FLAT)
@@ -312,7 +312,7 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
     ids = AllChem.EmbedMultipleConfs(
         pol_h, numConfs=nConfs, useRandomCoords=True,
         numThreads=threads)  #get multiple conformers for better stats
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs(
+    touple_list = AllChem.MMFFOptimizeMoleculeConfs( #touples are (conv, conf), where conv is 0 or 1 for whether an optimization is not converged.
         pol_h, numThreads=threads,
         maxIters=iters)  #rdkit default 200 iterations.
     for i, tup in enumerate(touple_list):
@@ -322,16 +322,11 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
         raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    if name is None:
-        i = 0
-        while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
-            i += 1            
-        sdfFilename = f"tmp_{i}.sdf"
-    else:
-        ext = name.split(".")[1]
-        if ext != "sdf":
-            raise Exception("Filename must use .sdf format.")
-        sdfFilename = name
+    i = 0
+    while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
+        i += 1            
+    sdfFilename = f"tmp_{i}.sdf"
+    
     writer = Chem.SDWriter(sdfFilename)
     for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
         cid = conf.GetId() #The numbers may not be sequential.
@@ -342,11 +337,10 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
     writer.close()
     suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
     
-    if name is None:
-        try:
-            os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-        except: #this fails on Windows, but not Linux
-            print("failed to remove tmp file.")
+    try:
+        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
+    except: #this fails on Windows, but not Linux
+        print(f"Failed to remove tmp file {sdfFilename}.")
 
     return suppl  #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
