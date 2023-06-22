@@ -1,6 +1,8 @@
 *.png
 *pol.*
 *.mol
+*.pdb
+*.xyz
 *.csv
 build
 # Compiled python modules.
