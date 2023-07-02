@@ -348,22 +348,14 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
 def confirmStructure(smi, *, proceed=None):
     #shows the user an image of the repeat unit with attached end groups
     #save image to temporary file
-    drawPol(Chem.MolFromSmiles(smi), "tmp_confirm.png")
-    img = Image.open("tmp_confirm.png")
-    #show it to user
-    img.show()
+    drawPol(Chem.MolFromSmiles(smi), show=True)
     inp = input("Does this look right? [Y/n]")
-
-    if os.path.exists("tmp_confirm.png"):
-        os.remove("tmp_confirm.png")
-        #delete the file
 
     #affirmation is y, Y or just hitting enter
     if inp.lower() == "y" or inp == "":
         inp = True
         print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
     else:
-        # inp = False #not actually used since program quits.
         print("Please try adjusting input and try again.")
         quit()
         #aborts so user can retry
@@ -431,8 +423,13 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         return POL
 
 
-def drawPol(pol, drawName, image_size=250):
+def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
+    if show:
+        img = Chem.Draw.MolToImage(pol, size=(image_size, image_size))
+        img.show()
+        return
+
     if type(pol) == list: #save a grid image instead using the polymers in the list
         img = Chem.Draw.MolsToGridImage([POL.flat for POL in pol], legends = [f"n = {(i + 1) * pol[i].mpn}" for i in range(len(pol))], subImgSize=(image_size, image_size))
         #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
