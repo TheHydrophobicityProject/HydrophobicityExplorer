@@ -1,5 +1,4 @@
 from functools import cache
-from PIL import Image
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
@@ -348,6 +347,7 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
 def confirmStructure(smi, *, proceed=None):
     #shows the user an image of the repeat unit with attached end groups
     #save image to temporary file
+    print("Please review this preview image:")
     drawPol(Chem.MolFromSmiles(smi), show=True)
     inp = input("Does this look right? [Y/n]")
 
@@ -427,7 +427,10 @@ def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
     if show:
         img = Chem.Draw.MolToImage(pol, size=(image_size, image_size))
-        img.show()
+        plt.imshow(img)
+        plt.axis('off')  # Remove axis ticks and labels
+        plt.show()
+        # img.show()
         return
 
     if type(pol) == list: #save a grid image instead using the polymers in the list
