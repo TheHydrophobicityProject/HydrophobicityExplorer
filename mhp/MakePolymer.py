@@ -1,5 +1,4 @@
 from functools import cache
-from PIL import Image
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
@@ -302,7 +301,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided my supplemental scripts.
+def optPol(FLAT, nConfs=5, threads=0, iters=1500):
     #optimizes the Polymer and uses only the conformers that converged
     #check mol
     Chem.SanitizeMol(FLAT)
@@ -312,7 +311,7 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
     ids = AllChem.EmbedMultipleConfs(
         pol_h, numConfs=nConfs, useRandomCoords=True,
         numThreads=threads)  #get multiple conformers for better stats
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs(
+    touple_list = AllChem.MMFFOptimizeMoleculeConfs( #touples are (conv, conf), where conv is 0 or 1 for whether an optimization is not converged.
         pol_h, numThreads=threads,
         maxIters=iters)  #rdkit default 200 iterations.
     for i, tup in enumerate(touple_list):
@@ -322,16 +321,11 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
         raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
     #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    if name is None:
-        i = 0
-        while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
-            i += 1            
-        sdfFilename = f"tmp_{i}.sdf"
-    else:
-        ext = name.split(".")[1]
-        if ext != "sdf":
-            raise Exception("Filename must use .sdf format.")
-        sdfFilename = name
+    i = 0
+    while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
+        i += 1            
+    sdfFilename = f"tmp_{i}.sdf"
+    
     writer = Chem.SDWriter(sdfFilename)
     for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
         cid = conf.GetId() #The numbers may not be sequential.
@@ -340,13 +334,12 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
         writer.write(pol_h, confId=cid) #save the particular conf to the file.  
     writer.flush() #if this isn't included some (small) monomers break everything.
     writer.close()
-    suppl = Chem.SDMolSupplier(sdfFilename) #iterator that has all mols in the sdf file.
+    suppl = Chem.SDMolSupplier(sdfFilename, removeHs=False) #iterator that has all mols in the sdf file.
     
-    if name is None:
-        try:
-            os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-        except: #this fails on Windows, but not Linux
-            print("failed to remove tmp file.")
+    try:
+        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
+    except: #this fails on Windows, but not Linux
+        print(f"Failed to remove tmp file {sdfFilename}.")
 
     return suppl  #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
@@ -354,22 +347,15 @@ def optPol(FLAT, name=None, nConfs=5, threads=0, iters=1500): #name is provided 
 def confirmStructure(smi, *, proceed=None):
     #shows the user an image of the repeat unit with attached end groups
     #save image to temporary file
-    drawPol(Chem.MolFromSmiles(smi), "tmp_confirm.png")
-    img = Image.open("tmp_confirm.png")
-    #show it to user
-    img.show()
+    print("Please review this preview image:")
+    drawPol(Chem.MolFromSmiles(smi), show=True)
     inp = input("Does this look right? [Y/n]")
-
-    if os.path.exists("tmp_confirm.png"):
-        os.remove("tmp_confirm.png")
-        #delete the file
 
     #affirmation is y, Y or just hitting enter
     if inp.lower() == "y" or inp == "":
         inp = True
         print("Great! If you wish to bypass this confirmation step, use the -q flag when running this script.")
     else:
-        # inp = False #not actually used since program quits.
         print("Please try adjusting input and try again.")
         quit()
         #aborts so user can retry
@@ -437,8 +423,16 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         return POL
 
 
-def drawPol(pol, drawName, image_size=250):
+def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
+    if show:
+        img = Chem.Draw.MolToImage(pol, size=(image_size, image_size))
+        plt.imshow(img)
+        plt.axis('off')  # Remove axis ticks and labels
+        plt.show()
+        # img.show()
+        return
+
     if type(pol) == list: #save a grid image instead using the polymers in the list
         img = Chem.Draw.MolsToGridImage([POL.flat for POL in pol], legends = [f"n = {(i + 1) * pol[i].mpn}" for i in range(len(pol))], subImgSize=(image_size, image_size))
         #mpn is the number of monomers per "n". This is > 1 when -s is used and multiple monomers or copies of the same monomer are specified.
@@ -448,84 +442,86 @@ def drawPol(pol, drawName, image_size=250):
 
     print(f"Saved polymer image to {drawName}")
 
-
-def write_or_read_pol(name, n=None, verbosity=False, read=False, suppl=None):
-    #reads or writes a polymer file
+def read_pol(name, n=None, verbosity=False, suppl=None):
+    #reads a polymer file
     ext = name.split(".")[1]
-    if read:
-        if n is None:
-            raise ValueError("Need to have an n value supplied")
-        suppl = None
-        if os.path.exists(name):
-            #is the file type valid?
-            if ext == "pdb":
-                pol_h = Chem.MolFromPDBFile(name)
-            elif ext == "mol":
-                pol_h = Chem.MolFromMolFile(name)
-            elif ext == "sdf":
-                suppl = Chem.SDMolSupplier(name)
-                for pol in suppl:  #grab one conf so we can visualize
-                    pol_h = pol
-                    break  #we break the loop since only one conf is needed to visualize
-            else:
-                print(f"unsuported extention: {ext} in {name} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
-                quit()
-
-            if suppl is None:
-                sdf_name = "tmp.sdf"
-                writer = Chem.SDWriter(sdf_name)
-                writer.write(pol_h)
-                suppl = Chem.SDMolSupplier(sdf_name) #iterator that has all mols in the sdf file.
-                writer.flush() #if this isn't included some (small) monomers break everything.
-                writer.close()  
-                os.remove(sdf_name)
-
-            #convert to smiles so it can be visualized
-            polSMILES = Chem.MolToSmiles(pol_h)
-            if verbosity:
-                print(f"polymer smiles is: {polSMILES}")
-            POL = Polymer(n, polSMILES, mpn=1, suppl=suppl)
-            return POL
-        else:
-            raise FileNotFoundError(name)
-    else:  #i.e. write file.
-        if verbosity:
-            print(f'writing molecule to {name}')
-
-        #what are we dealing with?
-        if type(suppl) == type(Chem.SDMolSupplier()):
-            for pol in suppl:
-                first_conf = pol
-                cid = -1
-                break  #we will only be writing the first conf in the iterable for non-sdf files.
-        else:
-            raise TypeError("suppl must be an SDMollSupplier")
-
+    if n is None:
+        raise ValueError("Need to have an n value supplied")
+    
+    if os.path.exists(name):
         #is the file type valid?
-        if ext == "sdf":
-            writer = Chem.SDWriter(name)
-            if suppl:
-                for pol in suppl:
-                  writer.write(pol)
-            else: #is a mol opject        
-                for conf in suppl.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
-                    cid = conf.GetId() #The numbers may not be sequential.
-                    suppl.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
-                    # mol.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-                    writer.write(suppl, confId=cid)
-
-        elif ext == "xyz":
-            Chem.MolToXYZFile(first_conf, name, confId=cid)
-        elif ext == "pdb":
-            Chem.MolToPDBFile(first_conf, name, confId=cid)
+        if ext == "pdb":
+            pol_h = Chem.MolFromPDBFile(name)
         elif ext == "mol":
-            Chem.MolToMolFile(first_conf, name, confId=cid)
+            pol_h = Chem.MolFromMolFile(name)
+        elif ext == "sdf":
+            suppl = Chem.SDMolSupplier(name, removeHs=False)
+            for pol in suppl:  #grab one conf so we can visualize
+                pol_h = pol
+                break  #we break the loop since only one conf is needed to visualize
         else:
-            print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
+            print(f"unsuported extention: {ext} in {name} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
             quit()
 
+        if suppl is None:
+            sdf_name = "tmp.sdf"
+            writer = Chem.SDWriter(sdf_name)
+            writer.write(pol_h)
+            suppl = Chem.SDMolSupplier(sdf_name, removeHs=False) #iterator that has all mols in the sdf file.
+            writer.flush() #if this isn't included some (small) monomers break everything.
+            writer.close()  
+            os.remove(sdf_name)
+
+        #convert to smiles so it can be visualized
+        polSMILES = Chem.MolToSmiles(pol_h)
         if verbosity:
-            print(f'Success writing molecule to {name}')
+            print(f"polymer smiles is: {polSMILES}")
+        POL = Polymer(n, polSMILES, suppl=suppl)
+        return POL
+    else:
+        raise FileNotFoundError(name)
+
+
+def write_pol(name, verbosity=False, suppl=None):
+    #writes a polymer file
+    ext = name.split(".")[1]
+    if verbosity:
+        print(f'writing molecule to {name}')
+
+    #what are we dealing with?
+    if type(suppl) == type(Chem.SDMolSupplier()):
+        for pol in suppl:
+            first_conf = pol
+            cid = -1
+            break  #we will only be writing the first conf in the iterable for non-sdf files.
+    else:
+        raise TypeError("suppl must be an SDMolSupplier")
+
+    #is the file type valid?
+    if ext == "sdf":
+        writer = Chem.SDWriter(name)
+        if suppl:
+            for pol in suppl:
+                writer.write(pol)
+        else: #is a mol opject        
+            for conf in suppl.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
+                cid = conf.GetId() #The numbers may not be sequential.
+                suppl.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
+                # mol.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
+                writer.write(suppl, confId=cid)
+
+    elif ext == "xyz":
+        Chem.MolToXYZFile(first_conf, name, confId=cid)
+    elif ext == "pdb":
+        Chem.MolToPDBFile(first_conf, name, confId=cid)
+    elif ext == "mol":
+        Chem.MolToMolFile(first_conf, name, confId=cid)
+    else:
+        print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
+        quit()
+
+    if verbosity:
+        print(f'Success writing molecule to {name}')
 
 
 def avg_stat(list_of_stats):
@@ -779,7 +775,7 @@ def main(**kwargs):
                 raise Exception("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
             elif vardict["n"] == None:
                 raise Exception("You need to specify the number of monomers in polymers read from a file.")
-            POL = write_or_read_pol(vardict["read"], n=vardict["n"], read=True, verbosity=vardict["verbose"])
+            POL = read_pol(vardict["read"], n=vardict["n"], verbosity=vardict["verbose"])
 
         #saving the polymer to a file.
         if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
@@ -788,11 +784,11 @@ def main(**kwargs):
                 ext = vardict["save"].split(".")[1]
                 for i, mol in enumerate(POL_LIST):
                     name = f"{base}_{i + 1}.{ext}"
-                    write_or_read_pol(name, suppl=mol.suppl)
+                    write_pol(name, suppl=mol.suppl)
             else:
-                write_or_read_pol(vardict["save"],
-                                  suppl=POL.suppl,
-                                  verbosity=vardict["verbose"])
+                write_pol(vardict["save"],
+                            suppl=POL.suppl,
+                            verbosity=vardict["verbose"])
 
         #drawing a picture of the polymer.
         drawName = None

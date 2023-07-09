@@ -1,7 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from mhp.MakePolymer import optPol, getStaticSettings
+from mhp.MakePolymer import optPol, getStaticSettings, write_pol, Polymer
 
 
 def getArgs():
@@ -9,7 +9,7 @@ def getArgs():
     parser.add_argument("-s", "--smiles", type=str, help="Complete smiles string to be converted.")
     parser.add_argument("-m", "--smarts", type=str, help="Complete smarts string to be converted.")
     parser.add_argument("-i", "--inchi", type=str, help="Complete inchi string to be converted.")
-    parser.add_argument("-f", "--file", type=str, help="filename you would like to save to. The format NAME_numberOfMonomers.sdf is required.")
+    parser.add_argument("-f", "--file", type=str, help="Filename you would like to save to. MOL, PDB and XYZ are acceptable.")
     args = parser.parse_args()
     return args
 
@@ -58,14 +58,16 @@ def main():
         print("I am confused. Input format not recognised.")
         quit()
 
+
+    POL = Polymer(smiles=Chem.MolToSmiles(mol))
     #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
-    pol, suppl = optPol(
-        Chem.MolToSmiles(mol),
-        name=args.file,
+    POL.suppl = optPol(
+        POL.flat,
         nConfs=defaults["opt_numConfs"],
         threads=defaults["opt_numThreads"],
         iters=defaults["opt_maxIters"])  #this function also saves the file.
 
+    write_pol(args.file, suppl=POL.suppl)
 
 if __name__ == "__main__":
     main()
