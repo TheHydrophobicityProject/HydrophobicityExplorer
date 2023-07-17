@@ -9,6 +9,7 @@ source:
   md5: 3d6a1b44e08849839a2f9a6cd591231f
 
 build:
+  noarch: python
   number: 2
   entry_points:
     - makePol = mhp.MakePolymer:main
@@ -49,7 +50,7 @@ about:
   home: "https://github.com/TheHydrophobicityProject/HydrophobicityExplorer"
   license: "BSD-3-Clause"
   license_family: "BSD"
-  license_file: "license.txt"
+  license_file: "../license.txt"
   summary: "Facilitates solubility calculations on a wide range of polymers."
 
 # requirements:
