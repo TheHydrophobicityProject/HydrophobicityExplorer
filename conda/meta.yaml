@@ -5,39 +5,37 @@ package:
   version: {{ data.get('version') }}
 
 source:
-  path: ..
-
-requirements:
-  build:
-    - setuptools
-    - python >=3.6
-
-  run:
-    - python >=3.6
-    - pandas
-    - scipy
-    - matplotlib-base
-    - rdkit
+  url: https://files.pythonhosted.org/packages/cb/6d/3e2da9380633376e83d533554ca962eb3c6c1cc70c4e70bf4ccfc879ea77/mhp-0.1.3.4.tar.gz
+  md5: 3d6a1b44e08849839a2f9a6cd591231f
 
 build:
-  script: python3 setup.py install
-  noarch: python
-  number: 1
+  number: 2
   entry_points:
     - makePol = mhp.MakePolymer:main
     - customPol = mhp.custom_input_to_mol_file:main
     - mhpSettings = mhp.settings:main
     - mhpNB = mhp.nb:main
     - mhpLib = mhp.smiles:main
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - pip
+    - matplotlib
+    - pandas
+    - python
+    - rdkit
+    - scipy
+  run:
+    - matplotlib
+    - pandas
+    - python
+    - rdkit
+    - scipy
 
 test:
   imports:
-    - rdkit
-    - scipy
     - mhp
-    - pandas
-    - matplotlib
-
   commands:
     - makePol -h
     - customPol -h
@@ -46,6 +44,53 @@ test:
     - mhpLib -h
     - mhpLib -e
     - mhpLib -m
+
+about:
+  home: "https://github.com/TheHydrophobicityProject/HydrophobicityExplorer"
+  license: "BSD-3-Clause"
+  license_family: "BSD"
+  license_file: "license.txt"
+  summary: "Facilitates solubility calculations on a wide range of polymers."
+
+# requirements:
+#   build:
+#     #- setuptools
+#     - python >=3.6
+
+#   run:
+#     - python >=3.6
+#     - pandas
+#     - scipy
+#     - matplotlib-base
+#     - rdkit
+
+# build:
+#   script: python3 setup.py install
+#   noarch: python
+#   number: 1
+#   entry_points:
+#     - makePol = mhp.MakePolymer:main
+#     - customPol = mhp.custom_input_to_mol_file:main
+#     - mhpSettings = mhp.settings:main
+#     - mhpNB = mhp.nb:main
+#     - mhpLib = mhp.smiles:main
+
+# test:
+#   imports:
+#     - rdkit
+#     - scipy
+#     - mhp
+#     - pandas
+#     - matplotlib
+
+#   commands:
+#     - makePol -h
+#     - customPol -h
+#     - mhpSettings -h
+#     - mhpSettings -s
+#     - mhpLib -h
+#     - mhpLib -e
+#     - mhpLib -m
 
 # requirements:
 #   build:
