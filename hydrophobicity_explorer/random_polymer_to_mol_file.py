@@ -57,7 +57,7 @@ def makePolymerBody_weighted(weighted_monomer_list, n):
 
 
 def makePolymerBody_ratio(formula_list, n, verbo=False):
-    coeffs, monomers = getCoeffs(formula_list)        
+    coeffs, monomers = getCoeffs(formula_list)
     sum_coeffs = sum(coeffs)
     body_list = []
     real_coeffs = []
