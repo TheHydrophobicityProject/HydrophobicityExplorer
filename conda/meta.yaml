@@ -36,7 +36,7 @@ requirements:
 
 test:
   imports:
-    - mhp
+    - hydrophobicity_explorer
   commands:
     - makePol -h
     - customPol -h
