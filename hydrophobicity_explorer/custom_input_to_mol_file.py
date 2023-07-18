@@ -37,7 +37,6 @@ def main():
         print("I am confused. Input format not recognized.")
         quit()
 
-    #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
     POL = Polymer(smiles=Chem.MolToSmiles(mol))
     #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
     POL.suppl = optPol(
