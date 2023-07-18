@@ -12,11 +12,11 @@ build:
   noarch: python
   number: 3
   entry_points:
-    - makePol = mhp.MakePolymer:main
-    - customPol = mhp.custom_input_to_mol_file:main
-    - mhpSettings = mhp.settings:main
-    - mhpNB = mhp.nb:main
-    - mhpLib = mhp.smiles:main
+    - makePol = hydrophobicity_explorer.MakePolymer:main
+    - customPol = hydrophobicity_explorer.custom_input_to_mol_file:main
+    - HXSettings = hydrophobicity_explorer.settings:main
+    - HXNB = hydrophobicity_explorer.nb:main
+    - HXLib = hydrophobicity_explorer.smiles:main
   script: "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
