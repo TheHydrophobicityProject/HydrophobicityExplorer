@@ -22,7 +22,7 @@ requirements:
 build:
   script: python3 setup.py install
   noarch: python
-  number: 0
+  number: 1
   entry_points:
     - makePol = hydrophobicity_explorer.MakePolymer:main
     - customPol = hydrophobicity_explorer.custom_input_to_mol_file:main

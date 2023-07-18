@@ -2,12 +2,13 @@ import setuptools
 
 setuptools.setup(
     name="hydrophobicity_explorer",
-    version="0.1.3.3.1",
-    url="https://github.com/scohenjanes5/MHP",
+    version="0.1.3.4",
+    url="https://github.com/TheHydrophobicityProject/HydrophobicityExplorer",
     author="Sander Cohen-Janes",
-    author_email="scohenjanes@brandeis.edu",
+    author_email="sander.cohen-janes@yale.edu",
     description="Facilitates solubility calculations on a wide range of polymers.",
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     install_requires=["rdkit", "scipy", "pandas", "matplotlib"],
     packages=setuptools.find_packages(),
     classifiers=[
@@ -16,7 +17,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.6'
     ],
     entry_points={
-        'console_scripts': [ #this section allows us to use functions from the command line. Arguments are ok because main() uses argparse
+        'console_scripts': [ #this section allows us to use functions from the command line.
             # 'command = package.module:function',
             'makePol = hydrophobicity_explorer.MakePolymer:main',
             'customPol = hydrophobicity_explorer.custom_input_to_mol_file:main',

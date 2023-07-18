@@ -9,8 +9,6 @@ visualizations of polymers at different nitters on plot
 plotting jobs need to be able to interpret groups of files (or all should be stored in one big file)
 Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
 determine number of monomers.
-multiple random pols and avg stats
-
-sometimes when random polymers are made their length is wrong. it is very difficult to pass that information one
-We should make a polymer class that holds mol/SDsuppl object, smiles, 2D molecule, length, ratio of monomers if needed. Also any calculations done.
-Specify python version >=3.6 in build meta.yaml
+multiple random pol orderings and avg stats
+maybe on windows write to some location that is known to be temporary (like /tmp on linux)
+allow setting names for plots
