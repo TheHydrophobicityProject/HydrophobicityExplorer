@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name="mhp",
+    name="hydrophobicity_explorer",
     version="0.1.3.4",
     url="https://github.com/TheHydrophobicityProject/HydrophobicityExplorer",
     author="Sander Cohen-Janes",
@@ -19,11 +19,11 @@ setuptools.setup(
     entry_points={
         'console_scripts': [ #this section allows us to use functions from the command line.
             # 'command = package.module:function',
-            'makePol = mhp.MakePolymer:main',
-            'customPol = mhp.custom_input_to_mol_file:main',
-            'mhpSettings = mhp.settings:main',
-            'mhpNB = mhp.nb:main',
-            'mhpLib = mhp.smiles:main'
+            'makePol = hydrophobicity_explorer.MakePolymer:main',
+            'customPol = hydrophobicity_explorer.custom_input_to_mol_file:main',
+            'HXSettings = hydrophobicity_explorer.settings:main',
+            'HXNB = hydrophobicity_explorer.nb:main',
+            'HXLib = hydrophobicity_explorer.smiles:main'
         ],
     },
 )

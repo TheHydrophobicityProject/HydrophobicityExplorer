@@ -122,7 +122,7 @@ def showDict(raw_dict):
 def checkAndMergeSMILESDicts(egs, mnmrs):
     if os.path.exists("smiles.json"):
         print("User-made key-value pairs will be shown as well.\n")
-        from mhp.settings import readJson
+        from hydrophobicity_explorer.settings import readJson
         user_dict = readJson("smiles.json")
         init_dict = egs
         monomer_dict = mnmrs
@@ -142,7 +142,7 @@ def main():
     if args.monomer:
         showDict(mnmrs)
     if args.write:
-        from mhp.settings import writeJson
+        from hydrophobicity_explorer.settings import writeJson
         name = "smiles.json"
         if os.path.exists(name):
             inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")

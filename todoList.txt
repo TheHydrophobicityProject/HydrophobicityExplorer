@@ -1,4 +1,4 @@
-1. install mhp
+1. install hydrophobicity_explorer
 2. use command line utility to model 3 units of styrene and calculate Molar Volume
 3. generate Jupyter NB and make a polymer with copolymer blocks
 4. run a job to plot the size dependence of RG/SA for any polymer up to 12 units
