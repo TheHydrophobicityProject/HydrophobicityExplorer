@@ -5,12 +5,12 @@ package:
   version: {{ data.get('version') }}
 
 source:
-  url: https://files.pythonhosted.org/packages/cb/6d/3e2da9380633376e83d533554ca962eb3c6c1cc70c4e70bf4ccfc879ea77/mhp-0.1.3.4.tar.gz
-  md5: 3d6a1b44e08849839a2f9a6cd591231f
+  url: https://files.pythonhosted.org/packages/49/04/34ed391a2e98a59b26f9f1f9861cc678329494293fd28faf2c2387e70df8/hydrophobicity_explorer-0.1.3.4.tar.gz
+  md5: fa2776cf1ad09d834ee053383ff0409e
 
 build:
-  noarch: python
-  number: 3
+  #noarch: python
+  number: 0
   entry_points:
     - makePol = hydrophobicity_explorer.MakePolymer:main
     - customPol = hydrophobicity_explorer.custom_input_to_mol_file:main
