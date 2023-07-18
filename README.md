@@ -227,7 +227,7 @@ Then, if you are using Windows, follow the additional steps for that operating s
 ### Steps For All Users
 
 1. Clone the repository\
-`git clone https://github.com/scohenjanes5/MHP.git`
+`git clone https://github.com/TheHydrophobicityProject/HydrophobicityExplorer.git`
 
 2. Set up the conda environment\
 `conda create -c conda-forge -n HX-env rdkit scipy`
