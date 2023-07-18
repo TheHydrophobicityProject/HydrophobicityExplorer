@@ -108,7 +108,7 @@ def main():
     term = validate_end_group(term, Term=True)
     #replace any dict keys with corresponding smiles.
     deciphered_dict_keys = parse_smiles_dict_keys(args.m, monomer_dict)
-    
+
     #do these steps multiple times if array of files is requested.
     if not args.array:
         n_iter = [args.n]
