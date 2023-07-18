@@ -1,8 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from mhp.MakePolymer import optPol, getStaticSettings, write_pol, Polymer
-
+from hydrophobicity_explorer.MakePolymer import optPol, getStaticSettings, write_pol, Polymer
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -12,24 +11,6 @@ def getArgs():
     parser.add_argument("-f", "--file", type=str, help="Filename you would like to save to. MOL, PDB and XYZ are acceptable.")
     args = parser.parse_args()
     return args
-
-
-def checkFilename(filename):
-    split = filename.split(".")
-
-    plea = "Please use Name_n.sdf"
-
-    if split[-1] != "sdf":
-        print(f"Bad file extention. {plea}")
-        quit()
-
-    n = split[0].split("_")[-1]
-    try:
-        int(n)
-    except:
-        print(f"Please add N to your filename. {plea}")
-        quit()
-
 
 def main():
     args = getArgs()
@@ -45,8 +26,6 @@ def main():
     if args.file is None:
         print("please provide a filename with the -f flag.")
         quit()
-    else:
-        checkFilename(args.file)
 
     if args.smiles is not None:
         mol = Chem.MolFromSmiles(args.smiles)
@@ -55,9 +34,8 @@ def main():
     elif args.inchi is not None:
         mol = Chem.MolFromInchi(args.inchi)
     else:
-        print("I am confused. Input format not recognised.")
+        print("I am confused. Input format not recognized.")
         quit()
-
 
     POL = Polymer(smiles=Chem.MolToSmiles(mol))
     #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
@@ -67,7 +45,7 @@ def main():
         threads=defaults["opt_numThreads"],
         iters=defaults["opt_maxIters"])  #this function also saves the file.
 
-    write_pol(args.file, suppl=POL.suppl)
+    write_pol(args.file, suppl=POL.suppl, verbosity=True)
 
 if __name__ == "__main__":
     main()

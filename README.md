@@ -2,7 +2,7 @@
 
 This project enables users to perform several calulations on a limitless scope of polymers as long as the primary structure is known.
 
-The command-line tool `makePol` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `makePol -h`. A large, but non-comprehensive list of examples will be covered in the next section. The utility is also available through a jupyter notebook. An example can be generated with the command `mhpNB`.
+The command-line tool `makePol` has a wide range of command-line options that allow fine control over polymer specification and output format. These can be obtained by running `makePol -h`. A large, but non-comprehensive list of examples will be covered in the next section. The utility is also available through a jupyter notebook. An example can be generated with the command `HXNB`.
 
 See [here](#installation) for installation instructions.
 
@@ -37,7 +37,7 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 ## Specifying Multiple Comonomers
 Here is another example with a more complex set of arguments:
 ```bash
-$ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -v -q
+$ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -vq
 polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
 polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
@@ -62,12 +62,12 @@ A run with Styrene to n=10 had the following regression:
 
 #### Modifying The SMILES Dictionary
 
-Use the command line tool `mhpLib -w` to generate `smiles.json` which can be filled with custom key-value pairs. Examples that are ignored will be included, but the format of the SMILES should be as follows: 
+Use the command line tool `HXLib -w` to generate `smiles.json` which can be filled with custom key-value pairs. Examples that are ignored will be included, but the format of the SMILES should be as follows: 
    * The tail of the monomer at the left of the SMILES string and the head at the right. For example, propylene would be written `CC(C)`. This allows easy construction of the polymer body by simply repeating this string `n` times.
 
    * For non-palindromic end groups the atom to which the rest of the polymer should attatch must be denoted with `*`. The use of `*` is inspired by polymergenome.org. Additionally, the SMILES must be written such that the `*` is the first or last character in the string.
 
-The use of the `-e` or `-m` flag with `mhpLib` will show all the endgroups or monomers recognizable to the program, including those user-specified ones in `smiles.json`.
+The use of the `-e` or `-m` flag with `HXLib` will show all the endgroups or monomers recognizable to the program, including those user-specified ones in `smiles.json`.
 
 ### Reading a Polymer From A File
 
@@ -116,7 +116,7 @@ The data can be exported to a `.csv` file with the `-e` flag.
 
 ```bash
 #XMHP requests that the MHP data be eXclusively returned instead of including the LogP and SA values as well.
-$ makePol -n 2 -m Styrene -c XMHP -p -e data.csv -v
+$ makePol -n 2 -m Styrene -c XMHP -e data.csv -vp
 Done generating SMILES with n = 1 now: CC(c1ccccc1)
 Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
 Converting n=2 to RDkit mol now.
@@ -159,7 +159,7 @@ In this case, increasing both parameters independently or together improved the 
 
 ## Changing Default Settings
 
-Some settings are not accessible with command-line arguments. Defaults are hardcoded but can be overwritten when a file called `mhpSettings.json` is present in the working directory. The settings uses are explained below. All settings must be present in the file unless. A fresh settings file can be generated with the `mhpSettings -w` command line tool. `mhpSettings -s` shows the settings all mhp tools will use, whether default or custom.
+Some settings are not accessible with command-line arguments. Defaults are hardcoded but can be overwritten when a file called `HXSettings.json` is present in the working directory. The settings uses are explained below. All settings must be present in the file unless. A fresh settings file can be generated with the `HXSettings -w` command line tool. `HXSettings -s` shows the settings all hydrophobicity_explorer tools will use, whether default or custom.
 
 ```python
 {
@@ -214,10 +214,10 @@ Then, if you are using Windows, follow the additional steps for that operating s
 
 ## Install with conda
 1. Create the environment and install the dependencies. You may replace the argument after -n with any environment name you wish.\
-`conda create -c conda-forge -c scohenjanes -n mhp-env mhp`
+`conda create -c conda-forge -c scohenjanes -n HX-env hydrophobicity_explorer`
 
 2. Activate the environment\
-`conda activate mhp-env`
+`conda activate HX-env`
 
 ## Install with Git
 ### Extra Step For Windows
@@ -227,15 +227,15 @@ Then, if you are using Windows, follow the additional steps for that operating s
 ### Steps For All Users
 
 1. Clone the repository\
-`git clone https://github.com/scohenjanes5/MHP.git`
+`git clone https://github.com/TheHydrophobicityProject/HydrophobicityExplorer.git`
 
 2. Set up the conda environment\
-`conda create -c conda-forge -n mhp-env rdkit scipy`
+`conda create -c conda-forge -n HX-env rdkit scipy`
 
     Allow conda to install the dependencies
 
 3. Activate the environment\
-`conda activate mhp-env`
+`conda activate HX-env`
 
 4. Install the package locally\
 `python3 PATH/TO/INSTALL/setup.py install`

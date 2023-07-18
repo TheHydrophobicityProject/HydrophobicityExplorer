@@ -1,7 +1,7 @@
 ﻿{% set data = load_setup_py_data() %}
 
 package:
-  name: "mhp"
+  name: "hydrophobicity_explorer"
   version: {{ data.get('version') }}
 
 source:
@@ -40,11 +40,11 @@ test:
   commands:
     - makePol -h
     - customPol -h
-    - mhpSettings -h
-    - mhpSettings -s
-    - mhpLib -h
-    - mhpLib -e
-    - mhpLib -m
+    - HXSettings -h
+    - HXSettings -s
+    - HXLib -h
+    - HXLib -e
+    - HXLib -m
 
 about:
   home: "https://github.com/TheHydrophobicityProject/HydrophobicityExplorer"

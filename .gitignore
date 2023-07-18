@@ -8,7 +8,7 @@
 *.R*
 
 smiles.json
-mhp.ipynb
+hydrophobicity_explorer.ipynb
 testing/ratios.py
 data/
 testing/polClasses.py

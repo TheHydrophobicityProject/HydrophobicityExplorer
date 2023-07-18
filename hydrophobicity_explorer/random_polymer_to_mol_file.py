@@ -30,12 +30,12 @@ def getCoeffs(Coefs_and_monomers):
     repeat_coef = 1
     for element in Coefs_and_monomers:
         try:
-            repeat_coef = int(element)  #is this a string of an integer?
+            repeat_coef = int(element)
         except:
-            #if not string of integer, it should be considered a smiles (there will be griping from rdkit if not.)
+            #if not string of integer, it should be considered a smiles (there will be an error from rdkit if not.)
             coeffs_list.append(repeat_coef)
             monomer_list.append(element)
-            repeat_coef = 1  #reset coef.
+            repeat_coef = 1
 
     return coeffs_list, monomer_list
 
@@ -107,7 +107,7 @@ def main():
     init = validate_end_group(init, Init=True)
     term = validate_end_group(term, Term=True)
     #replace any dict keys with corresponding smiles.
-    deciphered_dict_keys = parse_monomer_dict_keys(args.m, monomer_dict)
+    deciphered_dict_keys = parse_smiles_dict_keys(args.m, monomer_dict)
 
     #do these steps multiple times if array of files is requested.
     if not args.array:
@@ -116,12 +116,10 @@ def main():
         n_iter = range(1, args.n + 1)
 
     for n in n_iter:
-
         #get proper file name.
-        filename=args.f
+        filename = args.f
         split = filename.split(".")
         file_name = f"{split[0]}_{n}.{split[1]}"
-        
         #now we need to generate polymer body
         if args.protocol == "weight":
             polymer_body_smiles = makePolymerBody_weighted(
@@ -139,20 +137,21 @@ def main():
             POL = Polymer(n = args.n, smiles=total_smiles)
         else:
             POL = Polymer(n = n, smiles=total_smiles)
-        
+
         POL.suppl = optPol(total_smiles,
                             nConfs=defaults["opt_numConfs"],
                             threads=defaults["opt_numThreads"],
                             iters=defaults["opt_maxIters"]
                             )  #this function will also save the file.
-        
+
         write_pol(name=file_name, verbosity=True, suppl=POL.suppl)
         print(f"Done. Saved to {file_name}")
-
+        
         if args.protocol == "ratio":
             print(f"Ratio of monomers used is {ratio}")
 
+
 if __name__ == "__main__":
-    from mhp.smiles import monomer_dict
-    from mhp.MakePolymer import write_pol, validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_monomer_dict_keys, Polymer
+    from hydrophobicity_explorer.smiles import monomer_dict
+    from hydrophobicity_explorer.MakePolymer import write_pol, validate_end_group, inator_smi_lookup, add_inator_smiles, optPol, getStaticSettings, parse_smiles_dict_keys, Polymer
     main()
