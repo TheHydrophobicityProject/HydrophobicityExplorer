@@ -2,6 +2,7 @@ from functools import cache
 import argparse, os, json, pandas
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
@@ -325,12 +326,12 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
 
     for CONF_ID in range(nConfs):
         ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        print(f"Initial energy = {ff.CalcEnergy()}")
+        # print(f"Initial energy = {ff.CalcEnergy()}")
         ff.Initialize()
-        converged = ff.Minimize(100) # WHY IS THIS 700??
-        print(f"Now calc energy = {ff.CalcEnergy()}")
-        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        print(f"True calc energy = {ff.CalcEnergy()}")
+        converged = ff.Minimize(iters)
+        # print(f"Now calc energy = {ff.CalcEnergy()}")
+        # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+        # print(f"True calc energy = {ff.CalcEnergy()}")
         if  converged == 1:
             print(f"minimization failed for conformer {CONF_ID}!")
             pol_h.RemoveConformer(CONF_ID)
