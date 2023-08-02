@@ -9,7 +9,10 @@ default_dict = {
     "MV_gridSpacing": 0.2,
     "MV_boxMargin": 2.0,
     "plot_dataPoint": "o",
-    "plot_Filename": "Size-dependent-stats.png"
+    "plot_Filename": "Size-dependent-stats.png",
+    "dielectricModel": 2,
+    "dielectricConstant": 78,
+    "NB_THRESH": 100
 }
 
 

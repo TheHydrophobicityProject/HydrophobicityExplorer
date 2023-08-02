@@ -304,8 +304,21 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, nConfs=5, threads=0, iters=1500):
-    #optimizes the Polymer and uses only the conformers that converged
+def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+    """
+    Optimizes the Polymer and uses only the conformers that converged
+
+    Arguments: FLAT, a 2D 2dkit mol object
+    nConfs: int, number of conformations to try
+    threads: int, number of threads to use for generating conformations
+    iters: int, maximum number of iterations to try and converge optimizations
+
+    rdkit_params: dict, must contain the following values:
+        dielectricModel: int, model 1 is constant; model 2 is distant-dependent
+        dielectricConstant: int, Dielectric constant 78 corresponds to water
+        NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
+    """
+   
     #check mol
     Chem.SanitizeMol(FLAT)
     #opt steps
@@ -314,13 +327,11 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
     ids = AllChem.EmbedMultipleConfs(
         pol_h, numConfs=nConfs, useRandomCoords=True,
         numThreads=threads)  #get multiple conformers for better stats
-    
-    # minimize conformer CONF_ID
-    #####CONSTANTS#######
-    dielectricModel=2 # model 1 is constant; model 2 is distant-dependent
-    dielectricConstant=78
-    NB_THRESH = 100   # 100 gives extended conformation with Dielectric const of 78
-    #####################
+     
+    #unpack rdkit_params
+    dielectricModel=rdkit_params["dielectricModel"]
+    dielectricConstant=rdkit_params["dielectricConstant"]
+    NB_THRESH=rdkit_params["NB_THRESH"]
 
     props = AllChem.MMFFGetMoleculeProperties(pol_h)
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props,dielectricConstant)
@@ -384,7 +395,7 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500}):
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
@@ -424,7 +435,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             POL.suppl = optPol(POL.flat,
                                nConfs=defaults["opt_numConfs"],
                                threads=defaults["opt_numThreads"],
-                               iters=defaults["opt_maxIters"])
+                               iters=defaults["opt_maxIters"],
+                               rdkit_params=defaults)
         return POL_LIST
     else: #just one polymer.
         test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
@@ -440,7 +452,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             POL.flat,
             nConfs=defaults["opt_numConfs"],
             threads=defaults["opt_numThreads"],
-            iters=defaults["opt_maxIters"])  #both are mol objects
+            iters=defaults["opt_maxIters"],  #both are mol objects
+            rdkit_params=defaults)
         return POL
 
 
@@ -785,7 +798,8 @@ def main(**kwargs):
                     POL.suppl = optPol(POL.flat,
                                        nConfs=default_dict["opt_numConfs"],
                                        threads=default_dict["opt_numThreads"],
-                                       iters=default_dict["opt_maxIters"])
+                                       iters=default_dict["opt_maxIters"],
+                                       rdkit_params=default_dict)
                     if vardict["plot"]:
                         POL_LIST.append(POL)
 
