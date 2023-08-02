@@ -171,7 +171,10 @@ Some settings are not accessible with command-line arguments. Defaults are hardc
     "MV_gridSpacing":0.2, #Used for molar volume calculation.
     "MV_boxMargin" :2.0, #Used for molar volume calculation.
     "plot_dataPoint":"o", #Matplotlib argument to change plot point appearence.
-    "plot_Filename":"Size-dependent-stats.png" #name of plot.
+    "plot_Filename":"Size-dependent-stats.png", #name of plot.
+    "dielectricModel": 2, #Model 1 is constant; model 2 is distant-dependent
+    "dielectricConstant": 78, #Dielectric constant 78 corresponds to water
+    "NB_THRESH": 100 #Value to cut off long-distance interactions. 100 is rdkit default.
 }
 ```
 Some of the values are used by external functions and others by functions in this program. If it is desired to change the appearence of the plot points from blue circles to red pluses, change `"plot_dataPoint":"o"` to `"plot_dataPoint":"r+"`, as per the [matplotlib documentation](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html).
