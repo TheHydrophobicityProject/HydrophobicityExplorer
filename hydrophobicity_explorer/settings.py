@@ -38,13 +38,14 @@ def main():
     settingsFile = "HXSettings.json"
     if args.show:
         if os.path.exists(settingsFile):
-            print("All hydrophobicity_explorer packages will use these user-defined settings in HXSettings.json")
+            print(f"All hydrophobicity_explorer packages will use these user-defined settings in {settingsFile}")
             user_settings = readJson(settingsFile)
             print(user_settings)
         else:
             print(default_dict)
     if args.write:
         writeJson(default_dict, settingsFile)
+        print(f"Wrote {settingsFile}")
 
 
 if __name__ == "__main__":
