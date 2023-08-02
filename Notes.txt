@@ -5,10 +5,10 @@ https://www.rdkit.org/docs/source/rdkit.Chem.rdForceFieldHelpers.html
 m2.SetProp("_Name","cyclobutane")
 
 TODO
+Colored progress bar when optimizing many lengths of the same polymer.
 visualizations of polymers at different nitters on plot
 plotting jobs need to be able to interpret groups of files (or all should be stored in one big file)
 Maybe use ID and _name values to sort out conformer numbers and n=? issue since number of conformers won't be consistent and it is hard to 
 determine number of monomers.
 multiple random pol orderings and avg stats
 maybe on windows write to some location that is known to be temporary (like /tmp on linux)
-allow setting names for plots
