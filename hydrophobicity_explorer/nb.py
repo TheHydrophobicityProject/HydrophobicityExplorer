@@ -72,20 +72,16 @@ notebook = {
     "nbformat_minor": 2
 }
 
-def makeNB(name):
-    writeJson(notebook, name)
-    print(f"Done creating {name}")
-
 def main():
     name = "hydrophobicity_explorer.ipynb"
     if os.path.exists(name):
         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
-        if inp.lower() == "y" or inp == "":
-            makeNB(name)
-        else:
+        if inp.lower() != "y" and inp != "":
             print("Please rename the existing notebook so it is not overwritten.")
-    else:
-        makeNB(name)
+            quit()
+    
+    writeJson(notebook, name)
+    print(f"Done creating {name}")
 
 if __name__ == "__main__":
     main()
