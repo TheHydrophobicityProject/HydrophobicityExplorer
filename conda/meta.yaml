@@ -18,6 +18,7 @@ requirements:
     - scipy
     - matplotlib-base
     - rdkit
+    - tqdm
 
 build:
   script: python3 setup.py install
@@ -37,6 +38,7 @@ test:
     - hydrophobicity_explorer
     - pandas
     - matplotlib
+    - tqdm
 
   commands:
     - makePol -h

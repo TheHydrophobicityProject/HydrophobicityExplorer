@@ -9,7 +9,7 @@ setuptools.setup(
     description="Facilitates solubility calculations on a wide range of polymers.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    install_requires=["rdkit", "scipy", "pandas", "matplotlib"],
+    install_requires=["rdkit", "scipy", "pandas", "matplotlib", "tqdm"],
     packages=setuptools.find_packages(),
     classifiers=[
         'Programming Language :: Python',
