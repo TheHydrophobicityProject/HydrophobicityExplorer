@@ -311,12 +311,30 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
     ids = AllChem.EmbedMultipleConfs(
         pol_h, numConfs=nConfs, useRandomCoords=True,
         numThreads=threads)  #get multiple conformers for better stats
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs( #touples are (conv, conf), where conv is 0 or 1 for whether an optimization is not converged.
-        pol_h, numThreads=threads,
-        maxIters=iters)  #rdkit default 200 iterations.
-    for i, tup in enumerate(touple_list):
-        if tup[0] == 1:  #not converged
-            pol_h.RemoveConformer(i)
+    
+    # minimize conformer CONF_ID
+    #####CONSTANTS#######
+    dielectricModel=2 # model 1 is constant; model 2 is distant-dependent
+    dielectricConstant=78
+    NB_THRESH = 100   # 100 gives extended conformation with Dielectric const of 78
+    #####################
+
+    props = AllChem.MMFFGetMoleculeProperties(pol_h)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props,dielectricConstant)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props,dielectricModel)    
+
+    for CONF_ID in range(nConfs):
+        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+        print(f"Initial energy = {ff.CalcEnergy()}")
+        ff.Initialize()
+        converged = ff.Minimize(100) # WHY IS THIS 700??
+        print(f"Now calc energy = {ff.CalcEnergy()}")
+        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+        print(f"True calc energy = {ff.CalcEnergy()}")
+        if  converged == 1:
+            print(f"minimization failed for conformer {CONF_ID}!")
+            pol_h.RemoveConformer(CONF_ID)
+    
     if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
         raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
