@@ -35,10 +35,12 @@ def getStaticSettings():
     """
     Reads the settings file if it exists in CWD. Otherwise uses the default settings.
     """
-    if os.path.exists("hydrophobicity_explorerSettings.json"):
+    expected_settings_path = "HXSettings.json"
+
+    if os.path.exists(expected_settings_path):
         from hydrophobicity_explorer.settings import readJson
-        print("NOTICE: found hydrophobicity_explorerSettings.json. This takes presedence over the built-in settings.")
-        settings_dict = readJson("hydrophobicity_explorerSettings.json")
+        print(f"NOTICE: found {expected_settings_path}. This takes presedence over the built-in settings.")
+        settings_dict = readJson(expected_settings_path)
     else:
         from hydrophobicity_explorer.settings import default_dict as settings_dict
 
