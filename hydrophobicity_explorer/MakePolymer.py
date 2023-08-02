@@ -1,5 +1,5 @@
 from functools import cache
-import argparse, os, json, pandas
+import argparse, os, json, pandas, tqdm
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import rdkit
@@ -335,9 +335,9 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
 
     props = AllChem.MMFFGetMoleculeProperties(pol_h)
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props,dielectricConstant)
-    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props,dielectricModel)    
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props,dielectricModel)
 
-    for CONF_ID in range(nConfs):
+    for CONF_ID in tqdm.trange(nConfs, desc=f"Optimizing Conformers", ncols=80, colour='MAGENTA'):
         ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
         # print(f"Initial energy = {ff.CalcEnergy()}")
         ff.Initialize()
