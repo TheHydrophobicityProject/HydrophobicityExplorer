@@ -1,7 +1,8 @@
 from functools import cache
-import argparse, os, json, pandas
+import argparse, os, json, pandas, tqdm
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
@@ -34,10 +35,12 @@ def getStaticSettings():
     """
     Reads the settings file if it exists in CWD. Otherwise uses the default settings.
     """
-    if os.path.exists("hydrophobicity_explorerSettings.json"):
+    expected_settings_path = "HXSettings.json"
+
+    if os.path.exists(expected_settings_path):
         from hydrophobicity_explorer.settings import readJson
-        print("NOTICE: found hydrophobicity_explorerSettings.json. This takes presedence over the built-in settings.")
-        settings_dict = readJson("hydrophobicity_explorerSettings.json")
+        print(f"NOTICE: found {expected_settings_path}. This takes presedence over the built-in settings.")
+        settings_dict = readJson(expected_settings_path)
     else:
         from hydrophobicity_explorer.settings import default_dict as settings_dict
 
@@ -301,8 +304,21 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, nConfs=5, threads=0, iters=1500):
-    #optimizes the Polymer and uses only the conformers that converged
+def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+    """
+    Optimizes the Polymer and uses only the conformers that converged
+
+    Arguments: FLAT, a 2D 2dkit mol object
+    nConfs: int, number of conformations to try
+    threads: int, number of threads to use for generating conformations
+    iters: int, maximum number of iterations to try and converge optimizations
+
+    rdkit_params: dict, must contain the following values:
+        dielectricModel: int, model 1 is constant; model 2 is distant-dependent
+        dielectricConstant: int, Dielectric constant 78 corresponds to water
+        NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
+    """
+   
     #check mol
     Chem.SanitizeMol(FLAT)
     #opt steps
@@ -311,12 +327,28 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500):
     ids = AllChem.EmbedMultipleConfs(
         pol_h, numConfs=nConfs, useRandomCoords=True,
         numThreads=threads)  #get multiple conformers for better stats
-    touple_list = AllChem.MMFFOptimizeMoleculeConfs( #touples are (conv, conf), where conv is 0 or 1 for whether an optimization is not converged.
-        pol_h, numThreads=threads,
-        maxIters=iters)  #rdkit default 200 iterations.
-    for i, tup in enumerate(touple_list):
-        if tup[0] == 1:  #not converged
-            pol_h.RemoveConformer(i)
+     
+    #unpack rdkit_params
+    dielectricModel=rdkit_params["dielectricModel"]
+    dielectricConstant=rdkit_params["dielectricConstant"]
+    NB_THRESH=rdkit_params["NB_THRESH"]
+
+    props = AllChem.MMFFGetMoleculeProperties(pol_h)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props,dielectricConstant)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props,dielectricModel)
+
+    for CONF_ID in tqdm.trange(nConfs, desc=f"Optimizing Conformers", ncols=80, colour='MAGENTA'):
+        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+        # print(f"Initial energy = {ff.CalcEnergy()}")
+        ff.Initialize()
+        converged = ff.Minimize(iters)
+        # print(f"Now calc energy = {ff.CalcEnergy()}")
+        # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+        # print(f"True calc energy = {ff.CalcEnergy()}")
+        if  converged == 1:
+            print(f"minimization failed for conformer {CONF_ID}!")
+            pol_h.RemoveConformer(CONF_ID)
+    
     if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
         raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
@@ -363,7 +395,7 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500}):
+def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
@@ -403,7 +435,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             POL.suppl = optPol(POL.flat,
                                nConfs=defaults["opt_numConfs"],
                                threads=defaults["opt_numThreads"],
-                               iters=defaults["opt_maxIters"])
+                               iters=defaults["opt_maxIters"],
+                               rdkit_params=defaults)
         return POL_LIST
     else: #just one polymer.
         test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
@@ -419,7 +452,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             POL.flat,
             nConfs=defaults["opt_numConfs"],
             threads=defaults["opt_numThreads"],
-            iters=defaults["opt_maxIters"])  #both are mol objects
+            iters=defaults["opt_maxIters"],  #both are mol objects
+            rdkit_params=defaults)
         return POL
 
 
@@ -764,7 +798,8 @@ def main(**kwargs):
                     POL.suppl = optPol(POL.flat,
                                        nConfs=default_dict["opt_numConfs"],
                                        threads=default_dict["opt_numThreads"],
-                                       iters=default_dict["opt_maxIters"])
+                                       iters=default_dict["opt_maxIters"],
+                                       rdkit_params=default_dict)
                     if vardict["plot"]:
                         POL_LIST.append(POL)
 
