@@ -334,8 +334,8 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
     NB_THRESH=rdkit_params["NB_THRESH"]
 
     props = AllChem.MMFFGetMoleculeProperties(pol_h)
-    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props,dielectricConstant)
-    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props,dielectricModel)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props, dielectricConstant)
+    rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props, dielectricModel)
 
     for CONF_ID in tqdm.trange(nConfs, desc=f"Optimizing Conformers", ncols=80, colour='MAGENTA'):
         ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
