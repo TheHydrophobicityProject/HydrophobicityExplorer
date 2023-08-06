@@ -6,6 +6,7 @@ import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
+from multiprocessing import Pool
 
 
 class Polymer:
@@ -304,7 +305,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def optPol(POL, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
@@ -318,6 +319,8 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
         dielectricConstant: int, Dielectric constant 78 corresponds to water
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
     """
+
+    FLAT = POL.flat
    
     #check mol
     Chem.SanitizeMol(FLAT)
@@ -373,7 +376,8 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
     except: #this fails on Windows, but not Linux
         print(f"Failed to remove tmp file {sdfFilename}.")
 
-    return suppl  #suppl now has each conformation as a separate mol obj when we iterate thru it.
+    POL.suppl = suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
+    return POL
 
 
 def confirmStructure(smi, *, proceed=None):
@@ -428,15 +432,15 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         if verbosity:
             print("\n")
 
-        for j, POL in enumerate(reversed(POL_LIST)): #optimize the longest polymer first to see if parameters need to be changed.
-            if verbosity:        
-                print(f"Converting n={n-j} to RDkit mol now.")
-            #get opt and unopt molecules.
-            POL.suppl = optPol(POL.flat,
-                               nConfs=defaults["opt_numConfs"],
-                               threads=defaults["opt_numThreads"],
-                               iters=defaults["opt_maxIters"],
-                               rdkit_params=defaults)
+        nConfs=defaults["opt_numConfs"],
+        threads=defaults["opt_numThreads"],
+        iters=defaults["opt_maxIters"],
+        rdkit_params=defaults
+
+        pool_inputs = [(POL, nConfs, threads, iters, rdkit_params) for POL in reversed(POL_LIST)]
+
+        with Pool(threads) as p:
+            POL_LIST = p.starmap(optPol, pool_inputs)
         return POL_LIST
     else: #just one polymer.
         test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
@@ -448,8 +452,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             print("Showing structure with n=1 to confirm correct end groups")
             confirmStructure(test_smi)
 
-        POL.suppl = optPol(
-            POL.flat,
+        POL = optPol(
+            POL,
             nConfs=defaults["opt_numConfs"],
             threads=defaults["opt_numThreads"],
             iters=defaults["opt_maxIters"],  #both are mol objects
@@ -786,7 +790,8 @@ def main(**kwargs):
                 else:
                     n_iter = [vardict["n"]]
 
-                #this is in reverse order since larger polymers are more likely to fail. Let this happen at the start of the run so user knows to change settings.
+                # this is in reverse order since larger polymers are more likely to fail.
+                # Let this happen at the start of the run so user knows to change settings.
                 for n in n_iter:
                     import hydrophobicity_explorer.random_polymer_to_mol_file as randPol
                     polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
@@ -795,11 +800,11 @@ def main(**kwargs):
                     polSMILES = add_inator_smiles(polymer_body_smiles, init,
                                                   term)
                     POL = Polymer(n, polSMILES, ratio=ratio)
-                    POL.suppl = optPol(POL.flat,
-                                       nConfs=default_dict["opt_numConfs"],
-                                       threads=default_dict["opt_numThreads"],
-                                       iters=default_dict["opt_maxIters"],
-                                       rdkit_params=default_dict)
+                    POL = optPol(POL,
+                                nConfs=default_dict["opt_numConfs"],
+                                threads=default_dict["opt_numThreads"],
+                                iters=default_dict["opt_maxIters"],
+                                rdkit_params=default_dict)
                     if vardict["plot"]:
                         POL_LIST.append(POL)
 
