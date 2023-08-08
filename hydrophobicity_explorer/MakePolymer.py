@@ -18,19 +18,29 @@ class Polymer:
     flat: mol, 2D structure. Used for pictures
     suppl: SDMolsuppl, the itterator with the conformers
     ratio: str, the ratio of monomers in a polymer with random monomer ordering using a target ratio
+    pol_list: list of mols with all optimized conformers
     """
 
-    def __init__(self, n, smiles, mpn=1, ratio=None, suppl=None):
+    def __init__(self, n, smiles, mpn=1, ratio=None, suppl=None, pol_list=None):
         self.n = n
         self.mpn = mpn
         self.smiles = smiles
         self.flat = self.get2D()
         self.suppl = suppl
         self.ratio = ratio
+        self.pol_list = pol_list
 
     def get2D(self):
         return Chem.MolFromSmiles(self.smiles)
-
+    
+    def get_pol_list(self, mol):
+        pol_list = []
+        confs = mol.GetConformers()
+        for conf in confs:
+            single_conf_mol = Chem.Mol(mol, True)
+            single_conf_mol.AddConformer(conf, assignId=True)
+            pol_list.append(single_conf_mol)
+        self.pol_list = pol_list
 
 def getStaticSettings():
     """
@@ -355,28 +365,7 @@ def optPol(POL, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel"
     if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
         raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
     
-    #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    i = 0
-    while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
-        i += 1            
-    sdfFilename = f"tmp_{i}.sdf"
-    
-    writer = Chem.SDWriter(sdfFilename)
-    for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
-        cid = conf.GetId() #The numbers may not be sequential.
-        pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
-        # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-        writer.write(pol_h, confId=cid) #save the particular conf to the file.  
-    writer.flush() #if this isn't included some (small) monomers break everything.
-    writer.close()
-    suppl = Chem.SDMolSupplier(sdfFilename, removeHs=False) #iterator that has all mols in the sdf file.
-    
-    try:
-        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-    except: #this fails on Windows, but not Linux
-        print(f"Failed to remove tmp file {sdfFilename}.")
-
-    POL.suppl = suppl #suppl now has each conformation as a separate mol obj when we iterate thru it.
+    POL.get_pol_list(pol_h)
     return POL
 
 
@@ -432,14 +421,18 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         if verbosity:
             print("\n")
 
-        nConfs=defaults["opt_numConfs"],
-        threads=defaults["opt_numThreads"],
-        iters=defaults["opt_maxIters"],
+        nConfs=defaults["opt_numConfs"]
+        threads=defaults["opt_numThreads"]
+        iters=defaults["opt_maxIters"]
         rdkit_params=defaults
+        if threads == 0:
+            num_proc = os.cpu_count()
+        else:
+            num_proc = threads
 
         pool_inputs = [(POL, nConfs, threads, iters, rdkit_params) for POL in reversed(POL_LIST)]
 
-        with Pool(threads) as p:
+        with Pool(processes=num_proc) as p:
             POL_LIST = p.starmap(optPol, pool_inputs)
         return POL_LIST
     else: #just one polymer.
@@ -612,10 +605,14 @@ def func_exp(x, a, b, c):
     return a * (x**b) + c
 
 def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
-    #pol_iter is an iterable that has several confs within.
-    #The type of variable /calcs/ is set
-    #Calcs are only done if requested.
-    #remove entries from set after each calculation and print the unrecognized ones at the end.
+    """
+    pol_iter: a list of rdkit Mol objects
+    cals: set of calculation keys
+
+    Calcs are only done if requested.
+    remove entries from set after each calculation and print the unrecognized ones at the end.
+    """
+
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
         sasa = Sasa(pol_iter)
@@ -658,7 +655,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
     dicts = []
     for POL in pol_list:
         calcs = set([calc.upper() for calc in calculations])
-        pol_data = doCalcs(POL.suppl, calcs)
+        pol_data = doCalcs(POL.pol_list, calcs)
         pol_data["N"] = POL.n * POL.mpn
         pol_data["smi"] = POL.smiles
         if POL.ratio is not None:
@@ -852,7 +849,7 @@ def main(**kwargs):
             if not vardict["plot"]:
                 calcs = set([calc.upper() for calc in vardict["calculation"]])
                 data = doCalcs(
-                    POL.suppl, calcs,
+                    POL.pol_list, calcs,
                     defaults=default_dict)  #use set to remove duplicates
                 data["N"] = vardict["n"] * POL.mpn
                 data["smi"] = POL.smiles
