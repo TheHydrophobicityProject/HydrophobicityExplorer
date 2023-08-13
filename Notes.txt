@@ -11,4 +11,3 @@ Maybe use ID and _name values to sort out conformer numbers and n=? issue since 
 determine number of monomers.
 multiple random pol orderings and avg stats
 maybe on windows write to some location that is known to be temporary (like /tmp on linux)
-allow setting names for plots
