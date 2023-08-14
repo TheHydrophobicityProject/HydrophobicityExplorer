@@ -433,8 +433,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     with Progress(*columns) as progress:
         futures = []
         overall_progress_task = progress.add_task("[blue]Embedding Conformers:")
-
-        with ProcessPoolExecutor(max_workers=num_proc) as executor:
+        with ProcessPoolExecutor(max_workers=round(num_proc/2)) as executor:
             for POL in POL_LIST:
                 futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
             target_length = len(futures)
