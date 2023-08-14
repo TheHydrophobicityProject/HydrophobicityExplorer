@@ -41,3 +41,17 @@ def test_reading_from_files():
 
     
     assert canon_original == canon_read
+
+def test_draw_pol():
+    smiles = "O" + "Cc1ccccc1O" + "CC(C(=O)OC)C"
+    pol = Chem.MolFromSmiles(smiles)
+    name = "tmp.png"
+    MakePolymer.drawPol(pol, drawName=name)
+    pol2 = Chem.MolFromPNGFile(name)
+    os.remove(name)
+
+    inch = Chem.MolToInchi(pol)
+    inch2 = Chem.MolToInchi(pol2)
+
+    assert inch == inch2
+
