@@ -188,7 +188,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
 
     return init, term, repeat_unit, monomers_per_n
 
-def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminator = (False, None)): #the initiator and terminator are the kwargs
+def attatch_frags(polymer_smiles, add_initiator = (False, None), add_terminator = (False, None)):
     pol = Chem.MolFromSmiles(polymer_smiles)
     #get indicies of fake atoms ("*")
     fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum() == 0]
@@ -280,8 +280,15 @@ def add_inator_smiles(smi, init, term):
 
 
 def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
-    #given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
-    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
+    """
+    given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
+
+    init and term may or may not be mol
+    
+    i and t are both str.
+    """
+    
+    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) 
 
     if init == "" and term == "":
         addEndgroups = False
@@ -292,7 +299,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     polymer_SMILES = n * repeat_unit
 
     if test and addEndgroups:  # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
-        #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
+        #if you don't do this and have n=15, the image is very hard to visually understand because some parts of pol will overlap.
         test_smi = add_inator_smiles(repeat_unit, init, term)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
@@ -718,11 +725,6 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
     return df
 
 
-def exportToCSV(exptName, dataframe):
-    pandas.DataFrame.to_csv(dataframe, exptName, index=False)
-    print(f"Done exporting data to {exptName}.")
-
-
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
@@ -852,7 +854,9 @@ def main(**kwargs):
             print(dataframe)
 
             if vardict["export"] is not None:
-                exportToCSV(vardict["export"], dataframe)
+                pandas.DataFrame.to_csv(dataframe, vardict["export"], index=False)
+                print(f"Done exporting data to {vardict['export']}.")
+
         elif vardict["calculation"] is None and vardict["export"] is not None:
             raise Exception("You cannot export data if none were collected.")
 
