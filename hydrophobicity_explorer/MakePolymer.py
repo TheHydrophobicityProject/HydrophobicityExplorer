@@ -376,7 +376,7 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
     return suppl  #suppl now has each conformation as a separate mol obj when we iterate thru it.
 
 
-def confirmStructure(smi, *, proceed=None):
+def confirmStructure(smi):
     #shows the user an image of the repeat unit with attached end groups
     #save image to temporary file
     print("Please review this preview image:")
@@ -391,9 +391,8 @@ def confirmStructure(smi, *, proceed=None):
         print("Please try adjusting input and try again.")
         quit()
         #aborts so user can retry
-
-    if proceed is not None:
-        return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
+    
+    return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
 def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
@@ -415,7 +414,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         for j in N_array:
             if j == 1 and confirm and not confirmed:
                 test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
-                confirmed = confirmStructure(test_smi, proceed=confirmed)
+                confirmed = confirmStructure(test_smi)
 
             if j > 1 or not confirm:  #do not test if j is large or if we ask not to test at all.
                 POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
@@ -446,7 +445,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
         if confirm and addEndgroups:
             print("Showing structure with n=1 to confirm correct end groups")
-            confirmStructure(test_smi)
+            _ = confirmStructure(test_smi)
 
         POL.suppl = optPol(
             POL.flat,
