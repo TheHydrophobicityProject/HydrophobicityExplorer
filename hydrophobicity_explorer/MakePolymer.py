@@ -30,7 +30,10 @@ class Polymer:
         self.pol_list = pol_list
 
     def get2D(self):
-        return Chem.MolFromSmiles(self.smiles)
+        FLAT = Chem.MolFromSmiles(self.smiles)
+        #check mol
+        Chem.SanitizeMol(FLAT)
+        return FLAT
     
     def get_pol_list(self, mol):
         pol_list = []
@@ -373,10 +376,6 @@ def confirmStructure(smi, *, proceed=None):
 
 def generate_conf_list(POL, nConfs=5, threads=0):
     FLAT = POL.flat
-   
-    #check mol
-    Chem.SanitizeMol(FLAT)
-    #opt steps
     pol_h = Chem.AddHs(FLAT)
     #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
     ids = AllChem.EmbedMultipleConfs(
