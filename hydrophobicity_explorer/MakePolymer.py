@@ -317,11 +317,11 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}, progress=None, task_id = None):
+def optPol(FLAT, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}, progress=None, task_id = None):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
-    pol_h: RDKit Mol object with one, unoptimized conformer
+    FLAT: 2D Mol object
     iters: int, maximum number of iterations to try and converge optimizations
 
     rdkit_params: dict, must contain the following values:
@@ -330,7 +330,13 @@ def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricCon
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
 
     progress and task_id are used for progress bar generation while multiprocessing.
+
+    Returns 0 if not optimized, or the optimized mol object.
     """
+
+    pol_h = Chem.AddHs(FLAT)
+    #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
+    AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
 
     #unpack rdkit_params
     dielectricModel=rdkit_params["dielectricModel"]
@@ -372,18 +378,6 @@ def confirmStructure(smi, *, proceed=None):
 
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
-
-
-def generate_conf_list(POL, nConfs=5, threads=0):
-    FLAT = POL.flat
-    pol_h = Chem.AddHs(FLAT)
-    #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
-    ids = AllChem.EmbedMultipleConfs(
-        pol_h, numConfs=nConfs, useRandomCoords=True,
-        numThreads=threads)  #get multiple conformers for better stats
-    POL.get_pol_list(pol_h)
-    return POL
-
 
 def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
@@ -430,28 +424,19 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             rich.progress.TimeElapsedColumn()]
 
     with Progress(*columns) as progress:
-        embedded_futures = []
-        embedding_progress = progress.add_task("[blue]Embedding Conformers:")
+        # embedding_progress = progress.add_task("[blue]Embedding Conformers:")
         optimization_progress = progress.add_task("[blue]Optimizing Conformers:")
-        with ProcessPoolExecutor(max_workers=round(num_proc)) as executor:
-            for POL in POL_LIST:
-                embedded_futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
-            embedded_length = len(embedded_futures)
-            while (n_finished := sum([future.done() for future in embedded_futures])) <= embedded_length:
-                progress.update(embedding_progress, completed=n_finished, total=embedded_length)
-                if n_finished == embedded_length:
-                    break
-            POL_LIST = [f.result() for f in embedded_futures]
-
+        with ProcessPoolExecutor(max_workers=num_proc) as executor:
             #prepare inputs
-            polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
-            pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]
+            FLATS = [p.flat for p in POL_LIST for _ in range(nConfs)]
+            pool_inputs = [(flat, iters, rdkit_params) for flat in FLATS]
 
             opt_futures = []
             for i, inputs in enumerate(pool_inputs):
-                pol_h, iters, rdkit_params = inputs
-                opt_futures.append(executor.submit(optPol, pol_h, iters, rdkit_params))
+                flat, iters, rdkit_params = inputs
+                opt_futures.append(executor.submit(optPol, flat, iters, rdkit_params))
             opt_length = len(opt_futures)
+            # monitor the running jobs. Break when all are done.
             while (n_finished := sum([future.done() for future in opt_futures])) <= opt_length:
                 progress.update(optimization_progress, completed=n_finished, total=opt_length)
                 if n_finished == opt_length:
