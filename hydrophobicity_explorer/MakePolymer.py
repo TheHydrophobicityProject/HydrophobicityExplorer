@@ -1,13 +1,13 @@
 from functools import cache
-import argparse, os, json, pandas
+import argparse, os, json, pandas, multiprocessing
 from rich.progress import track, Progress
+from concurrent.futures import ProcessPoolExecutor
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
-from multiprocessing import Pool
 
 
 class Polymer:
@@ -314,7 +314,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}, progress=None, task_id = None):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
@@ -325,6 +325,8 @@ def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricCon
         dielectricModel: int, model 1 is constant; model 2 is distant-dependent
         dielectricConstant: int, Dielectric constant 78 corresponds to water
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
+
+    progress and task_id are used for progress bar generation while multiprocessing.
     """
 
     #unpack rdkit_params
@@ -404,19 +406,14 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     else:
         approved = True
 
-    for j in track(N_array, description="Generating SMILES", disable = not verbosity):
+    for j in track(N_array, description="[blue]Generating SMILES", disable = not verbosity):
         if confirm and not approved:
             test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
             approved = confirmStructure(test_smi, proceed=approved)
-
         if not confirm:
             POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
 
-        #keep Polymer object
         POL_LIST.append(POL)
-
-    if verbosity:
-        print("\n")
 
     nConfs=defaults["opt_numConfs"]
     threads=defaults["opt_numThreads"]
@@ -429,16 +426,28 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
     # Get the conformers serially.
     # Threads used to speed up conf generation
-    for i, POL in enumerate(POL_LIST):
+    for i, POL in track(enumerate(POL_LIST), description="[blue]Embedding Conformers", disable = not verbosity, style="bar.back"):
         POL_LIST[i] = generate_conf_list(POL, nConfs=nConfs, threads=threads)
         
     #prepare inputs
     polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
     pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]        
 
-    
-    with Pool(processes=num_proc) as p:
-        polh_list = p.starmap(optPol, pool_inputs)
+    with Progress() as progress:
+        futures = []
+        # with multiprocessing.Manager() as manager:
+        overall_progress_task = progress.add_task("[blue]Optimizing Conformers:")
+
+        with ProcessPoolExecutor(max_workers=num_proc) as executor:
+            for i, inputs in enumerate(pool_inputs):
+                pol_h, iters, rdkit_params = inputs
+                futures.append(executor.submit(optPol, pol_h, iters, rdkit_params))
+            while (n_finished := sum([future.done() for future in futures])) <= len(futures):
+                progress.update(overall_progress_task, completed=n_finished, total=len(futures))
+                if n_finished == len(futures):
+                    break
+
+    polh_list = [f.result() for f in futures]
     
     #repack the optimized confs with the Polymer objects
     for i, POL in enumerate(POL_LIST):
