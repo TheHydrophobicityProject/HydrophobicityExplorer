@@ -401,7 +401,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         if confirm and not approved:
             test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
             approved = confirmStructure(test_smi, proceed=approved)
-        if not confirm:
+        else:
             POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
 
         POL_LIST.append(POL)
