@@ -1,5 +1,5 @@
 from functools import cache
-import argparse, os, json, pandas, multiprocessing
+import argparse, os, json, pandas
 from rich.progress import track, Progress
 from concurrent.futures import ProcessPoolExecutor
 from scipy.optimize import curve_fit
@@ -426,8 +426,10 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
     # Get the conformers serially.
     # Threads used to speed up conf generation
-    for i, POL in track(enumerate(POL_LIST), description="[blue]Embedding Conformers", disable = not verbosity, style="bar.back"):
+    i = 0 #I would prefer to use enumerate() here, but it forces the progress bar to use the wrong style
+    for POL in track(POL_LIST, description="[blue]Embedding Conformers", disable = not verbosity):
         POL_LIST[i] = generate_conf_list(POL, nConfs=nConfs, threads=threads)
+        i += 1
         
     #prepare inputs
     polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
@@ -435,7 +437,6 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
     with Progress() as progress:
         futures = []
-        # with multiprocessing.Manager() as manager:
         overall_progress_task = progress.add_task("[blue]Optimizing Conformers:")
 
         with ProcessPoolExecutor(max_workers=num_proc) as executor:
