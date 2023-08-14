@@ -458,7 +458,11 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         pol_list = polh_list[lower:upper]
         # remove 0s from the list, which are in place of unoptimized Mol
         POL.pol_list = [p for p in pol_list if p != 0]
-        POL_LIST[i] = POL
+        
+        if len(POL.pol_list) == 0: # all conformations have failed to converge. Tell the user to change something.
+            raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
+        else:
+            POL_LIST[i] = POL
 
     if plot:
         return POL_LIST
