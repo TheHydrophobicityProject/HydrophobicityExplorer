@@ -425,43 +425,40 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         num_proc = threads
 
     columns = [rich.progress.SpinnerColumn(style="bold default", finished_text=""),
-        "[rich.progress.description]{task.description}",
+            "[rich.progress.description]{task.description}",
             rich.progress.BarColumn(),
             "[rich.progress.percentage]{task.percentage:>3.0f}%",
             rich.progress.TimeElapsedColumn()]
 
     with Progress(*columns) as progress:
-        futures = []
-        overall_progress_task = progress.add_task("[blue]Embedding Conformers:")
-        with ProcessPoolExecutor(max_workers=round(num_proc/2)) as executor:
+        embedded_futures = []
+        embedding_progress = progress.add_task("[blue]Embedding Conformers:")
+        optimization_progress = progress.add_task("[blue]Optimizing Conformers:")
+        with ProcessPoolExecutor(max_workers=round(num_proc)) as executor:
             for POL in POL_LIST:
-                futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
-            target_length = len(futures)
-            while (n_finished := sum([future.done() for future in futures])) <= target_length:
-                progress.update(overall_progress_task, completed=n_finished, total=target_length)
-                if n_finished == target_length:
+                embedded_futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
+            embedded_length = len(embedded_futures)
+            while (n_finished := sum([future.done() for future in embedded_futures])) <= embedded_length:
+                progress.update(embedding_progress, completed=n_finished, total=embedded_length)
+                if n_finished == embedded_length:
                     break
-        POL_LIST = [f.result() for f in futures]
+            POL_LIST = [f.result() for f in embedded_futures]
 
-        #prepare inputs
-        polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
-        pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]        
+            #prepare inputs
+            polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
+            pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]
 
-    with Progress(*columns) as progress:
-        futures = []
-        overall_progress_task = progress.add_task("[blue]Optimizing Conformers:")
-
-        with ProcessPoolExecutor(max_workers=num_proc) as executor:
+            opt_futures = []
             for i, inputs in enumerate(pool_inputs):
                 pol_h, iters, rdkit_params = inputs
-                futures.append(executor.submit(optPol, pol_h, iters, rdkit_params))
-            target_length = len(futures)
-            while (n_finished := sum([future.done() for future in futures])) <= target_length:
-                progress.update(overall_progress_task, completed=n_finished, total=target_length)
-                if n_finished == target_length:
-                    break
+                opt_futures.append(executor.submit(optPol, pol_h, iters, rdkit_params))
+            opt_length = len(opt_futures)
+            while (n_finished := sum([future.done() for future in opt_futures])) <= opt_length:
+                progress.update(optimization_progress, completed=n_finished, total=opt_length)
+                if n_finished == opt_length:
+                    break            
 
-    polh_list = [f.result() for f in futures]
+            polh_list = [f.result() for f in opt_futures]
     
     #repack the optimized confs with the Polymer objects
     for i, POL in enumerate(POL_LIST):
