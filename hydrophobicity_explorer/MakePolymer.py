@@ -288,7 +288,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     polymer_SMILES = n * repeat_unit
 
     if test and addEndgroups:  # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
-        #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
+        #if you don't do this and have n=15, the image is very hard to visually since some parts of pol will overlap.
         test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
