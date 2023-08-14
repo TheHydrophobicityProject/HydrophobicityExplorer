@@ -175,7 +175,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
 
     return init, term, repeat_unit, monomers_per_n
 
-def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminator = (False, None)): #the initiator and terminator are the kwargs
+def attatch_frags(polymer_smiles, add_initiator = (False, None), add_terminator = (False, None)):
     pol = Chem.MolFromSmiles(polymer_smiles)
     #get indicies of fake atoms ("*")
     fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum() == 0]
@@ -276,8 +276,15 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
 
 
 def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
-    #given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
-    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
+    """
+    given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
+
+    init and term may or may not be mol
+    
+    i and t are both str.
+    """
+    
+    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) 
 
     if init == "" and term == "":
         addEndgroups = False
