@@ -406,7 +406,7 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     else:
         approved = True
 
-    for j in track(N_array, description="[blue]Generating SMILES", disable = not verbosity):
+    for j in track(N_array, description="[blue] Generating SMILES:", disable = not verbosity):
         if confirm and not approved:
             test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
             approved = confirmStructure(test_smi, proceed=approved)
@@ -424,7 +424,8 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     else:
         num_proc = threads
 
-    columns = ["[rich.progress.description]{task.description}",
+    columns = [rich.progress.SpinnerColumn(style="bold default", finished_text=""),
+        "[rich.progress.description]{task.description}",
             rich.progress.BarColumn(),
             "[rich.progress.percentage]{task.percentage:>3.0f}%",
             rich.progress.TimeElapsedColumn()]
