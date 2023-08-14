@@ -476,11 +476,9 @@ def drawPol(pol, drawName=None, image_size=250, show=False):
 
     print(f"Saved polymer image to {drawName}")
 
-def read_pol(name, n=None, verbosity=False, suppl=None):
+def read_pol(name, n, verbosity=False, suppl=None):
     #reads a polymer file
     ext = name.split(".")[1]
-    if n is None:
-        raise ValueError("Need to have an n value supplied")
     
     if os.path.exists(name):
         #is the file type valid?
