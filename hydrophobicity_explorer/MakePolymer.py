@@ -255,19 +255,14 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     return smi
 
 
-def add_inator_smiles(smi, init, term, *, verbosity=False):
+def add_inator_smiles(smi, init, term):
     #add end groups to the main polymer smiles
-    if verbosity:
-        print(f"polymer smiles is {smi} before any end groups")
-
     if type(init) != str:  #i.e. a mol object instead
         smi = "*" + smi
         add_initiator = True  # we will attatch with mol-based methods
     else:
         add_initiator = False
         smi = init + smi  #just attatch as string instead
-        if verbosity and init != "":
-            print(f"polymer smiles is {smi} after adding initiator smiles")
 
     if type(term) != str:  #i.e. a mol object instead
         smi = smi + "*"  #same as above but for terminator. Attachment point is at end this time.
@@ -275,12 +270,8 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
     else:
         add_terminator = False
         smi = smi + term  #same as above but for terminator
-        if verbosity and init != "":  #no need to print this extra info if adding "" (Hydrogen)
-            print(f"polymer smiles is {smi} after adding terminator smiles")
 
     if add_terminator or add_initiator:
-        if verbosity:
-            print(f"converting polymer body {smi} to mol object to add frags")
         smi = attatch_frags(smi,
                             add_initiator=(add_initiator, init),
                             add_terminator=(add_terminator, term))
@@ -302,11 +293,11 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
 
     if test and addEndgroups:  # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
         #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
-        test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
+        test_smi = add_inator_smiles(repeat_unit, init, term)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
     if addEndgroups:
-        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
+        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term)
 
     POL = Polymer(n, polymer_SMILES, mpn=m_per_n)
 
