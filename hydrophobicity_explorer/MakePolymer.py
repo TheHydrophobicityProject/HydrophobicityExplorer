@@ -1,6 +1,6 @@
 from functools import cache
 import argparse, os, json, pandas
-from rich.progress import track
+from rich.progress import track, Progress
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import rdkit
@@ -314,13 +314,11 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(POL, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def optPol(pol_h, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
-    Arguments: FLAT, a 2D 2dkit mol object
-    nConfs: int, number of conformations to try
-    threads: int, number of threads to use for generating conformations
+    pol_h: RDKit Mol object with one, unoptimized conformer
     iters: int, maximum number of iterations to try and converge optimizations
 
     rdkit_params: dict, must contain the following values:
@@ -329,17 +327,6 @@ def optPol(POL, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel"
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
     """
 
-    FLAT = POL.flat
-   
-    #check mol
-    Chem.SanitizeMol(FLAT)
-    #opt steps
-    pol_h = Chem.AddHs(FLAT)
-    #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
-    ids = AllChem.EmbedMultipleConfs(
-        pol_h, numConfs=nConfs, useRandomCoords=True,
-        numThreads=threads)  #get multiple conformers for better stats
-     
     #unpack rdkit_params
     dielectricModel=rdkit_params["dielectricModel"]
     dielectricConstant=rdkit_params["dielectricConstant"]
@@ -349,23 +336,17 @@ def optPol(POL, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel"
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props, dielectricConstant)
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props, dielectricModel)
 
-    for CONF_ID in track(range(nConfs), description="Optimizing Conformers"):
-        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        # print(f"Initial energy = {ff.CalcEnergy()}")
-        ff.Initialize()
-        converged = ff.Minimize(iters)
-        # print(f"Now calc energy = {ff.CalcEnergy()}")
-        # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        # print(f"True calc energy = {ff.CalcEnergy()}")
-        if  converged == 1:
-            print(f"minimization failed for conformer {CONF_ID}!")
-            pol_h.RemoveConformer(CONF_ID)
-    
-    if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
-        raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
-    
-    POL.get_pol_list(pol_h)
-    return POL
+    ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH)
+    # print(f"Initial energy = {ff.CalcEnergy()}")
+    ff.Initialize()
+    converged = ff.Minimize(iters)
+    # print(f"Now calc energy = {ff.CalcEnergy()}")
+    # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+    # print(f"True calc energy = {ff.CalcEnergy()}")
+    if  converged == 1: #i.e. is not converged
+        return 0
+    else:
+        return pol_h
 
 
 def confirmStructure(smi, *, proceed=None):
@@ -387,6 +368,22 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
+
+def generate_conf_list(POL, nConfs=5, threads=0):
+    FLAT = POL.flat
+   
+    #check mol
+    Chem.SanitizeMol(FLAT)
+    #opt steps
+    pol_h = Chem.AddHs(FLAT)
+    #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
+    ids = AllChem.EmbedMultipleConfs(
+        pol_h, numConfs=nConfs, useRandomCoords=True,
+        numThreads=threads)  #get multiple conformers for better stats
+    POL.get_pol_list(pol_h)
+    return POL
+
+
 def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
@@ -398,60 +395,65 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
     if plot:  #make molecules from n=1 to n specified by user.
         N_array = range(1, n + 1)
-        #this allows us to confirm only once for plotting jobs
-        if confirm and addEndgroups:
-            confirmed = False
-        else:
-            confirmed = True
+    else:
+        N_array = [n]
 
-        for j in N_array:
-            if j == 1 and confirm and not confirmed:
-                test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
-                confirmed = confirmStructure(test_smi, proceed=confirmed)
+    #this allows us to confirm only once for plotting jobs
+    if confirm and addEndgroups:
+        approved = False
+    else:
+        approved = True
 
-            if j > 1 or not confirm:  #do not test if j is large or if we ask not to test at all.
-                POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
+    for j in track(N_array, description="Generating SMILES", disable = not verbosity):
+        if confirm and not approved:
+            test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
+            approved = confirmStructure(test_smi, proceed=approved)
 
-            if verbosity:
-                print(f"Done generating SMILES with n = {j} now: {POL.smiles}")
-            #keep Polymer object
-            POL_LIST.append(POL)
+        if not confirm:
+            POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
 
-        if verbosity:
-            print("\n")
+        #keep Polymer object
+        POL_LIST.append(POL)
 
-        nConfs=defaults["opt_numConfs"]
-        threads=defaults["opt_numThreads"]
-        iters=defaults["opt_maxIters"]
-        rdkit_params=defaults
-        if threads == 0:
-            num_proc = os.cpu_count()
-        else:
-            num_proc = threads
+    if verbosity:
+        print("\n")
 
-        pool_inputs = [(POL, nConfs, threads, iters, rdkit_params) for POL in reversed(POL_LIST)]
+    nConfs=defaults["opt_numConfs"]
+    threads=defaults["opt_numThreads"]
+    iters=defaults["opt_maxIters"]
+    rdkit_params=defaults
+    if threads == 0:
+        num_proc = os.cpu_count()
+    else:
+        num_proc = threads
 
-        with Pool(processes=num_proc) as p:
-            POL_LIST = p.starmap(optPol, pool_inputs)
+    # Get the conformers serially.
+    # Threads used to speed up conf generation
+    for i, POL in enumerate(POL_LIST):
+        POL_LIST[i] = generate_conf_list(POL, nConfs=nConfs, threads=threads)
+        
+    #prepare inputs
+    polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
+    pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]        
+
+    
+    with Pool(processes=num_proc) as p:
+        polh_list = p.starmap(optPol, pool_inputs)
+    
+    #repack the optimized confs with the Polymer objects
+    for i, POL in enumerate(POL_LIST):
+        offset = i * nConfs
+        lower = 0 + offset
+        upper = nConfs + offset
+        pol_list = polh_list[lower:upper]
+        # remove 0s from the list, which are in place of unoptimized Mol
+        POL.pol_list = [p for p in pol_list if p != 0]
+        POL_LIST[i] = POL
+
+    if plot:
         return POL_LIST
-    else: #just one polymer.
-        test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
-        if verbosity:
-            print(f'Polymer interpreted as: {i} {n} * {r} {t}')
-            print(f"This gives the following SMILES: {POL.smiles}")
-
-        if confirm and addEndgroups:
-            print("Showing structure with n=1 to confirm correct end groups")
-            confirmStructure(test_smi)
-
-        POL = optPol(
-            POL,
-            nConfs=defaults["opt_numConfs"],
-            threads=defaults["opt_numThreads"],
-            iters=defaults["opt_maxIters"],  #both are mol objects
-            rdkit_params=defaults)
-        return POL
-
+    else:
+        return POL_LIST[0]
 
 def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
