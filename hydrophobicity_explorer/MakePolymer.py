@@ -368,7 +368,7 @@ def confirmStructure(smi, *, proceed=None):
     if proceed is not None:
         return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
@@ -778,8 +778,7 @@ def main(**kwargs):
                     polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
                     if polymer_body_smiles is None:
                         break
-                    polSMILES = add_inator_smiles(polymer_body_smiles, init,
-                                                  term)
+                    polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
                     POL = Polymer(n, polSMILES, ratio=ratio)
                     POL = optPol(POL,
                                 nConfs=default_dict["opt_numConfs"],
