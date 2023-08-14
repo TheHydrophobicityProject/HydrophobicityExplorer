@@ -733,11 +733,6 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
     return df
 
 
-def exportToCSV(exptName, dataframe):
-    pandas.DataFrame.to_csv(dataframe, exptName, index=False)
-    print(f"Done exporting data to {exptName}.")
-
-
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
@@ -867,7 +862,9 @@ def main(**kwargs):
             print(dataframe)
 
             if vardict["export"] is not None:
-                exportToCSV(vardict["export"], dataframe)
+                pandas.DataFrame.to_csv(dataframe, vardict["export"], index=False)
+                print(f"Done exporting data to {vardict['export']}.")
+
         elif vardict["calculation"] is None and vardict["export"] is not None:
             raise Exception("You cannot export data if none were collected.")
 
