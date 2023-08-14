@@ -1,5 +1,5 @@
 from functools import cache
-import argparse, os, json, pandas
+import argparse, os, json, pandas, rich
 from rich.progress import track, Progress
 from concurrent.futures import ProcessPoolExecutor
 from scipy.optimize import curve_fit
@@ -424,18 +424,29 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
     else:
         num_proc = threads
 
-    # Get the conformers serially.
-    # Threads used to speed up conf generation
-    i = 0 #I would prefer to use enumerate() here, but it forces the progress bar to use the wrong style
-    for POL in track(POL_LIST, description="[blue]Embedding Conformers", disable = not verbosity):
-        POL_LIST[i] = generate_conf_list(POL, nConfs=nConfs, threads=threads)
-        i += 1
-        
-    #prepare inputs
-    polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
-    pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]        
+    columns = ["[rich.progress.description]{task.description}",
+            rich.progress.BarColumn(),
+            "[rich.progress.percentage]{task.percentage:>3.0f}%",
+            rich.progress.TimeElapsedColumn()]
 
-    with Progress() as progress:
+    with Progress(*columns) as progress:
+        futures = []
+        overall_progress_task = progress.add_task("[blue]Embedding Conformers:")
+
+        with ProcessPoolExecutor(max_workers=num_proc) as executor:
+            for POL in POL_LIST:
+                futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
+            while (n_finished := sum([future.done() for future in futures])) <= len(futures):
+                progress.update(overall_progress_task, completed=n_finished, total=len(futures))
+                if n_finished == len(futures):
+                    break
+        POL_LIST = [f.result() for f in futures]
+
+        #prepare inputs
+        polh_list = [conf for pol in POL_LIST for conf in pol.pol_list]
+        pool_inputs = [(pol_h, iters, rdkit_params) for pol_h in polh_list]        
+
+    with Progress(*columns) as progress:
         futures = []
         overall_progress_task = progress.add_task("[blue]Optimizing Conformers:")
 
