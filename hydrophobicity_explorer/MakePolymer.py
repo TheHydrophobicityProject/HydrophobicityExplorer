@@ -437,9 +437,10 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
         with ProcessPoolExecutor(max_workers=num_proc) as executor:
             for POL in POL_LIST:
                 futures.append(executor.submit(generate_conf_list, POL, nConfs, threads))
-            while (n_finished := sum([future.done() for future in futures])) <= len(futures):
-                progress.update(overall_progress_task, completed=n_finished, total=len(futures))
-                if n_finished == len(futures):
+            target_length = len(futures)
+            while (n_finished := sum([future.done() for future in futures])) <= target_length:
+                progress.update(overall_progress_task, completed=n_finished, total=target_length)
+                if n_finished == target_length:
                     break
         POL_LIST = [f.result() for f in futures]
 
@@ -455,9 +456,10 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             for i, inputs in enumerate(pool_inputs):
                 pol_h, iters, rdkit_params = inputs
                 futures.append(executor.submit(optPol, pol_h, iters, rdkit_params))
-            while (n_finished := sum([future.done() for future in futures])) <= len(futures):
-                progress.update(overall_progress_task, completed=n_finished, total=len(futures))
-                if n_finished == len(futures):
+            target_length = len(futures)
+            while (n_finished := sum([future.done() for future in futures])) <= target_length:
+                progress.update(overall_progress_task, completed=n_finished, total=target_length)
+                if n_finished == target_length:
                     break
 
     polh_list = [f.result() for f in futures]
