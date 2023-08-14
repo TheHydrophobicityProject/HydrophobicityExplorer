@@ -1,6 +1,8 @@
 import hydrophobicity_explorer as hx
 from hydrophobicity_explorer import MakePolymer
-import pytest
+import pytest, os
+from rdkit import Chem
+
 
 # def test_of_Polymer_creation():
 #     init = "Hydroxyl" # "O" 
@@ -19,4 +21,23 @@ import pytest
         
 #         assert POL.smiles == init + n * monomer + term
 
-### Well Well Well, look at how the use of global variables came back to bite me!        
+### Well Well Well, look at how the use of global variables came back to bite me!
+
+def test_reading_from_files():
+    
+    n = 3
+    smiles = "O" + n * "Cc1ccccc1O" + "CC(C(=O)OC)C"
+
+    pol = Chem.MolFromSmiles(smiles)
+
+    name="tmp.mol"
+    Chem.MolToMolFile(pol, name)
+
+    POL = MakePolymer.read_pol(name, n)
+    os.remove(name)
+
+    canon_read = Chem.CanonSmiles(POL.smiles)
+    canon_original = Chem.CanonSmiles(smiles)
+
+    
+    assert canon_original == canon_read
