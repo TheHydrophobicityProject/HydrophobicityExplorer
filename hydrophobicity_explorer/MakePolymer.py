@@ -317,7 +317,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}, progress=None, task_id = None):
+def optPol(FLAT, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
@@ -328,8 +328,6 @@ def optPol(FLAT, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricCons
         dielectricModel: int, model 1 is constant; model 2 is distant-dependent
         dielectricConstant: int, Dielectric constant 78 corresponds to water
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
-
-    progress and task_id are used for progress bar generation while multiprocessing.
 
     Returns 0 if not optimized, or the optimized mol object.
     """
