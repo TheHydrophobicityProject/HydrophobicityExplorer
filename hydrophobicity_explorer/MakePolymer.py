@@ -424,7 +424,6 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
             rich.progress.TimeElapsedColumn()]
 
     with Progress(*columns) as progress:
-        # embedding_progress = progress.add_task("[blue]Embedding Conformers:")
         optimization_progress = progress.add_task("[blue]Optimizing Conformers:")
         with ProcessPoolExecutor(max_workers=num_proc) as executor:
             #prepare inputs
