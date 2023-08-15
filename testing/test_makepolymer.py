@@ -41,7 +41,7 @@ def test_reading_from_files():
     
     assert canon_original == canon_read
 
-def test_draw_pol():
+def test_draw_single_pol():
     smiles = "O" + "Cc1ccccc1O" + "CC(C(=O)OC)C"
     pol = Chem.MolFromSmiles(smiles)
     name = "tmp.png"
@@ -53,6 +53,20 @@ def test_draw_pol():
     inch2 = Chem.MolToInchi(pol2)
 
     assert inch == inch2
+
+def test_draw_grid_of_pols():
+    smiles = "O" + "Cc1ccccc1O" + "CC(C(=O)OC)C"
+
+    POL = MakePolymer.Polymer(1, smiles)
+    pol = [POL]
+
+    name = "tmp.png"
+    MakePolymer.drawPol(pol, drawName=name)
+    
+    # We can't read from a grid image directly, so just check if file exists
+    assert os.path.exists(name)
+    os.remove(name)
+
 
 def test_write_pol_to_file():
     n = 3
