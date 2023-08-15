@@ -1,5 +1,7 @@
 from functools import cache
-import argparse, os, json, pandas, tqdm
+import argparse, os, json, pandas, rich
+from rich.progress import track, Progress
+from concurrent.futures import ProcessPoolExecutor
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import rdkit
@@ -15,21 +17,32 @@ class Polymer:
     smiles: str, smiles string
     mpn: int, the number of monomers in a comonomer sequence
     flat: mol, 2D structure. Used for pictures
-    suppl: SDMolsuppl, the itterator with the conformers
     ratio: str, the ratio of monomers in a polymer with random monomer ordering using a target ratio
+    pol_list: list of mols with all optimized conformers
     """
 
-    def __init__(self, n, smiles, mpn=1, ratio=None, suppl=None):
+    def __init__(self, n, smiles, mpn=1, ratio=None, pol_list=None):
         self.n = n
         self.mpn = mpn
         self.smiles = smiles
         self.flat = self.get2D()
-        self.suppl = suppl
         self.ratio = ratio
+        self.pol_list = pol_list
 
     def get2D(self):
-        return Chem.MolFromSmiles(self.smiles)
-
+        FLAT = Chem.MolFromSmiles(self.smiles)
+        #check mol
+        Chem.SanitizeMol(FLAT)
+        return FLAT
+    
+    def get_pol_list(self, mol):
+        pol_list = []
+        confs = mol.GetConformers()
+        for conf in confs:
+            single_conf_mol = Chem.Mol(mol, True)
+            single_conf_mol.AddConformer(conf, assignId=True)
+            pol_list.append(single_conf_mol)
+        self.pol_list = pol_list
 
 def getStaticSettings():
     """
@@ -175,7 +188,7 @@ def get_building_blocks(i,t,m,*, verbosity = False):
 
     return init, term, repeat_unit, monomers_per_n
 
-def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminator = (False, None)): #the initiator and terminator are the kwargs
+def attatch_frags(polymer_smiles, add_initiator = (False, None), add_terminator = (False, None)):
     pol = Chem.MolFromSmiles(polymer_smiles)
     #get indicies of fake atoms ("*")
     fake_atoms = [a.GetIdx() for a in pol.GetAtoms() if a.GetAtomicNum() == 0]
@@ -242,19 +255,14 @@ def attatch_frags(polymer_smiles, *, add_initiator = (False, None), add_terminat
     return smi
 
 
-def add_inator_smiles(smi, init, term, *, verbosity=False):
+def add_inator_smiles(smi, init, term):
     #add end groups to the main polymer smiles
-    if verbosity:
-        print(f"polymer smiles is {smi} before any end groups")
-
     if type(init) != str:  #i.e. a mol object instead
         smi = "*" + smi
         add_initiator = True  # we will attatch with mol-based methods
     else:
         add_initiator = False
         smi = init + smi  #just attatch as string instead
-        if verbosity and init != "":
-            print(f"polymer smiles is {smi} after adding initiator smiles")
 
     if type(term) != str:  #i.e. a mol object instead
         smi = smi + "*"  #same as above but for terminator. Attachment point is at end this time.
@@ -262,12 +270,8 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
     else:
         add_terminator = False
         smi = smi + term  #same as above but for terminator
-        if verbosity and init != "":  #no need to print this extra info if adding "" (Hydrogen)
-            print(f"polymer smiles is {smi} after adding terminator smiles")
 
     if add_terminator or add_initiator:
-        if verbosity:
-            print(f"converting polymer body {smi} to mol object to add frags")
         smi = attatch_frags(smi,
                             add_initiator=(add_initiator, init),
                             add_terminator=(add_terminator, term))
@@ -276,8 +280,15 @@ def add_inator_smiles(smi, init, term, *, verbosity=False):
 
 
 def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
-    #given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
-    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) #init and term may or may not be mol while i and t are both str.
+    """
+    given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
+
+    init and term may or may not be mol
+    
+    i and t are both str.
+    """
+    
+    init, term, repeat_unit, m_per_n = get_building_blocks(i,t,r, verbosity=verbosity) 
 
     if init == "" and term == "":
         addEndgroups = False
@@ -288,12 +299,12 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     polymer_SMILES = n * repeat_unit
 
     if test and addEndgroups:  # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
-        #if you don't do this and have n=15, the image is very hard to parse visually and some parts of pol will overlap.
-        test_smi = add_inator_smiles(repeat_unit, init, term, verbosity=verbosity)
+        #if you don't do this and have n=15, the image is very hard to visually understand because some parts of pol will overlap.
+        test_smi = add_inator_smiles(repeat_unit, init, term)
         verbosity = False #turn off verbosity for the next generation because we already display info about endgroup connections the first time.
     
     if addEndgroups:
-        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term, verbosity=verbosity)
+        polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term)
 
     POL = Polymer(n, polymer_SMILES, mpn=m_per_n)
 
@@ -304,30 +315,25 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         return POL
    
-def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def optPol(FLAT, iters=1500, rdkit_params={"dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     """
     Optimizes the Polymer and uses only the conformers that converged
 
-    Arguments: FLAT, a 2D 2dkit mol object
-    nConfs: int, number of conformations to try
-    threads: int, number of threads to use for generating conformations
+    FLAT: 2D Mol object
     iters: int, maximum number of iterations to try and converge optimizations
 
     rdkit_params: dict, must contain the following values:
         dielectricModel: int, model 1 is constant; model 2 is distant-dependent
         dielectricConstant: int, Dielectric constant 78 corresponds to water
         NB_THRESH: int, Value to cut off long-distance interactions. 100 is rdkit default.
+
+    Returns 0 if not optimized, or the optimized mol object.
     """
-   
-    #check mol
-    Chem.SanitizeMol(FLAT)
-    #opt steps
+
     pol_h = Chem.AddHs(FLAT)
     #random coords lead to better geometries than using the rules rdkit has. Excluding this kwarg leads to polymers that do not fold properly.
-    ids = AllChem.EmbedMultipleConfs(
-        pol_h, numConfs=nConfs, useRandomCoords=True,
-        numThreads=threads)  #get multiple conformers for better stats
-     
+    AllChem.EmbedMolecule(pol_h, useRandomCoords=True)
+
     #unpack rdkit_params
     dielectricModel=rdkit_params["dielectricModel"]
     dielectricConstant=rdkit_params["dielectricConstant"]
@@ -337,43 +343,17 @@ def optPol(FLAT, nConfs=5, threads=0, iters=1500, rdkit_params={"dielectricModel
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricConstant(props, dielectricConstant)
     rdkit.ForceField.rdForceField.MMFFMolProperties.SetMMFFDielectricModel(props, dielectricModel)
 
-    for CONF_ID in tqdm.trange(nConfs, desc=f"Optimizing Conformers", ncols=80, colour='MAGENTA'):
-        ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        # print(f"Initial energy = {ff.CalcEnergy()}")
-        ff.Initialize()
-        converged = ff.Minimize(iters)
-        # print(f"Now calc energy = {ff.CalcEnergy()}")
-        # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
-        # print(f"True calc energy = {ff.CalcEnergy()}")
-        if  converged == 1:
-            print(f"minimization failed for conformer {CONF_ID}!")
-            pol_h.RemoveConformer(CONF_ID)
-    
-    if pol_h.GetNumConformers() == 0: #all conformations have failed to converge. Tell the user to change something.
-        raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
-    
-    #calculations are inconsistent if using conf ids instead of just single-conf mols. Translate to sdf mol supplier to make it easy to integrate with reading files.
-    i = 0
-    while os.path.exists(f"tmp_{i}.sdf"): #this is a band-aid solution for the fact that on windows anaconda prompts the temporary files cannot be removed
-        i += 1            
-    sdfFilename = f"tmp_{i}.sdf"
-    
-    writer = Chem.SDWriter(sdfFilename)
-    for conf in pol_h.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
-        cid = conf.GetId() #The numbers may not be sequential.
-        pol_h.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
-        # pol_h.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-        writer.write(pol_h, confId=cid) #save the particular conf to the file.  
-    writer.flush() #if this isn't included some (small) monomers break everything.
-    writer.close()
-    suppl = Chem.SDMolSupplier(sdfFilename, removeHs=False) #iterator that has all mols in the sdf file.
-    
-    try:
-        os.remove(sdfFilename) #cleanup if this is meant to be a temporary file.
-    except: #this fails on Windows, but not Linux
-        print(f"Failed to remove tmp file {sdfFilename}.")
-
-    return suppl  #suppl now has each conformation as a separate mol obj when we iterate thru it.
+    ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH)
+    # print(f"Initial energy = {ff.CalcEnergy()}")
+    ff.Initialize()
+    converged = ff.Minimize(iters)
+    # print(f"Now calc energy = {ff.CalcEnergy()}")
+    # ff = AllChem.MMFFGetMoleculeForceField(pol_h, props, nonBondedThresh=NB_THRESH, confId=CONF_ID)
+    # print(f"True calc energy = {ff.CalcEnergy()}")
+    if  converged == 1: #i.e. is not converged
+        return 0
+    else:
+        return pol_h
 
 
 def confirmStructure(smi):
@@ -394,7 +374,7 @@ def confirmStructure(smi):
     
     return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
@@ -405,56 +385,77 @@ def make_One_or_More_Polymers(i, n, r, t, *, verbosity=False, plot=False, confir
 
     if plot:  #make molecules from n=1 to n specified by user.
         N_array = range(1, n + 1)
-        #this allows us to confirm only once for plotting jobs
-        if confirm and addEndgroups:
-            confirmed = False
+    else:
+        N_array = [n]
+
+    #this allows us to confirm only once for plotting jobs
+    if confirm and addEndgroups:
+        approved = False
+    else:
+        approved = True
+
+    for j in track(N_array, description="[blue] Generating SMILES:", disable = not verbosity):
+        if confirm and not approved:
+            test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
+            approved = confirmStructure(test_smi)
         else:
-            confirmed = True
+            POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
 
-        for j in N_array:
-            if j == 1 and confirm and not confirmed:
-                test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
-                confirmed = confirmStructure(test_smi)
+        POL_LIST.append(POL)
 
-            if j > 1 or not confirm:  #do not test if j is large or if we ask not to test at all.
-                POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
+    nConfs=defaults["opt_numConfs"]
+    threads=defaults["opt_numThreads"]
+    iters=defaults["opt_maxIters"]
+    rdkit_params=defaults
+    if threads == 0:
+        num_proc = os.cpu_count()
+    else:
+        num_proc = threads
 
-            if verbosity:
-                print(f"Done generating SMILES with n = {j} now: {POL.smiles}")
-            #keep Polymer object
-            POL_LIST.append(POL)
+    columns = [rich.progress.SpinnerColumn(style="bold default", finished_text=""),
+            "[rich.progress.description]{task.description}",
+            rich.progress.BarColumn(),
+            "[rich.progress.percentage]{task.percentage:>3.0f}%",
+            rich.progress.TimeElapsedColumn()]
 
-        if verbosity:
-            print("\n")
+    with Progress(*columns) as progress:
+        optimization_progress = progress.add_task("[blue]Optimizing Conformers:")
+        with ProcessPoolExecutor(max_workers=num_proc) as executor:
+            #prepare inputs
+            FLATS = [p.flat for p in POL_LIST for _ in range(nConfs)]
+            pool_inputs = [(flat, iters, rdkit_params) for flat in FLATS]
 
-        for j, POL in enumerate(reversed(POL_LIST)): #optimize the longest polymer first to see if parameters need to be changed.
-            if verbosity:        
-                print(f"Converting n={n-j} to RDkit mol now.")
-            #get opt and unopt molecules.
-            POL.suppl = optPol(POL.flat,
-                               nConfs=defaults["opt_numConfs"],
-                               threads=defaults["opt_numThreads"],
-                               iters=defaults["opt_maxIters"],
-                               rdkit_params=defaults)
+            opt_futures = []
+            for i, inputs in enumerate(pool_inputs):
+                flat, iters, rdkit_params = inputs
+                opt_futures.append(executor.submit(optPol, flat, iters, rdkit_params))
+            opt_length = len(opt_futures)
+            # monitor the running jobs. Break when all are done.
+            while (n_finished := sum([future.done() for future in opt_futures])) <= opt_length:
+                progress.update(optimization_progress, completed=n_finished, total=opt_length)
+                if n_finished == opt_length:
+                    break            
+
+            polh_list = [f.result() for f in opt_futures]
+    
+    #repack the optimized confs with the Polymer objects
+    for i, POL in enumerate(POL_LIST):
+        offset = i * nConfs
+        lower = 0 + offset
+        upper = nConfs + offset
+        pol_list = polh_list[lower:upper]
+        # remove 0s from the list, which are in place of unoptimized Mol
+        POL.pol_list = [p for p in pol_list if p != 0]
+        
+        if len(POL.pol_list) == 0: # all conformations have failed to converge. Tell the user to change something.
+            raise Exception("Optimization failed to converge. Increase maxIters valve in mhpSettings.json and rereun.")
+        else:
+            POL_LIST[i] = POL
+
+    if plot:
         return POL_LIST
-    else: #just one polymer.
-        test_smi, POL = createPolymerObj(i, n, r, t, verbosity=verbosity, test=True)
-        if verbosity:
-            print(f'Polymer interpreted as: {i} {n} * {r} {t}')
-            print(f"This gives the following SMILES: {POL.smiles}")
-
-        if confirm and addEndgroups:
-            print("Showing structure with n=1 to confirm correct end groups")
-            _ = confirmStructure(test_smi)
-
-        POL.suppl = optPol(
-            POL.flat,
-            nConfs=defaults["opt_numConfs"],
-            threads=defaults["opt_numThreads"],
-            iters=defaults["opt_maxIters"],  #both are mol objects
-            rdkit_params=defaults)
-        return POL
-
+    else:
+        return POL_LIST[0]
 
 def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
@@ -475,11 +476,13 @@ def drawPol(pol, drawName=None, image_size=250, show=False):
 
     print(f"Saved polymer image to {drawName}")
 
-def read_pol(name, n, verbosity=False, suppl=None):
+def read_pol(name, n, verbosity=False):
     #reads a polymer file
     ext = name.split(".")[1]
     
     if os.path.exists(name):
+        pol_list = []
+
         #is the file type valid?
         if ext == "pdb":
             pol_h = Chem.MolFromPDBFile(name)
@@ -487,59 +490,44 @@ def read_pol(name, n, verbosity=False, suppl=None):
             pol_h = Chem.MolFromMolFile(name)
         elif ext == "sdf":
             suppl = Chem.SDMolSupplier(name, removeHs=False)
-            for pol in suppl:  #grab one conf so we can visualize
-                pol_h = pol
-                break  #we break the loop since only one conf is needed to visualize
+            for pol in suppl:
+                pol_list.append(pol)
+            pol_h = pol_list[0]
         else:
             print(f"unsuported extention: {ext} in {name} Please use .pdb, .mol or .sdf") #.xyz cannot be read by rdkit.
             quit()
 
-        if suppl is None:
-            sdf_name = "tmp.sdf"
-            writer = Chem.SDWriter(sdf_name)
-            writer.write(pol_h)
-            suppl = Chem.SDMolSupplier(sdf_name, removeHs=False) #iterator that has all mols in the sdf file.
-            writer.flush() #if this isn't included some (small) monomers break everything.
-            writer.close()  
-            os.remove(sdf_name)
-
         #convert to smiles so it can be visualized
         polSMILES = Chem.MolToSmiles(pol_h)
+        
         if verbosity:
             print(f"polymer smiles is: {polSMILES}")
-        POL = Polymer(n, polSMILES, suppl=suppl)
+        POL = Polymer(n, polSMILES)
+
+        if len(pol_list == 0):
+            POL.get_pol_list(pol_h)
+        else:
+            POL.pol_list = pol_list
+
         return POL
     else:
         raise FileNotFoundError(name)
 
 
-def write_pol(name, verbosity=False, suppl=None):
+def write_pol(name, verbosity=False, pol_list=None):
     #writes a polymer file
     ext = name.split(".")[1]
     if verbosity:
         print(f'writing molecule to {name}')
 
-    #what are we dealing with?
-    if type(suppl) == type(Chem.SDMolSupplier()):
-        for pol in suppl:
-            first_conf = pol
-            cid = -1
-            break  #we will only be writing the first conf in the iterable for non-sdf files.
-    else:
-        raise TypeError("suppl must be an SDMolSupplier")
+    pol_list[0] = first_conf
+    cid = -1
 
     #is the file type valid?
     if ext == "sdf":
         writer = Chem.SDWriter(name)
-        if suppl:
-            for pol in suppl:
-                writer.write(pol)
-        else: #is a mol opject        
-            for conf in suppl.GetConformers(): #loop through all conformers that still exist. We only write the conformations that converged.
-                cid = conf.GetId() #The numbers may not be sequential.
-                suppl.SetProp('_Name', f'conformer_{cid}') #when sdf is read each conf is separate mol object.
-                # mol.SetProp('ID', f'conformer_{cid}') #Similar method can be used to print number of monomers for plot jobs.
-                writer.write(suppl, confId=cid)
+        for pol in pol_list:
+            writer.write(pol)
 
     elif ext == "xyz":
         Chem.MolToXYZFile(first_conf, name, confId=cid)
@@ -605,10 +593,14 @@ def func_exp(x, a, b, c):
     return a * (x**b) + c
 
 def doCalcs(pol_iter, calcs, defaults={"MV_gridSpacing":0.2, "MV_boxMargin" :2.0}):
-    #pol_iter is an iterable that has several confs within.
-    #The type of variable /calcs/ is set
-    #Calcs are only done if requested.
-    #remove entries from set after each calculation and print the unrecognized ones at the end.
+    """
+    pol_iter: a list of rdkit Mol objects
+    cals: set of calculation keys
+
+    Calcs are only done if requested.
+    remove entries from set after each calculation and print the unrecognized ones at the end.
+    """
+
     data = {}
     if "SA" in calcs or "MHP" in calcs or "XMHP" in calcs:
         sasa = Sasa(pol_iter)
@@ -651,7 +643,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
     dicts = []
     for POL in pol_list:
         calcs = set([calc.upper() for calc in calculations])
-        pol_data = doCalcs(POL.suppl, calcs)
+        pol_data = doCalcs(POL.pol_list, calcs)
         pol_data["N"] = POL.n * POL.mpn
         pol_data["smi"] = POL.smiles
         if POL.ratio is not None:
@@ -730,11 +722,6 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
     return df
 
 
-def exportToCSV(exptName, dataframe):
-    pandas.DataFrame.to_csv(dataframe, exptName, index=False)
-    print(f"Done exporting data to {exptName}.")
-
-
 def main(**kwargs):
     default_dict = getStaticSettings()
     run_list = getArgs()
@@ -783,20 +770,20 @@ def main(**kwargs):
                 else:
                     n_iter = [vardict["n"]]
 
-                #this is in reverse order since larger polymers are more likely to fail. Let this happen at the start of the run so user knows to change settings.
+                # this is in reverse order since larger polymers are more likely to fail.
+                # Let this happen at the start of the run so user knows to change settings.
                 for n in n_iter:
                     import hydrophobicity_explorer.random_polymer_to_mol_file as randPol
                     polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
                     if polymer_body_smiles is None:
                         break
-                    polSMILES = add_inator_smiles(polymer_body_smiles, init,
-                                                  term)
+                    polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
                     POL = Polymer(n, polSMILES, ratio=ratio)
-                    POL.suppl = optPol(POL.flat,
-                                       nConfs=default_dict["opt_numConfs"],
-                                       threads=default_dict["opt_numThreads"],
-                                       iters=default_dict["opt_maxIters"],
-                                       rdkit_params=default_dict)
+                    POL = optPol(POL,
+                                nConfs=default_dict["opt_numConfs"],
+                                threads=default_dict["opt_numThreads"],
+                                iters=default_dict["opt_maxIters"],
+                                rdkit_params=default_dict)
                     if vardict["plot"]:
                         POL_LIST.append(POL)
 
@@ -816,10 +803,10 @@ def main(**kwargs):
                 ext = vardict["save"].split(".")[1]
                 for i, mol in enumerate(POL_LIST):
                     name = f"{base}_{i + 1}.{ext}"
-                    write_pol(name, suppl=mol.suppl)
+                    write_pol(name, pol_list=POL.pol_list)
             else:
                 write_pol(vardict["save"],
-                            suppl=POL.suppl,
+                            pol_list=POL.pol_list,
                             verbosity=vardict["verbose"])
 
         #drawing a picture of the polymer.
@@ -844,7 +831,7 @@ def main(**kwargs):
             if not vardict["plot"]:
                 calcs = set([calc.upper() for calc in vardict["calculation"]])
                 data = doCalcs(
-                    POL.suppl, calcs,
+                    POL.pol_list, calcs,
                     defaults=default_dict)  #use set to remove duplicates
                 data["N"] = vardict["n"] * POL.mpn
                 data["smi"] = POL.smiles
@@ -864,7 +851,9 @@ def main(**kwargs):
             print(dataframe)
 
             if vardict["export"] is not None:
-                exportToCSV(vardict["export"], dataframe)
+                pandas.DataFrame.to_csv(dataframe, vardict["export"], index=False)
+                print(f"Done exporting data to {vardict['export']}.")
+
         elif vardict["calculation"] is None and vardict["export"] is not None:
             raise Exception("You cannot export data if none were collected.")
 
