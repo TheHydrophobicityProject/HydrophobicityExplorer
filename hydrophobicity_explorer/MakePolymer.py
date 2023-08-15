@@ -547,41 +547,41 @@ def avg_stat(list_of_stats):
     return sum(list_of_stats) / len(list_of_stats)
 
 
-def Sasa(pol_h):
+def Sasa(pol_list):
     # Calculate SASA
     sasa_lst = []
 
-    for mol in pol_h:  #calculate desired property for each molecule in the file.
-        radii = Chem.rdFreeSASA.classifyAtoms(mol)
-        sasa = Chem.rdFreeSASA.CalcSASA(mol, radii)
+    for pol in pol_list:  #calculate desired property for each molecule in the file.
+        radii = Chem.rdFreeSASA.classifyAtoms(pol)
+        sasa = Chem.rdFreeSASA.CalcSASA(pol, radii)
         sasa_lst.append(sasa)
 
     return avg_stat(sasa_lst)
 
 
-def LogP(pol_h):
+def LogP(pol_list):
     logP_lst = []
-    for mol in pol_h:
-        logP_lst.append(Chem.Descriptors.MolLogP(mol))
+    for pol in pol_list:
+        logP_lst.append(Chem.Descriptors.MolLogP(pol))
 
     return avg_stat(logP_lst)
 
 
-def RadGyration(pol_h):
+def RadGyration(pol_list):
     rg_list = []
 
-    for mol in pol_h:
-        rg_list.append(Chem.rdMolDescriptors.CalcRadiusOfGyration(mol))
-    #Chem.Descriptors3D.RadiusOfGyration(pol_h)
+    for pol in pol_list:
+        rg_list.append(Chem.rdMolDescriptors.CalcRadiusOfGyration(pol))
+    #Chem.Descriptors3D.RadiusOfGyration(pol_list)
     #both seem to give identical results
     return avg_stat(rg_list)
 
 
-def MolVolume(pol_h, *, grid_spacing=0.2, box_margin=2.0):
+def MolVolume(pol_list, grid_spacing=0.2, box_margin=2.0):
     mv_list = []
-    for mol in pol_h:
+    for pol in pol_list:
         mv_list.append(
-            Chem.AllChem.ComputeMolVolume(mol,
+            Chem.AllChem.ComputeMolVolume(pol,
                                           gridSpacing=grid_spacing,
                                           boxMargin=box_margin))
 
