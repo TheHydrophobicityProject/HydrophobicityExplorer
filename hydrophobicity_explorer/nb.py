@@ -72,8 +72,9 @@ notebook = {
     "nbformat_minor": 2
 }
 
-def main():
-    name = "hydrophobicity_explorer.ipynb"
+name = "hydrophobicity_explorer.ipynb"
+
+def main():    
     if os.path.exists(name):
         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
         if inp.lower() != "y" and inp != "":
