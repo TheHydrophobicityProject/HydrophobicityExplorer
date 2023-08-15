@@ -507,7 +507,7 @@ def read_pol(name, n=None, verbosity=False):
             print(f"polymer smiles is: {polSMILES}")
         POL = Polymer(n, polSMILES)
 
-        if len(pol_list == 0):
+        if len(pol_list) == 0:
             POL.get_pol_list(pol_h)
         else:
             POL.pol_list = pol_list
