@@ -24,7 +24,6 @@ from rdkit import Chem
 ### Well Well Well, look at how the use of global variables came back to bite me!
 
 def test_reading_from_files():
-    
     n = 3
     smiles = "O" + n * "Cc1ccccc1O" + "CC(C(=O)OC)C"
 
@@ -54,4 +53,32 @@ def test_draw_pol():
     inch2 = Chem.MolToInchi(pol2)
 
     assert inch == inch2
+
+def test_write_pol_to_file():
+    n = 3
+    smiles = "O" + n * "Cc1ccccc1O" + "CC(C(=O)OC)C"
+
+    POL = MakePolymer.Polymer(n, smiles)
+
+    nConfs = 5
+    pol_list = []
+    for _ in range(nConfs):
+        pol_h = MakePolymer.optPol(POL.flat)
+        pol_list.append(pol_h)
+
+    write_name = "tmp.mol"
+    MakePolymer.write_pol(write_name, pol_list)
+
+    read_mol = Chem.MolFromMolFile(write_name)
+    Chem.RemoveStereochemistry(read_mol) # FLAT won't have any
+
+    os.remove(write_name)
+
+    smi1 = Chem.MolToSmiles(POL.flat)
+    smi2 = Chem.MolToSmiles(read_mol)
+
+    smi1 = Chem.CanonSmiles(smi1)
+    smi2 = Chem.CanonSmiles(smi2)
+
+    assert smi1 == smi2
 
