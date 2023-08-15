@@ -1,4 +1,3 @@
-import hydrophobicity_explorer as hx
 from hydrophobicity_explorer import MakePolymer
 import pytest, os
 from rdkit import Chem

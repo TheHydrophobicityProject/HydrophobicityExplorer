@@ -1,4 +1,3 @@
-import hydrophobicity_explorer as hx
 from hydrophobicity_explorer import nb
 import pytest, os, json
 
