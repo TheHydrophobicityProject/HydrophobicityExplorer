@@ -455,7 +455,7 @@ def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=F
 
     return POL_LIST
 
-def drawPol(pol, drawName=None, image_size=250, show=False):
+def drawPol(pol, drawName, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
     if show:
         img = Chem.Draw.MolToImage(pol, size=(image_size, image_size))
