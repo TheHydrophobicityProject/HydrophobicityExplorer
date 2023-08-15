@@ -1,5 +1,6 @@
 from functools import cache
 import argparse, os, json, pandas, rich
+from statistics import mean
 from rich.progress import track, Progress
 from concurrent.futures import ProcessPoolExecutor
 from scipy.optimize import curve_fit
@@ -543,10 +544,6 @@ def write_pol(name, verbosity=False, pol_list=None):
         print(f'Success writing molecule to {name}')
 
 
-def avg_stat(list_of_stats):
-    return sum(list_of_stats) / len(list_of_stats)
-
-
 def Sasa(pol_list):
     # Calculate SASA
     sasa_lst = []
@@ -556,7 +553,7 @@ def Sasa(pol_list):
         sasa = Chem.rdFreeSASA.CalcSASA(pol, radii)
         sasa_lst.append(sasa)
 
-    return avg_stat(sasa_lst)
+    return mean(sasa_lst)
 
 
 def LogP(pol_list):
@@ -564,7 +561,7 @@ def LogP(pol_list):
     for pol in pol_list:
         logP_lst.append(Chem.Descriptors.MolLogP(pol))
 
-    return avg_stat(logP_lst)
+    return mean(logP_lst)
 
 
 def RadGyration(pol_list):
@@ -574,7 +571,7 @@ def RadGyration(pol_list):
         rg_list.append(Chem.rdMolDescriptors.CalcRadiusOfGyration(pol))
     #Chem.Descriptors3D.RadiusOfGyration(pol_list)
     #both seem to give identical results
-    return avg_stat(rg_list)
+    return mean(rg_list)
 
 
 def MolVolume(pol_list, grid_spacing=0.2, box_margin=2.0):
@@ -585,7 +582,7 @@ def MolVolume(pol_list, grid_spacing=0.2, box_margin=2.0):
                                           gridSpacing=grid_spacing,
                                           boxMargin=box_margin))
 
-    return avg_stat(mv_list)
+    return mean(mv_list)
 
 
 def func_exp(x, a, b, c):
