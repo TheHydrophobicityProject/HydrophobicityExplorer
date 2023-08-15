@@ -384,7 +384,7 @@ def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=F
     else:
         addEndgroups = True
 
-    if plot:  #make molecules from n=1 to n specified by user.
+    if plot:  #make molecules from n=1 to n
         N_array = range(1, n + 1)
     else:
         N_array = [n]
@@ -453,10 +453,7 @@ def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=F
         else:
             POL_LIST[i] = POL
 
-    if plot:
-        return POL_LIST
-    else:
-        return POL_LIST[0]
+    return POL_LIST
 
 def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
@@ -515,13 +512,11 @@ def read_pol(name, n, verbosity=False):
         raise FileNotFoundError(name)
 
 
-def write_pol(name, verbosity=False, pol_list=None):
+def write_pol(name, pol_list):
     #writes a polymer file
     ext = name.split(".")[1]
-    if verbosity:
-        print(f'writing molecule to {name}')
-
-    pol_list[0] = first_conf
+    
+    first_conf = pol_list[0]
     cid = -1
 
     #is the file type valid?
@@ -539,9 +534,6 @@ def write_pol(name, verbosity=False, pol_list=None):
     else:
         print(f"Unsuported extention: {ext} Please use .pdb, .xyz or .mol")
         quit()
-
-    if verbosity:
-        print(f'Success writing molecule to {name}')
 
 
 def Sasa(pol_list):
@@ -734,26 +726,15 @@ def main(**kwargs):
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
             if not vardict["random"]:
-                if vardict["plot"]:
-                    POL_LIST = make_One_or_More_Polymers(
-                        vardict["initiator"],
-                        vardict["n"],
-                        repeat_unit,
-                        vardict["terminator"],
-                        verbosity=vardict["verbose"],
-                        plot=vardict["plot"],
-                        confirm=not vardict["quiet"],
-                        defaults=default_dict)
-                else:
-                    POL = make_One_or_More_Polymers(
-                        vardict["initiator"],
-                        vardict["n"],
-                        repeat_unit,
-                        vardict["terminator"],
-                        verbosity=vardict["verbose"],
-                        plot=vardict["plot"],
-                        confirm=not vardict["quiet"],
-                        defaults=default_dict)
+                POL_LIST = make_One_or_More_Polymers(
+                    vardict["initiator"],
+                    vardict["n"],
+                    repeat_unit,
+                    vardict["terminator"],
+                    verbosity=vardict["verbose"],
+                    plot=vardict["plot"],
+                    confirm=not vardict["quiet"],
+                    defaults=default_dict)
             else:
                 if type(repeat_unit) != list:
                     raise TypeError("comonomers must be specified with -b if -a is used.")
@@ -784,7 +765,7 @@ def main(**kwargs):
                     if vardict["plot"]:
                         POL_LIST.append(POL)
 
-        else: #get mol from file
+        else: # read mol from file
             if vardict["single_monomer"] is not None or vardict["comonomer_sequence"] is not None:
                 raise Exception("No monomers may be specified when reading from a file.")
             elif vardict["plot"]:
@@ -793,26 +774,21 @@ def main(**kwargs):
                 raise Exception("You need to specify the number of monomers in polymers read from a file.")
             POL = read_pol(vardict["read"], n=vardict["n"], verbosity=vardict["verbose"])
 
-        #saving the polymer to a file.
-        if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes                
-            if vardict["plot"]:
-                base = vardict["save"].split(".")[0]
-                ext = vardict["save"].split(".")[1]
-                for i, mol in enumerate(POL_LIST):
-                    name = f"{base}_{i + 1}.{ext}"
-                    write_pol(name, pol_list=POL.pol_list)
-            else:
-                write_pol(vardict["save"],
-                            pol_list=POL.pol_list,
-                            verbosity=vardict["verbose"])
+        # saving the polymer to a file.
+        if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
+            base = vardict["save"].split(".")[0]
+            ext = vardict["save"].split(".")[1]
+            for POL in track(POL_LIST, description="[blue] Writing to File(s)", disable=not vardict["verbose"]):
+                name = f"{base}_{POL.n}.{ext}"
+                write_pol(name, pol_list=POL.pol_list)
 
         #drawing a picture of the polymer.
-        drawName = None
         if vardict["plot"]:
             pol = POL_LIST  #submit this list of mols for use in grid image. If a list is detected, the flats will be pulled out.
         else:
-            pol = POL.flat
+            pol = POL_LIST[0].flat
 
+        drawName = None
         if vardict["draw"] is not None:
             drawName = f'{vardict["draw"].split(".")[0]}.png'
         elif vardict["verbose"]:
@@ -826,10 +802,11 @@ def main(**kwargs):
             print(f'requested calculations are {vardict["calculation"]}')
         if vardict["calculation"] is not None:
             if not vardict["plot"]:
-                calcs = set([calc.upper() for calc in vardict["calculation"]])
+                calcs = set([calc.upper() for calc in vardict["calculation"]]) # set() to removes duplicates
+                POL = POL_LIST[0]
                 data = doCalcs(
                     POL.pol_list, calcs,
-                    defaults=default_dict)  #use set to remove duplicates
+                    defaults=default_dict)
                 data["N"] = vardict["n"] * POL.mpn
                 data["smi"] = POL.smiles
                 data = {k: [data[k]] for k in data} #values in dict need to be lists
