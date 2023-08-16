@@ -635,7 +635,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
         "MV": "Molar Volume"
     }
     dicts = []
-    for POL in pol_list:
+    for POL in track(pol_list, description="[blue] Performing Calculations"):
         calcs = set([calc.upper() for calc in calculations])
         pol_data = doCalcs(POL.pol_list, calcs)
         pol_data["N"] = POL.n * POL.mpn
