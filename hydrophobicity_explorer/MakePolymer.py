@@ -515,7 +515,7 @@ def read_pol(name, n, verbosity=False):
 def write_pol(name, pol_list):
     #writes a polymer file
     ext = name.split(".")[1]
-    
+
     first_conf = pol_list[0]
     cid = -1
 
