@@ -25,10 +25,10 @@ This prompt will not be shown if both end groups are Hydrogen.
 There are dictionaries of monomers and terminal units in `smiles.py` The composition of a polymer containing units in these dictionaries can be spelled out in the following manner. The `-v` flag increases verbosity.
 
 ```bash
-$ makePol -n 3 -m Styrene -v   # -n specifies the number of monomers
-Polymer interpreted as: Hydrogen 3 * Styrene Hydrogen
-This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
-Saving image to polymer.png by default.
+$ makePol -n 3 -m Styrene -v
+ Generating SMILES: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+ Optimizing Conformers: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+Saved polymer image to polymer.png
 requested calculations are None
 ```
 Because verbosity was enabled an image of the polymer was saved with a default name. The name of the image can be specified with the `-d` flag.
@@ -38,12 +38,9 @@ The initiator and terminal groups default to Hydrogen if none are specified.
 Here is another example with a more complex set of arguments:
 ```bash
 $ makePol -n 2 -b 2 Butylacrylate "CC(C)" -i Benzoyl -t Benzyl -vq
-polymer smiles is CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) before any end groups
-polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C) after adding smiles string for initiator
-polymer smiles is c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1 after adding terminator smiles
-Polymer interpreted as: Benzoyl 2 * ['2', 'CC(C(=O)OCCCC)', 'CC(C)'] Benzyl
-This gives the following SMILES: c1ccc(cc1)C(=O)OCC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)CC(C(=O)OCCCC)CC(C(=O)OCCCC)CC(C)Cc1ccccc1
-Saving image to polymer.png by default.
+ Generating SMILES: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+ Optimizing Conformers: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01
+Saved polymer image to polymer.png
 requested calculations are None
 ```
 The `-b` flag defines a sequence of comonomers in a specific repeating pattern. Comonomers can be specified using the monomer dictionary or with a SMILES string in quotation marks (i.e. "CC(C)"). When a coefficient is provided in the list of arguments defined by the `-b` flag, this changes the number of monomers per unit defined by the `-n` flag. In the above example, each unit of n refers to 3 monomers. The `-i` and `-t` flags are used to define initiators and terminators from either the dictionary or from SMILES. The number of monomers per n will be used for plots and image labels.
@@ -99,12 +96,14 @@ The name or path of the file can be specified with the `-s` flag. Valid extentio
 
 ```bash
 $ makePol -n 4 -m Styrene -c MHP -v -s pol.mol
-Polymer interpreted as: Hydrogen 4 * Styrene Hydrogen
-This gives the following SMILES: CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
-Saving image to polymer.png by default.
+ Generating SMILES: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+ Optimizing Conformers: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+writing molecule to pol.mol
+Success writing molecule to pol.mol
+Saved polymer image to polymer.png
 requested calculations are ['MHP']
            SA    LogP   LogP/SA  N                                               smi
-0  370.004894  8.7707  0.023704  4  CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
+0  607.669952  8.7707  0.014433  4  CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)CC(c1ccccc1)
 ```
 In the next plotting section it is shown that many polymers of different lengths can be generated with the `-p` flag. When the `-s` flag is specified as well, each of those molecules will be saved to its own file with a name based off the one specified as a CLI argument. The number of repeat units will be used as a suffix.
 
@@ -117,16 +116,14 @@ The data can be exported to a `.csv` file with the `-e` flag.
 ```bash
 #XMHP requests that the MHP data be eXclusively returned instead of including the LogP and SA values as well.
 $ makePol -n 2 -m Styrene -c XMHP -e data.csv -vp
-Done generating SMILES with n = 1 now: CC(c1ccccc1)
-Done generating SMILES with n = 2 now: CC(c1ccccc1)CC(c1ccccc1)
-Converting n=2 to RDkit mol now.
-Converting n=1 to RDkit mol now.
-Saving image to polymer.png by default.
+ Generating SMILES: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+ Optimizing Conformers: ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+Saved polymer image to polymer.png
 requested calculations are ['XMHP']
 Saved plot to Size-dependent-stats.png
     LogP/SA  N                       smi
-0  0.022390  1              CC(c1ccccc1)
-1  0.023327  2  CC(c1ccccc1)CC(c1ccccc1)
+0  0.012379  1              CC(c1ccccc1)
+1  0.013659  2  CC(c1ccccc1)CC(c1ccccc1)
 #popup of plot appears.
 Done exporting data to .csv file.
 ```
