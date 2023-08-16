@@ -9,6 +9,7 @@ import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors, rdFreeSASA
 from hydrophobicity_explorer.smiles import monomer_dict, init_dict, checkAndMergeSMILESDicts
+import hydrophobicity_explorer.random_polymer_to_mol_file as randPol
 
 
 class Polymer:
@@ -157,7 +158,7 @@ def validate_end_group(inator, *, Init=False, Term=False, verbosity=False):
 
     return inator
 
-def get_building_blocks(i,t,m,*, verbosity = False):
+def get_building_blocks(i, t, m, verbosity=False):
     init, term = inator_smi_lookup(i, t) #converts end groups to mol objects if not right direction for text addition.
     
     if type(m) == list:
@@ -297,7 +298,11 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     else:
         addEndgroups = True
 
-    polymer_SMILES = n * repeat_unit
+    if type(r) == list:
+        polymer_SMILES, ratio = randPol.makePolymerBody_ratio(r, n, mpn=m_per_n)
+    else:
+        polymer_SMILES = n * repeat_unit
+        ratio = None
 
     if test and addEndgroups:  # a parameter used to generate an n=1 image where it is easy to see where end groups attatch
         #if you don't do this and have n=15, the image is very hard to visually understand because some parts of pol will overlap.
@@ -307,7 +312,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
     if addEndgroups:
         polymer_SMILES = add_inator_smiles(polymer_SMILES, init, term)
 
-    POL = Polymer(n, polymer_SMILES, mpn=m_per_n)
+    POL = Polymer(n, polymer_SMILES, mpn=m_per_n, ratio=ratio)
 
     if test:
         #return test smiles too so it can be previewed. It is fast to make both before confirmation
@@ -455,7 +460,7 @@ def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=F
 
     return POL_LIST
 
-def drawPol(pol, drawName, image_size=250, show=False):
+def drawPol(pol, drawName=None, image_size=250, show=False):
     #draws the 2d version of the polymer to an image
     if show:
         img = Chem.Draw.MolToImage(pol, size=(image_size, image_size))
@@ -742,28 +747,17 @@ def main(**kwargs):
                 init = validate_end_group(init, Init=True)
                 term = validate_end_group(term, Term=True)
                 deciphered_dict_keys = parse_smiles_dict_keys(repeat_unit, mono)
-                if vardict["plot"]:
-                    n_iter = reversed(range(1, vardict["n"] + 1))
-                    POL_LIST = []
-                else:
-                    n_iter = [vardict["n"]]
 
-                # this is in reverse order since larger polymers are more likely to fail.
-                # Let this happen at the start of the run so user knows to change settings.
-                for n in n_iter:
-                    import hydrophobicity_explorer.random_polymer_to_mol_file as randPol
-                    polymer_body_smiles, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, verbo=vardict["verbose"])
-                    if polymer_body_smiles is None:
-                        break
-                    polSMILES = add_inator_smiles(polymer_body_smiles, init, term)
-                    POL = Polymer(n, polSMILES, ratio=ratio)
-                    POL = optPol(POL,
-                                nConfs=default_dict["opt_numConfs"],
-                                threads=default_dict["opt_numThreads"],
-                                iters=default_dict["opt_maxIters"],
-                                rdkit_params=default_dict)
-                    if vardict["plot"]:
-                        POL_LIST.append(POL)
+                POL_LIST = make_One_or_More_Polymers(
+                    init,
+                    vardict["n"],
+                    deciphered_dict_keys, #the list here will cue the function to perform different behavior.
+                    term,
+                    verbosity=vardict["verbose"],
+                    plot=vardict["plot"],
+                    confirm=not vardict["quiet"],
+                    defaults=default_dict
+                )
 
         else: # read mol from file
             if vardict["single_monomer"] is not None or vardict["comonomer_sequence"] is not None:
