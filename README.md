@@ -219,6 +219,10 @@ Then, if you are using Windows, follow the additional steps for that operating s
 2. Activate the environment\
 `conda activate HX-env`
 
+## Install with pip
+
+1. `pip install hydrophobicity_explorer`
+
 ## Install with Git
 ### Extra Step For Windows
 
@@ -230,12 +234,12 @@ Then, if you are using Windows, follow the additional steps for that operating s
 `git clone https://github.com/TheHydrophobicityProject/HydrophobicityExplorer.git`
 
 2. Set up the conda environment\
-`conda create -c conda-forge -n HX-env rdkit scipy`
+`conda create -c conda-forge -n HX-env rdkit scipy rich`
 
     Allow conda to install the dependencies
 
 3. Activate the environment\
 `conda activate HX-env`
 
-4. Install the package locally\
-`python3 PATH/TO/INSTALL/setup.py install`
+4. Install the package from the downloaded source\
+`python3 -m pip install PATH/TO/DOWNLOADED/PACKAGE`
