@@ -523,7 +523,7 @@ def write_pol(name, verbosity=False, pol_list=None):
     if verbosity:
         print(f'writing molecule to {name}')
 
-    pol_list[0] = first_conf
+    first_conf = pol_list[0]
     cid = -1
 
     #is the file type valid?
