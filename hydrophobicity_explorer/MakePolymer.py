@@ -297,9 +297,9 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
         test_smi = repeat_unit
     else:
         addEndgroups = True
-
     if type(r) == list:
-        polymer_SMILES, ratio = randPol.makePolymerBody_ratio(r, n, mpn=m_per_n)
+        deciphered_dict_keys = parse_smiles_dict_keys(r, mono)
+        polymer_SMILES, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, mpn=m_per_n)
     else:
         polymer_SMILES = n * repeat_unit
         ratio = None
@@ -731,34 +731,25 @@ def main(**kwargs):
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
             if not vardict["random"]:
-                POL_LIST = make_One_or_More_Polymers(
-                    vardict["initiator"],
-                    vardict["n"],
-                    repeat_unit,
-                    vardict["terminator"],
-                    verbosity=vardict["verbose"],
-                    plot=vardict["plot"],
-                    confirm=not vardict["quiet"],
-                    defaults=default_dict)
+                init = vardict["initiator"]
+                term = vardict["terminator"]
             else:
                 if type(repeat_unit) != list:
                     raise TypeError("comonomers must be specified with -b if -a is used.")
                 init, term = inator_smi_lookup(vardict["initiator"], vardict["terminator"])
                 init = validate_end_group(init, Init=True)
                 term = validate_end_group(term, Term=True)
-                deciphered_dict_keys = parse_smiles_dict_keys(repeat_unit, mono)
 
-                POL_LIST = make_One_or_More_Polymers(
-                    init,
-                    vardict["n"],
-                    deciphered_dict_keys, #the list here will cue the function to perform different behavior.
-                    term,
-                    verbosity=vardict["verbose"],
-                    plot=vardict["plot"],
-                    confirm=not vardict["quiet"],
-                    defaults=default_dict
-                )
-
+            POL_LIST = make_One_or_More_Polymers(
+                init,
+                vardict["n"],
+                repeat_unit,
+                term,
+                verbosity=vardict["verbose"],
+                plot=vardict["plot"],
+                confirm=not vardict["quiet"],
+                defaults=default_dict)
+            
         else: # read mol from file
             if vardict["single_monomer"] is not None or vardict["comonomer_sequence"] is not None:
                 raise Exception("No monomers may be specified when reading from a file.")
