@@ -761,7 +761,7 @@ def main(**kwargs):
             base = vardict["save"].split(".")[0]
             ext = vardict["save"].split(".")[1]
             for POL in track(POL_LIST, description="[blue] Writing to File(s)", disable=not vardict["verbose"]):
-                name = f"{base}_{POL.n}.{ext}"
+                name = f"{base}_{POL.n * POL.mpn}.{ext}"
                 write_pol(name, pol_list=POL.pol_list)
 
         #drawing a picture of the polymer.
