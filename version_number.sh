@@ -1,17 +1,14 @@
 #!/bin/bash
 
 read_version_number(){
-	fn_vn=$(awk -F "\"" '/version/ {print $2}' "$1")
+	awk -F "\"" '/version/ {print $2}' "$1"
 }
-
 
 setup_file="setup.py"
 init_file="hydrophobicity_explorer/__init__.py"
 
-read_version_number "$setup_file"
-setup_version=$fn_vn
-read_version_number "$init_file"
-init_version=$fn_vn
+setup_version=$(read_version_number "$setup_file")
+init_version=$(read_version_number "$init_file")
 
 # echo "$setup_version"
 # echo "$init_version"
@@ -44,6 +41,5 @@ do
 	fi
 done
 
-read_version_number "$setup_file"
-echo version number in both files is "$fn_vn"
+echo version number in both files is $(read_version_number "$setup_file")
 
