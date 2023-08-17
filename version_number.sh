@@ -27,18 +27,16 @@ read_version_number(){
 	awk -F "\"" '/version/ {print $2}' "$1"
 }
 
-is_equal_vn(){
-	if [[ $1 == $2 ]]
-	then
-		echo 1
-	else
-		echo 0
-	fi
-}
-
 conform_to_greater_vn(){
 	i=1
-	versionsEqual=$(is_equal_vn $1 $2)
+
+	if [[ $1 == $2 ]]
+	then
+		versionsEqual=1
+	else
+		versionsEqual=0
+	fi
+	
 	while [ $versionsEqual -lt 1 ]
 	do
 		first_dec=$(echo "$1" | cut -d "." -f $i)
