@@ -93,6 +93,12 @@ class TestPolymerIO:
 def test_make_simple_polymer():
     MakePolymer.main(n = 1, single_monomer = "Ethylene", initiator = "Hydroxy", terminator = "*CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True)
 
+def test_plotting():
+    MakePolymer.main(n = 2, single_monomer = "Ethylene", initiator = "Hydroxy", terminator = "*CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True, plot = True)
+    plot_name = "Size-dependent-stats.png"
+    assert os.path.exists(plot_name)
+    os.remove(plot_name)
+
 def test_pallendromic_end_piece_filter():
     with pytest.raises(ValueError): # terminator is non-pallendromic and needs to have "*"
         MakePolymer.main(n = 1, single_monomer = "Styrene", initiator = "Hydroxy", terminator = "CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True)
