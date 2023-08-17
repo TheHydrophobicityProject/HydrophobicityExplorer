@@ -90,3 +90,10 @@ class TestPolymerIO:
 
         assert smi1 == smi2
 
+def test_make_simple_polymer():
+    MakePolymer.main(n = 1, single_monomer = "Ethylene", initiator = "Hydroxy", terminator = "*CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True)
+
+def test_pallendromic_end_piece_filter():
+    with pytest.raises(ValueError): # terminator is non-pallendromic and needs to have "*"
+        MakePolymer.main(n = 1, single_monomer = "Styrene", initiator = "Hydroxy", terminator = "CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True)
+
