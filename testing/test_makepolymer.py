@@ -97,3 +97,5 @@ def test_pallendromic_end_piece_filter():
     with pytest.raises(ValueError): # terminator is non-pallendromic and needs to have "*"
         MakePolymer.main(n = 1, single_monomer = "Styrene", initiator = "Hydroxy", terminator = "CC(C(=O)OC)C", calculation = ["MHP", "RG", "MV"], quiet = True)
 
+def test_make_block_polymer():
+    MakePolymer.main(n = 2, comonomer_sequence = ["Vinylalcohol", "Vinylchloride"], calculation = ["MHP", "RG", "MV"])

@@ -32,6 +32,7 @@ class Polymer:
         self.pol_list = pol_list
 
     def get2D(self):
+        print(f"{self.smiles = }")
         FLAT = Chem.MolFromSmiles(self.smiles)
         #check mol
         Chem.SanitizeMol(FLAT)
@@ -281,7 +282,7 @@ def add_inator_smiles(smi, init, term):
     return smi
 
 
-def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
+def createPolymerObj(i, n, r, t, verbosity=False, test=False, random=False):
     """
     given the components of the polymer, like end groups, n and the repeat unit --> Polymer object
 
@@ -297,7 +298,7 @@ def createPolymerObj(i, n, r, t, *, verbosity=False, test=False):
         test_smi = repeat_unit
     else:
         addEndgroups = True
-    if type(r) == list:
+    if type(r) == list and random:
         deciphered_dict_keys = parse_smiles_dict_keys(r, mono)
         polymer_SMILES, ratio = randPol.makePolymerBody_ratio(deciphered_dict_keys, n, mpn=m_per_n)
     else:
@@ -380,7 +381,7 @@ def confirmStructure(smi):
     
     return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def make_One_or_More_Polymers(i, n, r, t, random=False, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
     if i == "Hydrogen" and t == "Hydrogen":
@@ -402,10 +403,10 @@ def make_One_or_More_Polymers(i, n, r, t, verbosity=False, plot=False, confirm=F
 
     for j in track(N_array, description="[blue] Generating SMILES:", disable = not verbosity):
         if confirm and not approved:
-            test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True)
+            test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True, random=random)
             approved = confirmStructure(test_smi)
         else:
-            POL = createPolymerObj(i, j, r, t, verbosity=verbosity)
+            POL = createPolymerObj(i, j, r, t, verbosity=verbosity, random=random)
 
         POL_LIST.append(POL)
 
@@ -730,9 +731,11 @@ def main(**kwargs):
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
+            print(repeat_unit)
             if not vardict["random"]:
                 init = vardict["initiator"]
                 term = vardict["terminator"]
+                print("not random")
             else:
                 if type(repeat_unit) != list:
                     raise TypeError("comonomers must be specified with -b if -a is used.")
@@ -745,6 +748,7 @@ def main(**kwargs):
                 vardict["n"],
                 repeat_unit,
                 term,
+                random=vardict["random"],
                 verbosity=vardict["verbose"],
                 plot=vardict["plot"],
                 confirm=not vardict["quiet"],
