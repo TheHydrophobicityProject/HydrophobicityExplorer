@@ -76,9 +76,9 @@ init_version=$(read_version_number "$init_file")
 
 if [[ $perscribed_version != "" ]]
 then
-	if (( $(is_equal_vn $perscribed_version $setup_version) + $(is_equal_vn $perscribed_version $init_version) >= 1))
+	if [[ $perscribed_version == $setup_version || $perscribed_version == $init_version ]]
 	then
-		echo FAILED: Perscribed version number is EQUAL TO one existing version number >&2
+		echo FAILED: Perscribed version number is EQUAL TO at least one existing version number >&2
 		exit 1
 	else
 		conform_to_greater_vn "$perscribed_version" "$init_version" "FAIL" "$init_file"
