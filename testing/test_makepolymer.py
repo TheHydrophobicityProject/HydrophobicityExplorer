@@ -99,3 +99,6 @@ def test_pallendromic_end_piece_filter():
 
 def test_make_block_polymer():
     MakePolymer.main(n = 2, comonomer_sequence = ["Vinylalcohol", "Vinylchloride"], calculation = ["MHP", "RG", "MV"])
+
+def test_make_random_polymer():
+    MakePolymer.main(n = 2, comonomer_sequence = ["Vinylalcohol", "Vinylchloride"], calculation = ["MHP", "RG", "MV"], random = True)

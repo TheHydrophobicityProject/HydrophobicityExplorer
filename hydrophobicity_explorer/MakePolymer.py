@@ -32,7 +32,6 @@ class Polymer:
         self.pol_list = pol_list
 
     def get2D(self):
-        print(f"{self.smiles = }")
         FLAT = Chem.MolFromSmiles(self.smiles)
         #check mol
         Chem.SanitizeMol(FLAT)
@@ -731,17 +730,11 @@ def main(**kwargs):
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
             repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
-            print(repeat_unit)
-            if not vardict["random"]:
-                init = vardict["initiator"]
-                term = vardict["terminator"]
-                print("not random")
-            else:
-                if type(repeat_unit) != list:
-                    raise TypeError("comonomers must be specified with -b if -a is used.")
-                init, term = inator_smi_lookup(vardict["initiator"], vardict["terminator"])
-                init = validate_end_group(init, Init=True)
-                term = validate_end_group(term, Term=True)
+            init = vardict["initiator"]
+            term = vardict["terminator"]
+
+            if vardict["random"] and type(repeat_unit) != list:
+                raise TypeError("comonomers must be specified with -b if -a is used.")
 
             POL_LIST = make_One_or_More_Polymers(
                 init,
