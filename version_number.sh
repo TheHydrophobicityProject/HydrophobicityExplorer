@@ -15,6 +15,7 @@ is_equal_vn(){
 
 conform_to_greater_vn(){
 	i=1
+	versionsEqual=$(is_equal_vn $1 $2)
 	while [ $versionsEqual -lt 1 ]
 	do
 		first_dec=$(echo "$1" | cut -d "." -f $i)
@@ -45,7 +46,6 @@ init_version=$(read_version_number "$init_file")
 # echo "$setup_version"
 # echo "$init_version"
 
-versionsEqual=$(is_equal_vn $setup_version $init_version)
 
 conform_to_greater_vn "$setup_version" "$init_version" "$setup_file" "$init_file"
 
