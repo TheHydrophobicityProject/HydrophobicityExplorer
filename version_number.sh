@@ -4,6 +4,15 @@ read_version_number(){
 	awk -F "\"" '/version/ {print $2}' "$1"
 }
 
+is_equal_vn(){
+	if [[ $1 == $2 ]]
+	then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
 setup_file="setup.py"
 init_file="hydrophobicity_explorer/__init__.py"
 
@@ -13,12 +22,7 @@ init_version=$(read_version_number "$init_file")
 # echo "$setup_version"
 # echo "$init_version"
 
-if [[ "$setup_version" == "$init_version" ]]
-then
-	versionsEqual=1
-else
-	versionsEqual=0
-fi
+versionsEqual=$(is_equal_vn $setup_version $init_version)
 
 i=1
 while [ $versionsEqual -lt 1 ]
