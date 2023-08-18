@@ -178,30 +178,6 @@ Some of the values are used by external functions and others by functions in thi
 
 If the settings file cannot be found hardcoded defaults will be used instead.
 
-## Running Jobs With Config Files
-
-Json files can be used instead of or in conjunction with any of the above command-line arguments.
-Examples of valid json files are provided, but the most important aspect is the `runs` array:
-
-```json
-{
-    "runs":
-    [
-        {
-            "n": 4,
-            "read": "pol.mol",
-            "calculation": [
-                "SA",
-                "RG",
-                "LogP"
-            ]
-        }
-    ]
-}
-```
-
-The list of dictionaries created by importing the paramaters from the json file is filled in with the default values for parameters like `"plot"` or `"export"`, then each dictonary of inputs is run in succession. The provided command-line arguments are overwritten by the corresponding argument in the json file.
-
 # Installation
 
 ## General Steps

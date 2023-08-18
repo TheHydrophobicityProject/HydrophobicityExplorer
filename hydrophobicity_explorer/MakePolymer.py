@@ -62,21 +62,6 @@ def getStaticSettings():
     return settings_dict
 
 
-def getJsonArgs(jsonFile, dict):
-    """
-    Reads run parameters from a file. Allows multiple jobs to be run sequentially with one command.
-    """
-    with open(jsonFile, 'r') as J: #open json file
-        runs_dict = json.load(J) #read it
-        for run in runs_dict["runs"]: #so few items the nested for loops shouldn't be a big deal
-            run_keys = run.keys()
-            for dict_key in dict.keys(): #the keys submitted to the func (derrived from CLI arguments)
-                if dict_key not in run_keys: #if there is a key provided by user not in the dict derrived from the json file
-                    run[dict_key] = dict[dict_key] #then add it
-    run_list = runs_dict["runs"] #now we have a list of runs with all arguments from file and command line.
-    return run_list
-
-
 def getArgs():
     #get commandline arguments
     parser = argparse.ArgumentParser()
@@ -95,18 +80,13 @@ def getArgs():
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
                         help = "Include this option to generate a plot of whatever calculations are specified with -c on polymers from 1 to the n specified with the -n flag. This means the molecule cannot be read from a file with the -r flag. If used with the -f flag multiple files will be saved with names based off the one provided.")
     parser.add_argument("-e", "--export", type = str, help = "Include this option to export a .csv file of all data calculations. Specify the name here.")
-    parser.add_argument("-j", "--json", type = str, help = "The path to a compatible .json file with any of the above arguments.")
     parser.add_argument("-q", "--quiet", default = False, action = "store_true", help = "Add this option to suppress the confirmation step which by default prevents calculations from running until the structure of the polymer is approved.")
     parser.add_argument("-a", "--random", default = False, action = "store_true",
             help="Requires the use of the -b flag. Interprets coefficients as desired relative amounts of each comonomer. The ratio provided will be scaled to fit the desired number of monomers. The ordering will be randomized.")
     args, _ = parser.parse_known_args() #second result is for unknown arguments
     #get additional arguments from json file if provided or by default if no args provided.
     vardict = vars(args)
-    if args.json is not None:
-        run_list = getJsonArgs(args.json, vardict)
-    else:
-        run_list = [vardict]  #args assumed to be in list later due to above.
-    return run_list
+    return vardict
 
 
 def getRepeatUnit(single, co):
@@ -124,12 +104,10 @@ def parse_smiles_dict_keys(compound_list, compound_dict):
     return [compound_dict[x] if x in compound_dict else x for x in compound_list]
 
 
-@cache  #avoid multiple lookups if multiple runs with same inputs
 def monomer_smi_lookup(m):
     return mono[m]
 
 
-@cache  #avoid multiple lookups if multiple runs with same inputs
 def inator_smi_lookup(i, t):
     given_inators = [i, t]
     #gets from dict if available. Otherwise assume SMILES and continue. There will eventually be an error if this isn't the case.
@@ -721,108 +699,105 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
 
 def main(**kwargs):
     default_dict = getStaticSettings()
-    run_list = getArgs()
+    vardict = getArgs()
 
     #merge user-created smiles with built-in dicts and make accessible to all funcs
     global ini, mono
     ini, mono = checkAndMergeSMILESDicts(init_dict, monomer_dict)
     
-    for vardict in run_list:
-        for key in kwargs: 
-            vardict[key] = kwargs[key] #assign all keyword arguments to proper place in var dictionary
+    for key in kwargs: 
+        vardict[key] = kwargs[key] #assign all keyword arguments to proper place in var dictionary
 
-        if vardict["read"] is None: #then get polymer parameters from CLI arguments.
-            try:
-                repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
-            except IndexError:
-                print("No arguments found. Please use `makePol -h` for help.")
-                quit()
+    if vardict["read"] is None: #then get polymer parameters from CLI arguments.
+        try:
+            repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
+        except IndexError:
+            print("No arguments found. Please use `makePol -h` for help.")
+            quit()
 
-            init = vardict["initiator"]
-            term = vardict["terminator"]
+        init = vardict["initiator"]
+        term = vardict["terminator"]
 
-            if vardict["random"] and type(repeat_unit) != list:
-                raise TypeError("comonomers must be specified with -b if -a is used.")
+        if vardict["random"] and type(repeat_unit) != list:
+            raise TypeError("comonomers must be specified with -b if -a is used.")
 
-            POL_LIST = make_One_or_More_Polymers(
-                init,
-                vardict["n"],
-                repeat_unit,
-                term,
-                random=vardict["random"],
-                verbosity=vardict["verbose"],
-                plot=vardict["plot"],
-                confirm=not vardict["quiet"],
+        POL_LIST = make_One_or_More_Polymers(
+            init,
+            vardict["n"],
+            repeat_unit,
+            term,
+            random=vardict["random"],
+            verbosity=vardict["verbose"],
+            plot=vardict["plot"],
+            confirm=not vardict["quiet"],
+            defaults=default_dict)
+        
+    else: # read mol from file
+        if vardict["single_monomer"] is not None or vardict["comonomer_sequence"] is not None:
+            raise Exception("No monomers may be specified when reading from a file.")
+        elif vardict["plot"]:
+            raise Exception("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
+        elif vardict["n"] == None:
+            raise Exception("You need to specify the number of monomers in polymers read from a file.")
+        POL = read_pol(vardict["read"], n=vardict["n"], verbosity=vardict["verbose"])
+        POL_LIST = [POL]
+
+    # saving the polymer to a file.
+    if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
+        base = vardict["save"].split(".")[0]
+        ext = vardict["save"].split(".")[1]
+        for POL in track(POL_LIST, description="[blue] Writing to File(s)", disable=not vardict["verbose"]):
+            name = f"{base}_{POL.n * POL.mpn}.{ext}"
+            write_pol(name, pol_list=POL.pol_list)
+
+    #drawing a picture of the polymer.
+    if vardict["plot"]:
+        pol = POL_LIST  #submit this list of mols for use in grid image. If a list is detected, the flats will be pulled out.
+    else:
+        pol = POL_LIST[0].flat
+
+    drawName = None
+    if vardict["draw"] is not None:
+        drawName = f'{vardict["draw"].split(".")[0]}.png'
+    elif vardict["verbose"]:
+        drawName = default_dict["drawing_default"]
+
+    if drawName is not None:
+        drawPol(pol, drawName, image_size=default_dict["drawing_subImgSize_edge"])
+
+    #CALCULATIONS
+    if vardict["verbose"]:
+        print(f'requested calculations are {vardict["calculation"]}')
+    if vardict["calculation"] is not None:
+        if not vardict["plot"]:
+            calcs = set([calc.upper() for calc in vardict["calculation"]]) # set() to removes duplicates
+            POL = POL_LIST[0]
+            data = doCalcs(
+                POL.pol_list, calcs,
                 defaults=default_dict)
-            
-        else: # read mol from file
-            if vardict["single_monomer"] is not None or vardict["comonomer_sequence"] is not None:
-                raise Exception("No monomers may be specified when reading from a file.")
-            elif vardict["plot"]:
-                raise Exception("You may not plot data read from a file.") #we should be able to check for other files with name convention "{name}_{n}.{ext}"
-            elif vardict["n"] == None:
-                raise Exception("You need to specify the number of monomers in polymers read from a file.")
-            POL = read_pol(vardict["read"], n=vardict["n"], verbosity=vardict["verbose"])
-
-        # saving the polymer to a file.
-        if vardict["save"] is not None: #technically nothing wrong with using this as a roundabout way of converting between filetypes
-            base = vardict["save"].split(".")[0]
-            ext = vardict["save"].split(".")[1]
-            for POL in track(POL_LIST, description="[blue] Writing to File(s)", disable=not vardict["verbose"]):
-                name = f"{base}_{POL.n * POL.mpn}.{ext}"
-                write_pol(name, pol_list=POL.pol_list)
-
-        #drawing a picture of the polymer.
-        if vardict["plot"]:
-            pol = POL_LIST  #submit this list of mols for use in grid image. If a list is detected, the flats will be pulled out.
+            data["N"] = vardict["n"] * POL.mpn
+            data["smi"] = POL.smiles
+            data = {k: [data[k]] for k in data} #values in dict need to be lists
+            if vardict["random"]:
+                data["Monomer Ratio"] = POL.ratio  #already in list form
+            dataframe = pandas.DataFrame(data)
         else:
-            pol = POL_LIST[0].flat
+            dataframe = makePlot(
+                POL_LIST,
+                vardict["calculation"],
+                verbosity=vardict["verbose"],
+                data_marker=default_dict["plot_dataPoint"],
+                fig_filename=default_dict["plot_Filename"])
 
-        drawName = None
-        if vardict["draw"] is not None:
-            drawName = f'{vardict["draw"].split(".")[0]}.png'
-        elif vardict["verbose"]:
-            drawName = default_dict["drawing_default"]
+        #we should always show data if it is collected.
+        print(dataframe)
 
-        if drawName is not None:
-            drawPol(pol, drawName, image_size=default_dict["drawing_subImgSize_edge"])
+        if vardict["export"] is not None:
+            pandas.DataFrame.to_csv(dataframe, vardict["export"], index=False)
+            print(f"Done exporting data to {vardict['export']}.")
 
-        #CALCULATIONS
-        if vardict["verbose"]:
-            print(f'requested calculations are {vardict["calculation"]}')
-        if vardict["calculation"] is not None:
-            if not vardict["plot"]:
-                calcs = set([calc.upper() for calc in vardict["calculation"]]) # set() to removes duplicates
-                POL = POL_LIST[0]
-                data = doCalcs(
-                    POL.pol_list, calcs,
-                    defaults=default_dict)
-                data["N"] = vardict["n"] * POL.mpn
-                data["smi"] = POL.smiles
-                data = {k: [data[k]] for k in data} #values in dict need to be lists
-                if vardict["random"]:
-                    data["Monomer Ratio"] = POL.ratio  #already in list form
-                dataframe = pandas.DataFrame(data)
-            else:
-                dataframe = makePlot(
-                    POL_LIST,
-                    vardict["calculation"],
-                    verbosity=vardict["verbose"],
-                    data_marker=default_dict["plot_dataPoint"],
-                    fig_filename=default_dict["plot_Filename"])
-
-            #we should always show data if it is collected.
-            print(dataframe)
-
-            if vardict["export"] is not None:
-                pandas.DataFrame.to_csv(dataframe, vardict["export"], index=False)
-                print(f"Done exporting data to {vardict['export']}.")
-
-        elif vardict["calculation"] is None and vardict["export"] is not None:
-            raise Exception("You cannot export data if none were collected.")
-
-        if len(run_list) > 1:
-            print("\n")  #separating runs visually if more than one.
+    elif vardict["calculation"] is None and vardict["export"] is not None:
+        raise Exception("You cannot export data if none were collected.")
 
 
 if __name__ == "__main__":
