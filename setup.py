@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="hydrophobicity_explorer",
-    version="0.1.3.4",
+    version="0.1.4.0",
     url="https://github.com/TheHydrophobicityProject/HydrophobicityExplorer",
     author="Sander Cohen-Janes",
     author_email="sander.cohen-janes@yale.edu",
