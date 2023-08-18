@@ -9,7 +9,7 @@ notebook = {
    "outputs": [],
    "source": [
     "from hydrophobicity_explorer.MakePolymer import main as makePol\n",
-    "import hydrophobicity_explorer.random_polymer_to_mol_file as randPol"
+    "from hydrophobicity_explorer.custom_input_to_mol_file import main as customPol"
    ]
   },
   {
@@ -72,8 +72,9 @@ notebook = {
     "nbformat_minor": 2
 }
 
-def main():
-    name = "hydrophobicity_explorer.ipynb"
+name = "hydrophobicity_explorer.ipynb"
+
+def main():    
     if os.path.exists(name):
         inp = input(f"{name} exists. Should it be overwritten? [Y/n]: ")
         if inp.lower() != "y" and inp != "":

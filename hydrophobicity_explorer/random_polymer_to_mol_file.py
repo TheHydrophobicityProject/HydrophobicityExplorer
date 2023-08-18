@@ -40,31 +40,26 @@ def getCoeffs(Coefs_and_monomers):
     return coeffs_list, monomer_list
 
 
-def mergeList(lst):
-    smiles = "".join(lst)
-    print(f"body smiles is:\n{smiles}")
-    return smiles
-
-
 def makePolymerBody_weighted(weighted_monomer_list, n):
     monomer_weights, expanded_list = getCoeffs(weighted_monomer_list)
     #now that we have an explicit list, we can pick at random from the list n times and make the polymer body.
     body_list = choices(expanded_list, weights=monomer_weights, k=n)
     #now merge list into smiles.
-    smiles = mergeList(body_list)
+    smiles = "".join(body_list)
 
     return smiles
 
 
-def makePolymerBody_ratio(formula_list, n, verbo=False):
+def makePolymerBody_ratio(formula_list, n, verbo=False, mpn=1):
     coeffs, monomers = getCoeffs(formula_list)
     sum_coeffs = sum(coeffs)
     body_list = []
     real_coeffs = []
     roundup = True
     for i, coeff in enumerate(coeffs):
-        unrounded_coeff = coeff / sum_coeffs * n
-        if unrounded_coeff % 0.5 == 0:  #because round() makes 0.5 0, we need to make the case where 2 monomers have 0.5 split one to go up and the other down.
+        unrounded_coeff = (coeff / sum_coeffs) * n * mpn
+        #We need to make the case where 2 monomers have 0.5 split one to go up and the other down. However, "Integers" should not be changed.
+        if unrounded_coeff % 0.5 == 0 and unrounded_coeff % 1 != 0:
             if roundup:  #the first one we see is rounded up
                 unrounded_coeff += 0.1
                 roundup = False
@@ -78,10 +73,10 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
 
     #if n happens to be != to length of list, maybe allow user to modify by popping a random monomer from list or chosing a type of monomer to remove (and we remove a random one of that type.)
     #This isn't super important right now since they have a smiles they can also modify if they want exactly the right number.
-    if n != len(body_list):
+    if n * mpn != len(body_list):
         print(f"WARNING: Due to rounding the length of the polymer is {len(body_list)} and the n specified was {n}.")
     if len(body_list) == 0:
-        return None, "0"
+        return None, "0:0"
 
     den = reduce(gcd, real_coeffs)
     ratio = ":".join(str(int(i / den)) for i in real_coeffs)
@@ -89,7 +84,7 @@ def makePolymerBody_ratio(formula_list, n, verbo=False):
     #Now we have a list of monomers in the correct relative ammounts.
     #we just need to randomize the order.
     shuffle(body_list)
-    smiles = mergeList(body_list)
+    smiles = "".join(body_list)
     if verbo:
         print(f"{n = }")
         print(f"Ratio of monomers used is {ratio}")
