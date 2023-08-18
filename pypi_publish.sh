@@ -1,9 +1,10 @@
 #!/bin/bash
 #run from the directory containing setup.py
 
-python -m build
+version_number=$(awk -F "\"" '/version/ {print $2}' setup.py)
 
-python3 -m twine upload --repository pypi dist/*
+python3 -m build
+
+find dist -name "*${version_number}*" -exec python3 -m twine upload --repository pypi "{}" \;
 
 #enter login info
-
