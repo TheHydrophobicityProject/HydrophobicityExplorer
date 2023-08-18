@@ -417,7 +417,7 @@ def make_One_or_More_Polymers(i, n, r, t, random=False, verbosity=False, plot=Fa
     iters=defaults["opt_maxIters"]
     rdkit_params=defaults
     if threads == 0:
-        num_proc = os.cpu_count()
+        num_proc = min(os.cpu_count(), 62) # can't go higher on Windows according to docs.
     else:
         num_proc = threads
 
