@@ -22,6 +22,9 @@ def main():
     if len(given_args) > 2 and args.file is not None:
         print("Please only provide one input molecule type.")
         quit()
+    elif len(given_args) == 0:
+        print("No arguments found. Please use `cutomPol -h` for options.")
+        quit()
 
     if args.file is None:
         print("please provide a filename with the -f flag.")
