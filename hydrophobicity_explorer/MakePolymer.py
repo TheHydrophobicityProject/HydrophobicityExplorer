@@ -729,7 +729,12 @@ def main(**kwargs):
             vardict[key] = kwargs[key] #assign all keyword arguments to proper place in var dictionary
 
         if vardict["read"] is None: #then get polymer parameters from CLI arguments.
-            repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
+            try:
+                repeat_unit = getRepeatUnit(vardict["single_monomer"], vardict["comonomer_sequence"])
+            except IndexError:
+                print("No arguments found. Please use `makePol -h` for help.")
+                quit()
+
             init = vardict["initiator"]
             term = vardict["terminator"]
 
