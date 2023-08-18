@@ -380,34 +380,37 @@ def confirmStructure(smi):
     
     return inp #used to stop plotting jobs from asking for confirmation for each pol those jobs generate.
 
-def make_One_or_More_Polymers(i, n, r, t, random=False, verbosity=False, plot=False, confirm=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
+def make_One_or_More_Polymers(i, n, r, t, random=False, verbosity=False, plot=False, confirm=False, custom=False, defaults={"opt_numConfs":5, "opt_numThreads":0, "opt_maxIters":1500, "dielectricModel": 2, "dielectricConstant": 78, "NB_THRESH": 100}):
     # Makes polymers specified by user.
     POL_LIST = []
-    if i == "Hydrogen" and t == "Hydrogen":
-        addEndgroups = False
-        confirm = False
-    else:
-        addEndgroups = True
-
-    if plot:  #make molecules from n=1 to n
-        N_array = range(1, n + 1)
-    else:
-        N_array = [n]
-
-    #this allows us to confirm only once for plotting jobs
-    if confirm and addEndgroups:
-        approved = False
-    else:
-        approved = True
-
-    for j in track(N_array, description="[blue] Generating SMILES:", disable = not verbosity):
-        if confirm and not approved:
-            test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True, random=random)
-            approved = confirmStructure(test_smi)
+    if not custom:
+        if i == "Hydrogen" and t == "Hydrogen":
+            addEndgroups = False
+            confirm = False
         else:
-            POL = createPolymerObj(i, j, r, t, verbosity=verbosity, random=random)
+            addEndgroups = True
 
-        POL_LIST.append(POL)
+        if plot:  #make molecules from n=1 to n
+            N_array = range(1, n + 1)
+        else:
+            N_array = [n]
+
+        #this allows us to confirm only once for plotting jobs
+        if confirm and addEndgroups:
+            approved = False
+        else:
+            approved = True
+
+        for j in track(N_array, description="[blue] Generating SMILES:", disable = not verbosity):
+            if confirm and not approved:
+                test_smi, POL = createPolymerObj(i,j,r,t, verbosity=verbosity, test=True, random=random)
+                approved = confirmStructure(test_smi)
+            else:
+                POL = createPolymerObj(i, j, r, t, verbosity=verbosity, random=random)
+
+            POL_LIST.append(POL)
+    else:
+        POL_LIST.append(Polymer(smiles=r, n=n))
 
     nConfs=defaults["opt_numConfs"]
     threads=defaults["opt_numThreads"]

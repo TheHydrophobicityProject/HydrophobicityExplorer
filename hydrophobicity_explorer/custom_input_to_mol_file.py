@@ -1,7 +1,7 @@
 import rdkit, argparse
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from hydrophobicity_explorer.MakePolymer import optPol, getStaticSettings, write_pol, Polymer
+from hydrophobicity_explorer.MakePolymer import getStaticSettings, write_pol, make_One_or_More_Polymers
 
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -28,24 +28,21 @@ def main():
         quit()
 
     if args.smiles is not None:
-        mol = Chem.MolFromSmiles(args.smiles)
+        smi = args.smiles
     elif args.smarts is not None:
         mol = Chem.MolFromSmarts(args.smarts)
+        smi = Chem.MolToSmiles(mol)
     elif args.inchi is not None:
         mol = Chem.MolFromInchi(args.inchi)
+        smi = Chem.MolToSmiles(mol)
     else:
         print("I am confused. Input format not recognized.")
         quit()
 
-    POL = Polymer(smiles=Chem.MolToSmiles(mol))
-    #doing this extra step so opt is consistent with option used in primary script. Only need to change one set of parameters while finding best options.
-    POL.suppl = optPol(
-        POL.flat,
-        nConfs=defaults["opt_numConfs"],
-        threads=defaults["opt_numThreads"],
-        iters=defaults["opt_maxIters"])  #this function also saves the file.
+    POL_LIST = make_One_or_More_Polymers("", -1, smi, "", verbosity=True, custom=True)
+    POL = POL_LIST[0]
 
-    write_pol(args.file, suppl=POL.suppl, verbosity=True)
+    write_pol(args.file, pol_list=POL.pol_list)
 
 if __name__ == "__main__":
     main()
