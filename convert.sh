@@ -1,6 +1,5 @@
 #!/bin/bash
-read -rp "Enter path to the system-specific package: " path
-conda convert --platform all "$path" -o conda-out
+version_number=$(awk -F "\"" '/version/ {print $2}' setup.py)
 
-version=$(grep version setup.py | cut -d "\"" -f2)
-find . -name "hydro*ex*${version}*bz2" -exec anaconda upload "{}" \;
+find ./conda-out/linux-64/ -name "*${version_number}*bz2" -exec conda convert --platform all "{}" -o conda-out \;
+find . -name "hydro*ex*${version_number}*bz2" -exec anaconda upload "{}" \;
