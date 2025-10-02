@@ -35,6 +35,7 @@ monomer_dict = {
 
     #Vinyl monomers written to depict primary addition of alkene (i.e. substituent is on second carbon of alkene)
     'Acrylamide': 'CC(C(=O)N)',
+    'AAm': 'CC(C(=O)N)',
     'Butylacrylate': 'CC(C(=O)OCCCC)',
     'Dimethylacrylamide': 'CC(C(=O)N(C)(C))',
     'DMA': 'CC(C(=O)N(C)(C))',
@@ -45,7 +46,10 @@ monomer_dict = {
     '1-Hexene': 'CC(CCCC)',
     'Hydroxybutylacrylate': 'CC(C(=O)OCCCCO)',
     'Hydroxyethylacrylate': 'CC(C(=O)OCCO)',
+    'HEA': 'CC(C(=O)OCCO)',
     'Hydroxyethylmethacrylate': 'CC(C(=O)OCCO)(C)',
+    'N-isopropylacrylamide': 'CC(C(=O)NC(C)(C))',
+    'NIPAM': 'CC(C(=O)NC(C)(C))'
     'Methoxyethylacrylate': 'CC(C(=O)OCCOC)',
     'Methylacrylate': 'CC(C(=O)OC)C',
     'Methylmethacrylate': 'CC(C(=O)OC)(C)',
