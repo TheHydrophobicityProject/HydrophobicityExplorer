@@ -74,7 +74,7 @@ def getArgs():
     parser.add_argument("-d", "--draw", type = str, help = "Filename for polymer image.")
     parser.add_argument("-v", "--verbose", default = False, action = "store_true", help = "Set increased verbosity. Will draw polymer to polymer.png unless alternate name set by -d option.")
     parser.add_argument("-c","--calculation", type = str, nargs = '*', 
-                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Mathers Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and Rg (radius of gyration).")
+                        help = "Type of calculation(s) to be performed input as a space-separated list. Options are LogP, SA (surface area), MV (Molecular Volume), MHP (Macromolecular Hydrophobicity Parameter (LogP/SA; each of which will also be reported. Use XMHP to exclude those plots)) and Rg (radius of gyration).")
     parser.add_argument("-s","--save", type = str, help = "The name/path of the file you wish to save the mol to. Supported formats are .pdb, .xyz and .mol")
     parser.add_argument("-r", "--read", type = str, help = "The name/path to file you wish to import. Supported formats are .pdb, .mol and .sdf")
     parser.add_argument("-p", "--plot", default = False, action = "store_true", 
@@ -613,7 +613,7 @@ def makePlot(pol_list, calculations, verbosity=False, data_marker='o', fig_filen
         "LogP": "",
         "Rg": "Angstroms",
         "SA": "Angstroms^2",
-        "MV": "Molar Volume"
+        "MV": "Angstroms^3"
     }
     dicts = []
     for POL in track(pol_list, description="[blue] Performing Calculations"):
